@@ -24,6 +24,32 @@ export default function AboutPage() {
         Our goal is to turn noisy industry updates into concise, useful
         briefings with practical takeaways, risks, and revenue implications.
       </p>
+      <h2>What We Cover</h2>
+      <p>
+        We focus on practical business signals: new software tools, platform
+        changes, search updates, ecommerce tactics, creator monetization,
+        startup trends, payment products, and AI workflows that can affect how
+        online businesses grow revenue.
+      </p>
+      <h2>Who It Is For</h2>
+      <p>
+        The publication is built for creators, indie hackers, SaaS founders,
+        affiliate marketers, ecommerce operators, SEO builders, newsletter
+        operators, consultants, and technical buyers who want a clearer view of
+        where digital revenue opportunities are moving.
+      </p>
+      <h2>How It Works</h2>
+      <p>
+        We monitor public RSS sources, filter for relevance, and use AI-assisted
+        analysis to produce short briefings. Each article is designed to explain
+        why a development matters, what opportunities it may create, and what
+        readers should watch before acting on it.
+      </p>
+      <p>
+        We are not a financial adviser, investment adviser, or legal adviser.
+        Readers should verify important details before making business,
+        investment, tax, or legal decisions.
+      </p>
     </InfoPage>
   );
 }

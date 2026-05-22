@@ -25,6 +25,26 @@ export default function ContactPage() {
         If you are submitting a correction, please include the article URL and
         the specific passage you want reviewed.
       </p>
+      <h2>Corrections</h2>
+      <p>
+        We review correction requests for factual accuracy, attribution issues,
+        broken links, outdated source references, and unclear summaries. Please
+        include enough context for us to verify the issue quickly.
+      </p>
+      <h2>Source Suggestions</h2>
+      <p>
+        If you know a high-quality RSS feed about AI tools, SEO, ecommerce,
+        digital marketing, startups, fintech, or creator business, send it to us
+        with a short note explaining why it fits the Tech Revenue Brief audience.
+      </p>
+      <h2>Advertising and Partnerships</h2>
+      <p>
+        For sponsorships, partner placements, or media questions, contact{" "}
+        <a href="mailto:ads@techrevenuebrief.com">
+          ads@techrevenuebrief.com
+        </a>
+        .
+      </p>
     </InfoPage>
   );
 }
