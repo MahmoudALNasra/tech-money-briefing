@@ -16,7 +16,7 @@ export function SiteHeader({
   const navCategories = categories.length > 0 ? categories : CORE_CATEGORIES;
 
   return (
-    <header className="border-b border-stone-200 bg-white">
+    <header className="sticky top-0 z-40 border-b border-stone-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-5 sm:px-8 md:flex-row md:items-center md:justify-between">
         <Link href="/" className="text-lg font-black tracking-tight text-ink">
           {siteConfig.name}

@@ -31,6 +31,13 @@ export default function PrivacyPage() {
         engagement events. This helps us understand which topics are useful and
         how the site performs.
       </p>
+      <p>
+        When visitors use a campaign or custom tracking link, we may record the
+        campaign name, destination path, referrer, browser user agent,
+        approximate location from hosting headers, language preference, and a
+        hashed version of the visitor IP address. We do not store raw IP
+        addresses for custom link tracking.
+      </p>
       <h2>Analytics and Advertising</h2>
       <p>
         We may use analytics and tag management tools to understand traffic,
