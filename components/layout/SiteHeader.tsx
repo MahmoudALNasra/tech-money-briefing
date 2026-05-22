@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
@@ -13,38 +16,97 @@ export function SiteHeader({
   categories = CORE_CATEGORIES,
   activeCategory
 }: SiteHeaderProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navCategories = categories.length > 0 ? categories : CORE_CATEGORIES;
 
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-50 border-b border-stone-200 bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-5 py-4 sm:px-8 md:flex-row md:items-center md:justify-between">
-          <Link href="/" className="text-lg font-black tracking-tight text-ink">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4 sm:px-8">
+          <Link
+            href="/"
+            onClick={() => setIsMenuOpen(false)}
+            className="text-lg font-black tracking-tight text-ink"
+          >
             {siteConfig.name}
           </Link>
+
           {navCategories.length > 0 ? (
-            <nav
-              className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 md:mx-0 md:gap-4 md:overflow-visible md:px-0 md:pb-0"
-              aria-label="Categories"
-            >
-              {navCategories.map((category) => (
-                <Link
-                  key={category}
-                  href={`/${category}`}
-                  className={`shrink-0 rounded-full px-3 py-1 text-sm font-semibold transition ${
-                    category === activeCategory
-                      ? "bg-ink text-white"
-                      : "bg-stone-100 text-stone-600 hover:bg-stone-200 hover:text-ink md:bg-transparent md:px-0"
-                  }`}
-                >
-                  {formatCategory(category)}
-                </Link>
-              ))}
-            </nav>
+            <>
+              <nav
+                className="hidden items-center gap-4 md:flex"
+                aria-label="Categories"
+              >
+                {navCategories.map((category) => (
+                  <Link
+                    key={category}
+                    href={`/${category}`}
+                    className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
+                      category === activeCategory
+                        ? "bg-ink text-white"
+                        : "text-stone-600 hover:text-ink"
+                    }`}
+                  >
+                    {formatCategory(category)}
+                  </Link>
+                ))}
+              </nav>
+
+              <button
+                type="button"
+                aria-label="Toggle navigation menu"
+                aria-expanded={isMenuOpen}
+                onClick={() => setIsMenuOpen((current) => !current)}
+                className="group inline-flex h-11 w-11 items-center justify-center rounded-full border border-stone-200 bg-stone-50 transition hover:border-ink hover:bg-white md:hidden"
+              >
+                <span className="relative h-4 w-5">
+                  <span
+                    className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-ink transition duration-300 ${
+                      isMenuOpen ? "translate-y-[7px] rotate-45" : ""
+                    }`}
+                  />
+                  <span
+                    className={`absolute left-0 top-[7px] h-0.5 w-5 rounded-full bg-ink transition duration-300 ${
+                      isMenuOpen ? "opacity-0" : "opacity-100"
+                    }`}
+                  />
+                  <span
+                    className={`absolute bottom-0 left-0 h-0.5 w-5 rounded-full bg-ink transition duration-300 ${
+                      isMenuOpen ? "-translate-y-[7px] -rotate-45" : ""
+                    }`}
+                  />
+                </span>
+              </button>
+
+              <div
+                className={`absolute inset-x-3 top-[calc(100%+0.5rem)] origin-top rounded-3xl border border-stone-200 bg-white p-3 shadow-2xl shadow-stone-950/10 transition duration-300 md:hidden ${
+                  isMenuOpen
+                    ? "translate-y-0 scale-100 opacity-100"
+                    : "pointer-events-none -translate-y-3 scale-95 opacity-0"
+                }`}
+              >
+                <nav className="grid gap-1" aria-label="Mobile categories">
+                  {navCategories.map((category) => (
+                    <Link
+                      key={category}
+                      href={`/${category}`}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${
+                        category === activeCategory
+                          ? "bg-ink text-white"
+                          : "text-stone-700 hover:bg-stone-100 hover:text-ink"
+                      }`}
+                    >
+                      {formatCategory(category)}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+            </>
           ) : null}
         </div>
       </header>
-      <div aria-hidden="true" className="h-28 md:h-16" />
+      <div aria-hidden="true" className="h-20" />
     </>
   );
 }
