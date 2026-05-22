@@ -4,6 +4,18 @@ import { normalizeTakeaways } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import type { Article, ArticleSummary } from "@/lib/types";
 
+export const ARTICLES_PER_PAGE = 12;
+
+export type PaginatedArticles = {
+  articles: ArticleSummary[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+};
+
 function mapArticleSummary(row: Record<string, unknown>): ArticleSummary {
   return {
     id: String(row.id),
@@ -42,6 +54,25 @@ function mapArticle(row: Record<string, unknown>): Article {
 const articleSummaryColumns =
   "id,title,slug,meta_description,key_takeaways,category,source_name,image_url,share_id,published_at";
 
+function buildPaginatedArticles(
+  articles: ArticleSummary[],
+  page: number,
+  pageSize: number,
+  totalCount: number
+): PaginatedArticles {
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  return {
+    articles,
+    page,
+    pageSize,
+    totalCount,
+    totalPages,
+    hasPreviousPage: page > 1,
+    hasNextPage: page < totalPages
+  };
+}
+
 export const getPublishedArticles = cache(async (limit = 48) => {
   const { data, error } = await supabase
     .from("articles")
@@ -58,6 +89,30 @@ export const getPublishedArticles = cache(async (limit = 48) => {
     mapArticleSummary(row as Record<string, unknown>)
   );
 });
+
+export const getPaginatedPublishedArticles = cache(
+  async (page = 1, pageSize = ARTICLES_PER_PAGE) => {
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
+      .from("articles")
+      .select(articleSummaryColumns, { count: "exact" })
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      throw new Error(formatSupabaseError("Failed to load published articles", error));
+    }
+
+    const articles = (data ?? []).map((row) =>
+      mapArticleSummary(row as Record<string, unknown>)
+    );
+
+    return buildPaginatedArticles(articles, page, pageSize, count ?? 0);
+  }
+);
 
 export const getArticlesByCategory = cache(
   async (category: string, limit = 48) => {
@@ -76,6 +131,35 @@ export const getArticlesByCategory = cache(
     return (data ?? []).map((row) =>
       mapArticleSummary(row as Record<string, unknown>)
     );
+  }
+);
+
+export const getPaginatedArticlesByCategory = cache(
+  async (
+    category: string,
+    page = 1,
+    pageSize = ARTICLES_PER_PAGE
+  ): Promise<PaginatedArticles> => {
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    const { data, error, count } = await supabase
+      .from("articles")
+      .select(articleSummaryColumns, { count: "exact" })
+      .eq("status", "published")
+      .eq("category", category)
+      .order("published_at", { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      throw new Error(`Failed to load category articles: ${error.message}`);
+    }
+
+    const articles = (data ?? []).map((row) =>
+      mapArticleSummary(row as Record<string, unknown>)
+    );
+
+    return buildPaginatedArticles(articles, page, pageSize, count ?? 0);
   }
 );
 

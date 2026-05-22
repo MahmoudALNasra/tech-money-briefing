@@ -1,14 +1,60 @@
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+
 import { ArticleFeed } from "@/components/articles/ArticleFeed";
+import { PaginationControls } from "@/components/articles/PaginationControls";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { getPublishedArticles } from "@/lib/articles";
+import { getPaginatedPublishedArticles } from "@/lib/articles";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
-import { siteConfig } from "@/lib/site";
+import { paginatedCanonicalPath, parsePageParam } from "@/lib/pagination";
+import { absoluteUrl, siteConfig } from "@/lib/site";
+
+type HomePageProps = {
+  searchParams?: Promise<{
+    page?: string | string[];
+  }>;
+};
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
-  const articles = await getPublishedArticles(64);
+export async function generateMetadata({
+  searchParams
+}: HomePageProps): Promise<Metadata> {
+  const page = parsePageParam((await searchParams)?.page);
+  const canonicalPath = paginatedCanonicalPath("/", page);
+  const title =
+    page > 1 ? `${siteConfig.name} Briefings - Page ${page}` : siteConfig.name;
+
+  return {
+    title,
+    description: siteConfig.description,
+    alternates: {
+      canonical: absoluteUrl(canonicalPath)
+    },
+    openGraph: {
+      title,
+      description: siteConfig.description,
+      url: absoluteUrl(canonicalPath),
+      type: "website"
+    }
+  };
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const page = parsePageParam((await searchParams)?.page);
+  const paginatedArticles = await getPaginatedPublishedArticles(page);
+
+  if (paginatedArticles.totalCount > 0 && page > paginatedArticles.totalPages) {
+    redirect(
+      paginatedArticles.totalPages > 1
+        ? `/?page=${paginatedArticles.totalPages}`
+        : "/"
+    );
+  }
+
+  const { articles } = paginatedArticles;
+
   return (
     <>
       <SiteHeader categories={[...CORE_CATEGORIES]} />
@@ -45,6 +91,13 @@ export default async function HomePage() {
         {articles.length > 0 ? (
           <section className="pb-16">
             <ArticleFeed articles={articles} />
+            <PaginationControls
+              currentPage={paginatedArticles.page}
+              totalPages={paginatedArticles.totalPages}
+              basePath="/"
+              hasPreviousPage={paginatedArticles.hasPreviousPage}
+              hasNextPage={paginatedArticles.hasNextPage}
+            />
           </section>
         ) : (
           <section className="mx-auto max-w-5xl px-5 py-16 sm:px-8">

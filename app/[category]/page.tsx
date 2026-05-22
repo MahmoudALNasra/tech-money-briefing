@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { ArticleFeed } from "@/components/articles/ArticleFeed";
+import { PaginationControls } from "@/components/articles/PaginationControls";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { getArticlesByCategory } from "@/lib/articles";
-import { CORE_CATEGORIES, isCoreCategory } from "@/lib/categories";
+import { getPaginatedArticlesByCategory } from "@/lib/articles";
+import {
+  CATEGORY_SEO_DESCRIPTIONS,
+  CORE_CATEGORIES,
+  isCoreCategory
+} from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
+import { paginatedCanonicalPath, parsePageParam } from "@/lib/pagination";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { normalizeCategory } from "@/lib/slug";
 
@@ -12,19 +19,28 @@ type CategoryPageProps = {
   params: Promise<{
     category: string;
   }>;
+  searchParams?: Promise<{
+    page?: string | string[];
+  }>;
 };
 
 export const revalidate = 900;
 
 export async function generateMetadata({
-  params
+  params,
+  searchParams
 }: CategoryPageProps): Promise<Metadata> {
   const { category } = await params;
   const normalizedCategory = normalizeCategory(category);
+  const page = parsePageParam((await searchParams)?.page);
   const label = formatCategory(normalizedCategory);
-  const title = `${label} Briefings`;
-  const description = `Latest ${label} analysis from ${siteConfig.name}.`;
-  const url = absoluteUrl(`/${normalizedCategory}`);
+  const title =
+    page > 1 ? `${label} Briefings - Page ${page}` : `${label} Briefings`;
+  const description = isCoreCategory(normalizedCategory)
+    ? CATEGORY_SEO_DESCRIPTIONS[normalizedCategory]
+    : `Latest ${label} analysis from ${siteConfig.name}.`;
+  const canonicalPath = paginatedCanonicalPath(`/${normalizedCategory}`, page);
+  const url = absoluteUrl(canonicalPath);
 
   return {
     title,
@@ -45,14 +61,35 @@ export async function generateStaticParams() {
   return CORE_CATEGORIES.map((category) => ({ category }));
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
+export default async function CategoryPage({
+  params,
+  searchParams
+}: CategoryPageProps) {
   const { category } = await params;
   const normalizedCategory = normalizeCategory(category);
-  const articles = isCoreCategory(normalizedCategory)
-    ? await getArticlesByCategory(normalizedCategory, 64)
-    : [];
+  const page = parsePageParam((await searchParams)?.page);
+  const paginatedArticles = isCoreCategory(normalizedCategory)
+    ? await getPaginatedArticlesByCategory(normalizedCategory, page)
+    : null;
+
+  if (
+    paginatedArticles &&
+    paginatedArticles.totalCount > 0 &&
+    page > paginatedArticles.totalPages
+  ) {
+    redirect(
+      paginatedArticles.totalPages > 1
+        ? `/${normalizedCategory}?page=${paginatedArticles.totalPages}`
+        : `/${normalizedCategory}`
+    );
+  }
+
+  const articles = paginatedArticles?.articles ?? [];
 
   const categoryLabel = formatCategory(normalizedCategory);
+  const categoryDescription = isCoreCategory(normalizedCategory)
+    ? CATEGORY_SEO_DESCRIPTIONS[normalizedCategory]
+    : `Curated analyst summaries for ${categoryLabel} professionals.`;
 
   return (
     <>
@@ -70,12 +107,23 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
               {categoryLabel}
             </h1>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-stone-600">
-              Curated analyst summaries for {categoryLabel} professionals.
+              {categoryDescription}
             </p>
           </div>
         </section>
         {articles.length > 0 ? (
-          <ArticleFeed articles={articles} />
+          <>
+            <ArticleFeed articles={articles} />
+            {paginatedArticles ? (
+              <PaginationControls
+                currentPage={paginatedArticles.page}
+                totalPages={paginatedArticles.totalPages}
+                basePath={`/${normalizedCategory}`}
+                hasPreviousPage={paginatedArticles.hasPreviousPage}
+                hasNextPage={paginatedArticles.hasNextPage}
+              />
+            ) : null}
+          </>
         ) : (
           <section className="mx-auto max-w-5xl px-5 py-16 sm:px-8">
             <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">

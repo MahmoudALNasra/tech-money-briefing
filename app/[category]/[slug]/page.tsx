@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { ArticleReadTracker } from "@/components/analytics/ArticleReadTracker";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { ScrollNewsletter } from "@/components/newsletter/ScrollNewsletter";
 import { getArticleBySlug } from "@/lib/articles";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
@@ -93,27 +94,28 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         activeCategory={article.category}
       />
       <main className="bg-white">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <ArticleReadTracker
-        articleId={article.id}
-        slug={article.slug}
-        category={article.category}
-      />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <ArticleReadTracker
+          articleId={article.id}
+          slug={article.slug}
+          category={article.category}
+        />
+        <ScrollNewsletter />
 
-      <article className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
-        <Link
-          href={`/${article.category}`}
-          className="inline-flex rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700"
-        >
-          {formatCategory(article.category)}
-        </Link>
+        <article className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
+          <Link
+            href={`/${article.category}`}
+            className="inline-flex rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700"
+          >
+            {formatCategory(article.category)}
+          </Link>
 
-        <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight text-ink sm:text-5xl">
-          {article.title}
-        </h1>
+          <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight text-ink sm:text-5xl">
+            {article.title}
+          </h1>
 
         <p className="mt-5 text-lg leading-8 text-muted">
           {article.meta_description}
@@ -164,7 +166,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
-      </article>
+        </article>
       </main>
     </>
   );
