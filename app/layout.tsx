@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
-import Script from "next/script";
 import type { ReactNode } from "react";
 
 import "@/app/globals.css";
 import { GoogleTagManager } from "@/components/analytics/GoogleTagManager";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { siteConfig } from "@/lib/site";
 
 const geistSans = Geist({
@@ -47,26 +47,28 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const adClient = process.env.NEXT_PUBLIC_GOOGLE_AD_CLIENT;
-  const shouldLoadAds =
-    process.env.NODE_ENV === "production" &&
-    adClient &&
-    !adClient.includes("0000000000000000");
+  const configuredAdClient = process.env.NEXT_PUBLIC_GOOGLE_AD_CLIENT;
+  const adClient =
+    configuredAdClient && !configuredAdClient.includes("0000000000000000")
+      ? configuredAdClient
+      : "ca-pub-8203750015609502";
+  const shouldLoadAds = process.env.NODE_ENV === "production";
 
   return (
     <html lang="en" className={geistSans.variable}>
-      <body className="font-sans antialiased" suppressHydrationWarning>
-        <GoogleTagManager />
+      <head>
         {shouldLoadAds ? (
-          <Script
-            id="adsbygoogle-loader"
-            strategy="afterInteractive"
+          <script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`}
             crossOrigin="anonymous"
           />
         ) : null}
+      </head>
+      <body className="font-sans antialiased" suppressHydrationWarning>
+        <GoogleTagManager />
         {children}
+        <SiteFooter />
       </body>
     </html>
   );
