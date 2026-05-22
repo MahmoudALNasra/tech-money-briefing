@@ -24,7 +24,7 @@ type CategoryPageProps = {
   }>;
 };
 
-export const revalidate = 900;
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params,

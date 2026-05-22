@@ -1,10 +1,11 @@
+export const maxDuration = 60;
+
 import { NextResponse } from "next/server";
 
 import { runIngestion } from "@/lib/ingestion";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 300;
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -22,7 +23,10 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await runIngestion();
+    const result = await runIngestion({
+      maxNewArticles: 3,
+      maxItemsPerSource: 15
+    });
 
     return NextResponse.json(result, {
       headers: {

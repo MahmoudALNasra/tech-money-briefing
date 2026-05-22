@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ArticleReadTracker } from "@/components/analytics/ArticleReadTracker";
+import { RelatedArticles } from "@/components/articles/RelatedArticles";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { ScrollNewsletter } from "@/components/newsletter/ScrollNewsletter";
 import { getArticleBySlug } from "@/lib/articles";
@@ -12,6 +13,7 @@ import { formatCategory } from "@/lib/format";
 import { articleImage, articleUrl, newsArticleJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 import { normalizeCategory } from "@/lib/slug";
+import { calculateReadingTime } from "@/lib/utils";
 
 type ArticlePageProps = {
   params: Promise<{
@@ -20,7 +22,7 @@ type ArticlePageProps = {
   }>;
 };
 
-export const revalidate = 900;
+export const revalidate = 3600;
 
 export async function generateMetadata({
   params
@@ -86,6 +88,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         year: "numeric"
       }).format(new Date(article.published_at))
     : null;
+  const readingTime = calculateReadingTime(article.content);
 
   return (
     <>
@@ -138,6 +141,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <time dateTime={article.published_at!}>{publishedLabel}</time>
               </li>
             ) : null}
+            <li>{readingTime} min read</li>
             <li>Share ID: {article.share_id}</li>
           </ul>
 
@@ -198,6 +202,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </a>
           </aside>
         </article>
+
+        <RelatedArticles
+          currentArticleId={article.id}
+          category={article.category}
+        />
       </main>
     </>
   );

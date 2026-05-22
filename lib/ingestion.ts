@@ -48,7 +48,7 @@ const openai = new OpenAI({
 const defaultMaxItemsPerSource = Number(
   process.env.INGEST_MAX_ITEMS_PER_SOURCE ?? 25
 );
-const defaultMaxNewArticles = Number(process.env.INGEST_MAX_NEW_ARTICLES ?? 5);
+const defaultMaxNewArticles = Number(process.env.INGEST_MAX_NEW_ARTICLES ?? 3);
 
 export const INDUSTRY_ANALYST_SYSTEM_PROMPT =
   "You are an expert industry analyst and technical SEO strategist for a hyper-niche B2B intelligence publication. Your job is to create original information gain for professionals, not generic news rewrites. Return only valid JSON.";
