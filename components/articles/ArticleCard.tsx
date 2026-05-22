@@ -29,12 +29,11 @@ export function ArticleCard({
         featured ? "border-t border-stone-200" : ""
       }`}
     >
-      <Link
-        href={`/${article.category}/${article.slug}`}
-        className="group grid gap-6 md:grid-cols-[220px_1fr]"
-      >
-        <div
-          className={`relative overflow-hidden rounded-2xl bg-stone-200 ${
+      <div className="grid gap-6 md:grid-cols-[220px_1fr]">
+        <Link
+          href={`/${article.category}/${article.slug}`}
+          aria-label={article.title}
+          className={`group relative overflow-hidden rounded-2xl bg-stone-200 ${
             featured ? "aspect-[16/10] md:aspect-[4/3]" : "aspect-[16/10]"
           }`}
         >
@@ -50,21 +49,33 @@ export function ArticleCard({
           ) : (
             <div className="h-full w-full bg-gradient-to-br from-stone-100 via-stone-200 to-stone-300" />
           )}
-        </div>
+        </Link>
 
         <div className="flex flex-col justify-center">
           <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
-            <span>{formatCategory(article.category)}</span>
+            <Link href={`/${article.category}`} className="hover:text-ink">
+              {formatCategory(article.category)}
+            </Link>
             {publishedLabel ? <span>{publishedLabel}</span> : null}
+            <a
+              href={article.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-ink"
+            >
+              Source: {article.source_name}
+            </a>
           </div>
 
-          <h2
-            className={`mt-3 font-black leading-tight tracking-tight text-ink group-hover:text-stone-700 ${
-              featured ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl"
-            }`}
-          >
-            {article.title}
-          </h2>
+          <Link href={`/${article.category}/${article.slug}`} className="group">
+            <h2
+              className={`mt-3 font-black leading-tight tracking-tight text-ink group-hover:text-stone-700 ${
+                featured ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl"
+              }`}
+            >
+              {article.title}
+            </h2>
+          </Link>
 
           <p className="mt-3 text-base leading-7 text-stone-600">
             {article.meta_description}
@@ -84,7 +95,7 @@ export function ArticleCard({
             </ul>
           ) : null}
         </div>
-      </Link>
+      </div>
     </article>
   );
 }

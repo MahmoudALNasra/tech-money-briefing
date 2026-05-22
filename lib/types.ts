@@ -27,6 +27,7 @@ export type ArticleSummary = Pick<
   | "key_takeaways"
   | "category"
   | "source_name"
+  | "source_url"
   | "image_url"
   | "share_id"
   | "published_at"

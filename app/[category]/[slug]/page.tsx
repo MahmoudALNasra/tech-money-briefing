@@ -117,55 +117,86 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {article.title}
           </h1>
 
-        <p className="mt-5 text-lg leading-8 text-muted">
-          {article.meta_description}
-        </p>
+          <p className="mt-5 text-lg leading-8 text-muted">
+            {article.meta_description}
+          </p>
 
-        <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-500">
-          <li>Source: {article.source_name}</li>
-          {publishedLabel ? (
+          <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-500">
             <li>
-              <time dateTime={article.published_at!}>{publishedLabel}</time>
+              Source:{" "}
+              <a
+                href={article.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-ink underline decoration-stone-300 underline-offset-4 hover:decoration-ink"
+              >
+                {article.source_name}
+              </a>
             </li>
-          ) : null}
-          <li>Share ID: {article.share_id}</li>
-        </ul>
+            {publishedLabel ? (
+              <li>
+                <time dateTime={article.published_at!}>{publishedLabel}</time>
+              </li>
+            ) : null}
+            <li>Share ID: {article.share_id}</li>
+          </ul>
 
-        <div className="relative mt-8 aspect-square overflow-hidden rounded-3xl bg-gray-100">
-          {article.image_url ? (
-            <Image
-              src={article.image_url}
-              alt=""
-              fill
-              priority
-              sizes="(min-width: 768px) 768px, 100vw"
-              className="object-cover"
-            />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300" />
-          )}
-        </div>
+          <div className="relative mt-8 aspect-square overflow-hidden rounded-3xl bg-gray-100">
+            {article.image_url ? (
+              <Image
+                src={article.image_url}
+                alt=""
+                fill
+                priority
+                sizes="(min-width: 768px) 768px, 100vw"
+                className="object-cover"
+              />
+            ) : (
+              <div className="h-full w-full bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300" />
+            )}
+          </div>
 
-        <div className="article-content prose prose-lg mt-10 max-w-none prose-headings:text-ink prose-a:text-ink">
-          {article.key_takeaways.length > 0 ? (
-            <aside className="not-prose mb-10 rounded-3xl border border-gray-200 bg-[#fbfaf7] p-6">
-              <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-500">
-                Analyst Takeaways
-              </h2>
-              <ul className="mt-4 space-y-3 text-base leading-7 text-ink">
-                {article.key_takeaways.map((takeaway) => (
-                  <li key={takeaway} className="flex gap-3">
-                    <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-900" />
-                    <span>{takeaway}</span>
-                  </li>
-                ))}
-              </ul>
-            </aside>
-          ) : null}
-          {paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-        </div>
+          <div className="article-content prose prose-lg mt-10 max-w-none prose-headings:text-ink prose-a:text-ink">
+            {article.key_takeaways.length > 0 ? (
+              <aside className="not-prose mb-10 rounded-3xl border border-gray-200 bg-[#fbfaf7] p-6">
+                <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-500">
+                  Analyst Takeaways
+                </h2>
+                <ul className="mt-4 space-y-3 text-base leading-7 text-ink">
+                  {article.key_takeaways.map((takeaway) => (
+                    <li key={takeaway} className="flex gap-3">
+                      <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-900" />
+                      <span>{takeaway}</span>
+                    </li>
+                  ))}
+                </ul>
+              </aside>
+            ) : null}
+            {paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+
+          <aside className="mt-10 rounded-3xl border border-stone-200 bg-stone-50 p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">
+              Source Attribution
+            </p>
+            <h2 className="mt-3 text-xl font-black tracking-tight text-ink">
+              Original source
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-stone-600">
+              This briefing cites and links back to the original publisher for
+              transparency and reader verification.
+            </p>
+            <a
+              href={article.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex rounded-full bg-ink px-5 py-3 text-sm font-bold text-white transition hover:bg-stone-700"
+            >
+              Visit {article.source_name}
+            </a>
+          </aside>
         </article>
       </main>
     </>

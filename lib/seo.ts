@@ -22,9 +22,12 @@ export function newsArticleJsonLd(article: Article) {
     dateModified: article.updated_at ?? publishedAt,
     mainEntityOfPage: articleUrl(article),
     articleSection: article.category,
+    isBasedOn: article.source_url,
+    citation: article.source_url,
     author: {
       "@type": "Organization",
-      name: article.source_name
+      name: article.source_name,
+      url: article.source_url
     },
     publisher: {
       "@type": "Organization",

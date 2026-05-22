@@ -25,6 +25,7 @@ function mapArticleSummary(row: Record<string, unknown>): ArticleSummary {
     key_takeaways: normalizeTakeaways(row.key_takeaways),
     category: String(row.category),
     source_name: String(row.source_name),
+    source_url: String(row.source_url),
     image_url: row.image_url ? String(row.image_url) : null,
     share_id: String(row.share_id),
     published_at: row.published_at ? String(row.published_at) : null
@@ -52,7 +53,7 @@ function mapArticle(row: Record<string, unknown>): Article {
 }
 
 const articleSummaryColumns =
-  "id,title,slug,meta_description,key_takeaways,category,source_name,image_url,share_id,published_at";
+  "id,title,slug,meta_description,key_takeaways,category,source_name,source_url,image_url,share_id,published_at";
 
 function buildPaginatedArticles(
   articles: ArticleSummary[],
