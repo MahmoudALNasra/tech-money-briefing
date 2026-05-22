@@ -1,0 +1,41 @@
+{
+  "name": "automated-news-aggregator",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "ingest": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --once --max-new=5 --scan=25",
+    "ingest:bootstrap": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --once --max-new=10 --scan=50",
+    "ingest:watch": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --max-new=5 --scan=25",
+    "add-source": "node --env-file=.env.local scripts/add-source.js",
+    "normalize:categories": "node --env-file=.env.local scripts/normalize-categories.js",
+    "backfill:images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-images.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "latest",
+    "next": "latest",
+    "node-cron": "latest",
+    "openai": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "rss-parser": "latest"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "latest",
+    "@tailwindcss/typography": "^0.5.19",
+    "@types/node": "latest",
+    "@types/node-cron": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "autoprefixer": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "postcss": "latest",
+    "tailwindcss": "^3.4.17",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}

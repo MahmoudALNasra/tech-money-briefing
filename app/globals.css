@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-stone-50 font-sans text-ink antialiased;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    display: block;
+  }
+}
+
+@layer components {
+  .article-content p {
+    @apply mb-5 leading-8 text-stone-800;
+  }
+}
