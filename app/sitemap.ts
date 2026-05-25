@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { getPublishedCategories, getPublishedSitemapEntries } from "@/lib/articles";
+import { COMPARISONS } from "@/lib/comparisons";
 import { FREE_TOOLS } from "@/lib/free-tools";
 import { absoluteUrl } from "@/lib/site";
 
@@ -25,6 +26,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.6
     },
+    {
+      url: absoluteUrl("/compare"),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6
+    },
+    ...COMPARISONS.map((comparison) => ({
+      url: absoluteUrl(`/compare/${comparison.slug}`),
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.55
+    })),
     ...FREE_TOOLS.map((tool) => ({
       url: absoluteUrl(tool.href),
       lastModified: new Date(),

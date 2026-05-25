@@ -9,7 +9,7 @@
     "lint": "eslint . --max-warnings=0",
     "ingest": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --once --max-new=5 --scan=25",
     "ingest:bootstrap": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --once --max-new=10 --scan=50",
-    "ingest:trends": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-trends.ts --max-new=3 --scan=12",
+    "ingest:trends": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-trends.ts --max-new=10 --scan=40",
     "ingest:trends:clear": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/clear-trends.ts",
     "ingest:trends:backfill-images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-trends-images.ts",
     "ingest:watch": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --max-new=5 --scan=25",

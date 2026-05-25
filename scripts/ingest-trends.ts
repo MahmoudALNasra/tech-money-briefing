@@ -24,8 +24,8 @@ function getStringArg(name: string, fallback: string) {
 
 async function executeTrendsIngestion() {
   const { runTrendsIngestion } = await import("../lib/trends-ingestion");
-  const maxNewArticles = getNumberArg("max-new", 3);
-  const maxTrends = getNumberArg("scan", Math.max(maxNewArticles * 4, 12));
+  const maxNewArticles = getNumberArg("max-new", 10);
+  const maxTrends = getNumberArg("scan", 40);
   const geo = getStringArg("geo", process.env.GOOGLE_TRENDS_GEO ?? "US");
   const startedAt = new Date();
 

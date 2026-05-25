@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { ShareCaptionPanel } from "@/components/tools/ShareCaptionPanel";
+import { useDataLayer } from "@/hooks/useDataLayer";
 
 type SocialImageToolProps = {
   variant: "youtube" | "x-card";
@@ -62,6 +65,7 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number
 export function SocialImageTool({ variant }: SocialImageToolProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const pushToDataLayer = useDataLayer();
   const tool = config[variant];
   const [headline, setHeadline] = useState(tool.title);
   const [subtitle, setSubtitle] = useState(tool.subtitle);
@@ -152,6 +156,25 @@ export function SocialImageTool({ variant }: SocialImageToolProps) {
     setImageReady(false);
   };
 
+  const shareCaptions = useMemo(() => {
+    const title = headline.trim() || tool.title;
+    const sub = subtitle.trim();
+
+    if (variant === "youtube") {
+      return [
+        `New thumbnail test: "${title}"\n\nDoes this stop the scroll?`,
+        `${title}\n${sub}\n\nWatch the full breakdown on our channel.`,
+        `We rebuilt this thumbnail around one idea: ${title}.\n\nFree tool: techrevenuebrief.com/youtube-thumbnail-maker`
+      ];
+    }
+
+    return [
+      `${title}\n\n${sub}`,
+      `Quick take: ${title}\n\nLink in replies.`,
+      `Built this X card in seconds with Tech Revenue Brief's free generator.`
+    ];
+  }, [headline, subtitle, tool.title, variant]);
+
   const handleDownload = () => {
     const canvas = canvasRef.current;
     if (!canvas) {
@@ -169,6 +192,13 @@ export function SocialImageTool({ variant }: SocialImageToolProps) {
       link.download = tool.fileName;
       link.click();
       URL.revokeObjectURL(url);
+
+      pushToDataLayer({
+        event: "social_image_download",
+        tool_name: variant === "youtube" ? "youtube-thumbnail-maker" : "x-card-generator",
+        page_path:
+          variant === "youtube" ? "/youtube-thumbnail-maker" : "/x-card-generator"
+      });
     }, "image/png");
   };
 
@@ -258,6 +288,11 @@ export function SocialImageTool({ variant }: SocialImageToolProps) {
         >
           {tool.buttonText}
         </button>
+
+        <ShareCaptionPanel
+          toolName={variant === "youtube" ? "youtube-thumbnail-maker" : "x-card-generator"}
+          captions={shareCaptions}
+        />
       </div>
     </div>
   );

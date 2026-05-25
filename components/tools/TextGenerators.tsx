@@ -138,7 +138,7 @@ export function AiHeadlineGenerator() {
   );
 }
 
-function GeneratorShell({
+export function GeneratorShell({
   inputLabel,
   inputValue,
   onInputChange,

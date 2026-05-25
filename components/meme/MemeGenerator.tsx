@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { ShareCaptionPanel } from "@/components/tools/ShareCaptionPanel";
 import { useDataLayer } from "@/hooks/useDataLayer";
 import {
   CANVAS_SIZE,
@@ -211,6 +212,17 @@ export function MemeGenerator() {
     setCustomImageReady(false);
   };
 
+  const shareCaptions = useMemo(() => {
+    const top = topText.trim() || "this trend";
+    const bottom = bottomText.trim() || "the real story";
+
+    return [
+      `When ${top} hits but ${bottom}.\n\nMade with the free meme generator on Tech Revenue Brief.`,
+      `${top.toUpperCase()}\n${bottom.toUpperCase()}\n\nTag a founder who needs to see this.`,
+      `POV: ${top} and ${bottom} at the same time.\n\nFree tool: techrevenuebrief.com/meme-generator`
+    ];
+  }, [bottomText, topText]);
+
   const handleDownload = () => {
     const canvas = canvasRef.current;
     if (!canvas) {
@@ -390,6 +402,8 @@ export function MemeGenerator() {
           Original canvas templates only - no stolen meme images. Share the
           link or download and post anywhere.
         </p>
+
+        <ShareCaptionPanel toolName="meme-generator" captions={shareCaptions} />
       </div>
     </div>
   );

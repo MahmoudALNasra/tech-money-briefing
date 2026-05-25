@@ -4,6 +4,7 @@ import { siteConfig } from "@/lib/site";
 
 const footerLinks = [
   { href: "/tools", label: "Free Tools" },
+  { href: "/compare", label: "Comparisons" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
   { href: "/advertise", label: "Advertise" },

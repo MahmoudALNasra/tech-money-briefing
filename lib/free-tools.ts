@@ -88,5 +88,95 @@ export const FREE_TOOLS = [
       accent: "from-amber-500 to-green-500",
       pattern: "money"
     }
+  },
+  {
+    href: "/youtube-title-generator",
+    title: "YouTube Title Generator",
+    description: "Generate clickable YouTube title ideas from a topic or keyword.",
+    thumbnail: {
+      label: "YT",
+      accent: "from-red-600 to-rose-500",
+      pattern: "video"
+    }
+  },
+  {
+    href: "/tiktok-hook-generator",
+    title: "TikTok Hook Generator",
+    description: "Create short-form video hooks and opening lines for TikTok and Reels.",
+    thumbnail: {
+      label: "TT",
+      accent: "from-fuchsia-600 to-cyan-500",
+      pattern: "spark"
+    }
+  },
+  {
+    href: "/blog-title-generator",
+    title: "Blog Title Generator",
+    description: "Generate SEO-friendly blog post title ideas for publishers and founders.",
+    thumbnail: {
+      label: "BLOG",
+      accent: "from-indigo-600 to-violet-500",
+      pattern: "lines"
+    }
+  },
+  {
+    href: "/meta-description-generator",
+    title: "Meta Description Generator",
+    description: "Draft meta description ideas for articles, tools, and landing pages.",
+    thumbnail: {
+      label: "META",
+      accent: "from-teal-600 to-emerald-500",
+      pattern: "mail"
+    }
+  },
+  {
+    href: "/utm-builder",
+    title: "UTM Link Builder",
+    description: "Build campaign tracking URLs with utm_source, utm_medium, and utm_campaign.",
+    thumbnail: {
+      label: "UTM",
+      accent: "from-blue-600 to-sky-500",
+      pattern: "chart"
+    }
+  },
+  {
+    href: "/robots-txt-generator",
+    title: "Robots.txt Generator",
+    description: "Generate a simple robots.txt file with crawl rules and sitemap URL.",
+    thumbnail: {
+      label: "BOT",
+      accent: "from-stone-700 to-slate-500",
+      pattern: "card"
+    }
+  },
+  {
+    href: "/newsletter-revenue-calculator",
+    title: "Newsletter Revenue Calculator",
+    description: "Estimate newsletter revenue from subscribers, opens, clicks, and conversions.",
+    thumbnail: {
+      label: "NL$",
+      accent: "from-cyan-600 to-blue-500",
+      pattern: "money"
+    }
+  },
+  {
+    href: "/adsense-ctr-calculator",
+    title: "AdSense CTR Calculator",
+    description: "Calculate CTR, RPM, and estimated revenue from impressions and clicks.",
+    thumbnail: {
+      label: "CTR",
+      accent: "from-lime-600 to-amber-500",
+      pattern: "chart"
+    }
+  },
+  {
+    href: "/saas-pricing-calculator",
+    title: "SaaS Pricing Calculator",
+    description: "Estimate MRR, ARR, LTV, and LTV:CAC from price, churn, and customer count.",
+    thumbnail: {
+      label: "SaaS",
+      accent: "from-violet-700 to-purple-500",
+      pattern: "money"
+    }
   }
 ];

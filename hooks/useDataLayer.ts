@@ -8,7 +8,9 @@ type PublisherEventName =
   | "ad_click"
   | "newsletter_signup"
   | "promotion_click"
-  | "meme_download";
+  | "meme_download"
+  | "share_caption_copy"
+  | "social_image_download";
 
 type DataLayerEvent = {
   event: PublisherEventName;

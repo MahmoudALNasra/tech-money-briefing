@@ -5,6 +5,10 @@ import { fetchOpenGraphImage } from "./ingestion";
 import { generateShareId } from "./share-id";
 import { slugify } from "./slug";
 import { supabase } from "./supabase";
+import {
+  formatToolRecommendationsMarkdown,
+  getRecommendedToolsForTrend
+} from "./tool-recommendations";
 
 type TrendArticle = {
   title: string;
@@ -32,6 +36,34 @@ type TrendsIngestionOptions = {
 
 const TREND_CATEGORY = "others";
 const GOOGLE_TRENDS_SOURCE = "Google Trends";
+const BROAD_TREND_LIMIT = 5;
+const CATEGORY_TREND_LIMIT = 5;
+
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  "ai-tools": ["ai", "chatgpt", "claude", "gpt", "llm", "openai", "copilot", "gemini"],
+  "digital-marketing": [
+    "marketing",
+    "ads",
+    "campaign",
+    "facebook",
+    "instagram",
+    "tiktok",
+    "attribution"
+  ],
+  seo: ["seo", "search", "google", "ranking", "serp", "keyword", "backlink"],
+  ecommerce: ["shopify", "amazon", "store", "ecommerce", "retail", "checkout", "product"],
+  startups: ["startup", "founder", "funding", "venture", "saas", "launch", "yc"],
+  fintech: ["fintech", "bank", "payments", "stripe", "crypto", "lending", "wallet"],
+  "creator-business": [
+    "creator",
+    "newsletter",
+    "youtube",
+    "podcast",
+    "substack",
+    "influencer",
+    "content"
+  ]
+};
 
 const parser = new Parser({
   timeout: 15000,
@@ -54,8 +86,10 @@ const openai = new OpenAI({
 });
 
 export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
-  const maxNewArticles = options.maxNewArticles ?? 3;
-  const maxTrends = options.maxTrends ?? Math.max(maxNewArticles * 4, 12);
+  const maxNewArticles =
+    options.maxNewArticles ??
+    Number(process.env.TRENDS_MAX_NEW_ARTICLES ?? 10);
+  const maxTrends = options.maxTrends ?? 40;
   const geo = options.geo ?? process.env.GOOGLE_TRENDS_GEO ?? "US";
   const feedUrl =
     process.env.GOOGLE_TRENDS_RSS_URL ??
@@ -64,7 +98,8 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
     )}`;
 
   const feed = await parser.parseURL(feedUrl);
-  const seeds = feed.items.slice(0, maxTrends).map(toTrendSeed);
+  const allSeeds = feed.items.slice(0, maxTrends).map(toTrendSeed);
+  const seeds = selectTrendSeeds(allSeeds);
   const result = {
     ok: true,
     source: GOOGLE_TRENDS_SOURCE,
@@ -137,6 +172,53 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
   }
 
   return result;
+}
+
+function normalizeTrendText(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+}
+
+function scoreCategoryRelevance(seed: TrendSeed) {
+  const haystack = normalizeTrendText(
+    [seed.title, ...seed.newsTitles, ...seed.newsSnippets].join(" ")
+  );
+
+  return Object.values(CATEGORY_KEYWORDS).reduce((score, keywords) => {
+    const categoryScore = keywords.reduce((inner, keyword) => {
+      return haystack.includes(keyword) ? inner + 1 : inner;
+    }, 0);
+
+    return score + categoryScore;
+  }, 0);
+}
+
+function selectTrendSeeds(seeds: TrendSeed[]) {
+  const validSeeds = seeds.filter((seed) => seed.title && seed.sourceUrl);
+  const broad = validSeeds.slice(0, BROAD_TREND_LIMIT);
+  const broadTitles = new Set(broad.map((seed) => seed.title.toLowerCase()));
+
+  const categoryCandidates = validSeeds
+    .slice(BROAD_TREND_LIMIT)
+    .map((seed) => ({ seed, score: scoreCategoryRelevance(seed) }))
+    .filter((entry) => entry.score > 0 && !broadTitles.has(entry.seed.title.toLowerCase()))
+    .sort((left, right) => right.score - left.score);
+
+  const category = categoryCandidates
+    .slice(0, CATEGORY_TREND_LIMIT)
+    .map((entry) => entry.seed);
+
+  const combined = [...broad, ...category];
+  const seen = new Set<string>();
+
+  return combined.filter((seed) => {
+    const key = seed.title.toLowerCase();
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
 }
 
 function toTrendSeed(item: Parser.Item): TrendSeed {
@@ -331,9 +413,17 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
   }
 
   const sourceCitation = `Source: ${GOOGLE_TRENDS_SOURCE}.`;
-  const content = contentBody.includes(sourceCitation)
-    ? contentBody
-    : `${contentBody}\n\n${sourceCitation}`;
+  const recommendedTools = getRecommendedToolsForTrend(
+    seed.title,
+    seed.newsTitles
+  );
+  const toolsSection = formatToolRecommendationsMarkdown(recommendedTools);
+  const bodyWithTools = toolsSection
+    ? `${contentBody}\n\n${toolsSection}`
+    : contentBody;
+  const content = bodyWithTools.includes(sourceCitation)
+    ? bodyWithTools
+    : `${bodyWithTools}\n\n${sourceCitation}`;
 
   return {
     title,

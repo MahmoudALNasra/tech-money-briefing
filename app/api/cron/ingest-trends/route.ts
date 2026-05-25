@@ -25,8 +25,8 @@ export async function GET(request: Request) {
 
   try {
     const result = await runTrendsIngestion({
-      maxNewArticles: 3,
-      maxTrends: 12,
+      maxNewArticles: 10,
+      maxTrends: 40,
       geo: process.env.GOOGLE_TRENDS_GEO ?? "US"
     });
 
