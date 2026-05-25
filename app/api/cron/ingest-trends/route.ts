@@ -3,7 +3,7 @@ export const maxDuration = 60;
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
-import { runIngestion } from "@/lib/ingestion";
+import { runTrendsIngestion } from "@/lib/trends-ingestion";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,13 +24,15 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await runIngestion({
+    const result = await runTrendsIngestion({
       maxNewArticles: 3,
-      maxItemsPerSource: 15
+      maxTrends: 12,
+      geo: process.env.GOOGLE_TRENDS_GEO ?? "US"
     });
 
-    if (result.results.some((source) => source.inserted > 0)) {
+    if (result.inserted > 0) {
       revalidateTag("articles", "max");
+      revalidatePath("/others");
       revalidatePath("/");
     }
 
@@ -43,7 +45,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "Unknown ingestion error"
+        error: error instanceof Error ? error.message : "Unknown trends ingestion error"
       },
       { status: 500 }
     );

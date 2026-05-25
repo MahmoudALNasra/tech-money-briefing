@@ -56,7 +56,8 @@ function mapArticle(row: Record<string, unknown>): Article {
 const articleSummaryColumns =
   "id,title,slug,meta_description,key_takeaways,category,source_name,source_url,image_url,share_id,published_at";
 const articleCacheOptions = {
-  revalidate: 3600
+  revalidate: 300,
+  tags: ["articles"]
 };
 
 function buildPaginatedArticles(

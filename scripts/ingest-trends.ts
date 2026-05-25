@@ -40,6 +40,21 @@ async function executeTrendsIngestion() {
       geo
     });
     console.log(JSON.stringify(result, null, 2));
+
+    if (result.inserted > 0) {
+      try {
+        const { revalidateSiteCache } = await import("../lib/revalidate-site");
+        await revalidateSiteCache({
+          paths: ["/", "/others"],
+          tags: ["articles"]
+        });
+      } catch (revalidateError) {
+        console.warn(
+          "[trends] Ingest succeeded but cache revalidate failed. Deploy latest code, then run revalidate or wait up to 5 minutes.",
+          revalidateError
+        );
+      }
+    }
   } catch (error) {
     console.error("[trends] Failed", error);
     process.exitCode = 1;
