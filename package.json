@@ -14,6 +14,7 @@
     "ingest:watch": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --max-new=5 --scan=25",
     "add-source": "node --env-file=.env.local scripts/add-source.js",
     "normalize:categories": "node --env-file=.env.local scripts/normalize-categories.js",
+    "articles:draft-no-image": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/draft-articles-without-images.ts",
     "backfill:images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-images.ts"
   },
   "dependencies": {

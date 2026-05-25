@@ -151,6 +151,7 @@ async function ingestSource(
           extractImageUrl(item) ?? (await fetchOpenGraphImage(sourceUrl));
         const publishedAt =
           item.isoDate ?? item.pubDate ?? new Date().toISOString();
+        const status = imageUrl ? "published" : "draft";
 
         const { error: insertError } = await supabase.from("articles").insert({
           title: rewritten.title,
@@ -163,7 +164,7 @@ async function ingestSource(
           source_url: sourceUrl,
           image_url: imageUrl,
           share_id: shareId,
-          status: "published",
+          status,
           published_at: publishedAt
         });
 

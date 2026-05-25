@@ -96,6 +96,7 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
       const article = await writeTrendArticle(seed);
       const slug = await createUniqueSlug(article.title);
       const shareId = await createUniqueShareId();
+      const status = seed.imageUrl ? "published" : "draft";
 
       const { error } = await supabase.from("articles").insert({
         title: article.title,
@@ -111,7 +112,7 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
         source_url: seed.sourceUrl,
         image_url: seed.imageUrl,
         share_id: shareId,
-        status: "published",
+        status,
         published_at: seed.publishedAt ?? new Date().toISOString()
       });
 
