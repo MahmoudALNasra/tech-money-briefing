@@ -153,6 +153,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 fill
                 priority
                 sizes="(min-width: 768px) 768px, 100vw"
+                unoptimized
                 className="object-cover"
               />
             ) : (

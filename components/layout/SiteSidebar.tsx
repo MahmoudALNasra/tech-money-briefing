@@ -35,6 +35,7 @@ export async function SiteSidebar({ activeCategory }: SiteSidebarProps) {
               alt=""
               fill
               sizes="300px"
+              unoptimized
               className="object-cover"
             />
           </div>
@@ -107,6 +108,7 @@ export async function SiteSidebar({ activeCategory }: SiteSidebarProps) {
                           alt=""
                           fill
                           sizes="64px"
+                          unoptimized
                           className="object-cover"
                         />
                       ) : (

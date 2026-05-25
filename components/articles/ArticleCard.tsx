@@ -44,6 +44,7 @@ export function ArticleCard({
               fill
               sizes="220px"
               priority={priority}
+              unoptimized
               className="object-cover transition duration-300 group-hover:scale-[1.02]"
             />
           ) : (
