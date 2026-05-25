@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { NewsletterCapture } from "@/components/newsletter/NewsletterCapture";
@@ -27,6 +28,17 @@ export async function SiteSidebar({ activeCategory }: SiteSidebarProps) {
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+        {latestArticles[0]?.image_url ? (
+          <div className="relative mb-4 aspect-[16/10] overflow-hidden rounded-2xl bg-stone-100">
+            <Image
+              src={latestArticles[0].image_url}
+              alt=""
+              fill
+              sizes="300px"
+              className="object-cover"
+            />
+          </div>
+        ) : null}
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">
           What We Cover
         </p>
@@ -79,17 +91,41 @@ export async function SiteSidebar({ activeCategory }: SiteSidebarProps) {
               const publishedLabel = formatBriefDate(article.published_at);
 
               return (
-                <li key={article.id} className="border-b border-stone-100 pb-4 last:border-0 last:pb-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
-                    {formatCategory(article.category)}
-                    {publishedLabel ? ` · ${publishedLabel}` : ""}
-                  </p>
-                  <Link
-                    href={`/${article.category}/${article.slug}`}
-                    className="mt-1 block text-sm font-bold leading-6 text-ink hover:text-stone-600"
-                  >
-                    {article.title}
-                  </Link>
+                <li
+                  key={article.id}
+                  className="border-b border-stone-100 pb-4 last:border-0 last:pb-0"
+                >
+                  <div className="grid grid-cols-[64px_1fr] gap-3">
+                    <Link
+                      href={`/${article.category}/${article.slug}`}
+                      className="relative block aspect-square overflow-hidden rounded-xl bg-stone-100"
+                      aria-label={article.title}
+                    >
+                      {article.image_url ? (
+                        <Image
+                          src={article.image_url}
+                          alt=""
+                          fill
+                          sizes="64px"
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-stone-100 via-stone-200 to-stone-300" />
+                      )}
+                    </Link>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
+                        {formatCategory(article.category)}
+                        {publishedLabel ? ` · ${publishedLabel}` : ""}
+                      </p>
+                      <Link
+                        href={`/${article.category}/${article.slug}`}
+                        className="mt-1 block text-sm font-bold leading-6 text-ink hover:text-stone-600"
+                      >
+                        {article.title}
+                      </Link>
+                    </div>
+                  </div>
                 </li>
               );
             })}
