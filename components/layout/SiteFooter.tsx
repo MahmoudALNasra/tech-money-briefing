@@ -3,6 +3,7 @@ import Link from "next/link";
 import { siteConfig } from "@/lib/site";
 
 const footerLinks = [
+  { href: "/tools", label: "Free Tools" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
   { href: "/advertise", label: "Advertise" },

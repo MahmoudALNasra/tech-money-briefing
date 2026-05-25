@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { getPublishedCategories, getPublishedSitemapEntries } from "@/lib/articles";
+import { FREE_TOOLS } from "@/lib/free-tools";
 import { absoluteUrl } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -18,6 +19,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "hourly",
       priority: 1
     },
+    {
+      url: absoluteUrl("/tools"),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6
+    },
+    ...FREE_TOOLS.map((tool) => ({
+      url: absoluteUrl(tool.href),
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.55
+    })),
     ...categories.map((category) => ({
       url: absoluteUrl(`/${category}`),
       lastModified: new Date(),
