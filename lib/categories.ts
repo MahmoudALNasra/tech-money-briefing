@@ -5,7 +5,8 @@ export const CORE_CATEGORIES = [
   "ecommerce",
   "startups",
   "fintech",
-  "creator-business"
+  "creator-business",
+  "others"
 ] as const;
 
 export type CoreCategory = (typeof CORE_CATEGORIES)[number];
@@ -24,7 +25,9 @@ export const CATEGORY_SEO_DESCRIPTIONS: Record<CoreCategory, string> = {
   fintech:
     "Monitor fintech products, payments infrastructure, and financial software trends shaping new revenue channels. We focus on the operational and monetization impact behind each market move.",
   "creator-business":
-    "Learn how creators, media operators, and solo founders are building durable internet businesses. Coverage focuses on audience monetization, tooling, distribution, and repeatable revenue systems."
+    "Learn how creators, media operators, and solo founders are building durable internet businesses. Coverage focuses on audience monetization, tooling, distribution, and repeatable revenue systems.",
+  others:
+    "Follow broader Google Trends-driven stories with practical context for builders, publishers, creators, and operators looking for timely search demand."
 };
 
 export function isCoreCategory(category: string): category is CoreCategory {
