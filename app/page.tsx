@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { ArticleFeed } from "@/components/articles/ArticleFeed";
 import { PaginationControls } from "@/components/articles/PaginationControls";
+import { FeedWithSidebar } from "@/components/layout/FeedWithSidebar";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getPaginatedPublishedArticles } from "@/lib/articles";
 import { CORE_CATEGORIES } from "@/lib/categories";
@@ -61,7 +62,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
       <main className="bg-stone-50">
         <section className="border-b border-stone-200 bg-white">
-          <div className="mx-auto max-w-5xl px-5 py-14 sm:px-8 sm:py-20">
+          <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-20">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-500">
               Hyper-Niche Industry Intelligence
             </p>
@@ -89,7 +90,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </section>
 
         {articles.length > 0 ? (
-          <section className="pb-16">
+          <FeedWithSidebar>
             <ArticleFeed articles={articles} />
             <PaginationControls
               currentPage={paginatedArticles.page}
@@ -98,9 +99,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               hasPreviousPage={paginatedArticles.hasPreviousPage}
               hasNextPage={paginatedArticles.hasNextPage}
             />
-          </section>
+          </FeedWithSidebar>
         ) : (
-          <section className="mx-auto max-w-5xl px-5 py-16 sm:px-8">
+          <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
             <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">
               <h2 className="text-2xl font-bold text-ink">No articles yet</h2>
               <p className="mt-3 text-stone-600">

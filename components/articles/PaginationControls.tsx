@@ -31,7 +31,7 @@ export function PaginationControls({
   return (
     <nav
       aria-label="Article pagination"
-      className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-5 pb-16 pt-8 sm:px-8"
+      className="flex items-center justify-between gap-4 pt-8"
     >
       {hasPreviousPage ? (
         <Link

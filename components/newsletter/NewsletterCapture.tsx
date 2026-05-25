@@ -8,11 +8,13 @@ import { useDataLayer } from "@/hooks/useDataLayer";
 type NewsletterCaptureProps = {
   placementIndex: number;
   source?: string;
+  variant?: "default" | "compact";
 };
 
 export function NewsletterCapture({
   placementIndex,
-  source = "homepage_grid"
+  source = "homepage_grid",
+  variant = "default"
 }: NewsletterCaptureProps) {
   const [message, setMessage] = useState<{
     ok: boolean;
@@ -42,23 +44,37 @@ export function NewsletterCapture({
     });
   }
 
+  const isCompact = variant === "compact";
+
   return (
-    <aside className="rounded-2xl border border-ink bg-ink p-6 text-white shadow-sm">
+    <aside
+      className={`rounded-2xl border border-ink bg-ink text-white shadow-sm ${
+        isCompact ? "p-5" : "p-6"
+      }`}
+    >
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-300">
         Executive Briefing
       </p>
-      <h2 className="mt-4 max-w-xl text-2xl font-black leading-tight tracking-tight">
-        Get the industry signals your competitors will read next week.
+      <h2
+        className={`mt-3 font-black leading-tight tracking-tight ${
+          isCompact ? "text-lg" : "mt-4 max-w-xl text-2xl"
+        }`}
+      >
+        {isCompact
+          ? "Get revenue signals in your inbox."
+          : "Get the industry signals your competitors will read next week."}
       </h2>
-      <p className="mt-3 max-w-xl text-sm leading-6 text-gray-300">
-        A concise B2B briefing with analyst context, operational implications,
-        and the highest-signal source links from this niche.
-      </p>
+      {!isCompact ? (
+        <p className="mt-3 max-w-xl text-sm leading-6 text-gray-300">
+          A concise B2B briefing with analyst context, operational implications,
+          and the highest-signal source links from this niche.
+        </p>
+      ) : null}
 
       <form
         ref={formRef}
         action={onSubmit}
-        className="mt-6 flex flex-col gap-3 sm:flex-row"
+        className={`mt-4 flex flex-col gap-3 ${isCompact ? "" : "sm:flex-row"}`}
       >
         <input type="hidden" name="source" value={source} />
         <label className="sr-only" htmlFor={`newsletter-email-${placementIndex}`}>

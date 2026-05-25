@@ -20,7 +20,7 @@ export function ArticleFeed({
   promotionInterval = 4
 }: ArticleFeedProps) {
   return (
-    <div className="mx-auto max-w-5xl px-5 sm:px-8">
+    <div className="w-full">
       {articles.map((article, index) => {
         const shouldInjectNewsletter =
           newsletterInterval > 0 && (index + 1) % newsletterInterval === 0;

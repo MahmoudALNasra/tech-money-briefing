@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { ArticleFeed } from "@/components/articles/ArticleFeed";
 import { PaginationControls } from "@/components/articles/PaginationControls";
+import { FeedWithSidebar } from "@/components/layout/FeedWithSidebar";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getPaginatedArticlesByCategory } from "@/lib/articles";
 import {
@@ -99,7 +100,7 @@ export default async function CategoryPage({
       />
       <main className="bg-stone-50">
         <section className="border-b border-stone-200 bg-white">
-          <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
+          <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-500">
               Category Briefing
             </p>
@@ -112,7 +113,7 @@ export default async function CategoryPage({
           </div>
         </section>
         {articles.length > 0 ? (
-          <>
+          <FeedWithSidebar activeCategory={normalizedCategory}>
             <ArticleFeed articles={articles} />
             {paginatedArticles ? (
               <PaginationControls
@@ -123,9 +124,9 @@ export default async function CategoryPage({
                 hasNextPage={paginatedArticles.hasNextPage}
               />
             ) : null}
-          </>
+          </FeedWithSidebar>
         ) : (
-          <section className="mx-auto max-w-5xl px-5 py-16 sm:px-8">
+          <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
             <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">
               <h2 className="text-2xl font-bold text-ink">
                 No {categoryLabel} articles yet
