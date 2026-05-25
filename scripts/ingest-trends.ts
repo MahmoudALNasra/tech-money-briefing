@@ -4,7 +4,9 @@ loadLocalEnv();
 
 function getNumberArg(name: string, fallback: number) {
   const prefix = `--${name}=`;
-  const arg = process.argv.find((value) => value.startsWith(prefix));
+  const arg = process.argv
+    .filter((value) => value.startsWith(prefix))
+    .at(-1);
   const parsed = Number(arg?.slice(prefix.length));
 
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
@@ -12,7 +14,9 @@ function getNumberArg(name: string, fallback: number) {
 
 function getStringArg(name: string, fallback: string) {
   const prefix = `--${name}=`;
-  const arg = process.argv.find((value) => value.startsWith(prefix));
+  const arg = process.argv
+    .filter((value) => value.startsWith(prefix))
+    .at(-1);
   const value = arg?.slice(prefix.length).trim();
 
   return value || fallback;

@@ -15,6 +15,8 @@ type TrendArticle = {
 type TrendSeed = {
   title: string;
   sourceUrl: string;
+  sourceName: string;
+  imageUrl: string | null;
   traffic?: string;
   publishedAt?: string;
   newsTitles: string[];
@@ -35,6 +37,8 @@ const parser = new Parser({
   customFields: {
     item: [
       ["ht:approx_traffic", "approxTraffic"],
+      ["ht:picture", "picture"],
+      ["ht:picture_source", "pictureSource"],
       ["ht:news_item", "newsItems", { keepArray: true }]
     ]
   },
@@ -54,7 +58,7 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
   const geo = options.geo ?? process.env.GOOGLE_TRENDS_GEO ?? "US";
   const feedUrl =
     process.env.GOOGLE_TRENDS_RSS_URL ??
-    `https://trends.google.com/trends/trendingsearches/daily/rss?geo=${encodeURIComponent(
+    `https://trends.google.com/trending/rss?geo=${encodeURIComponent(
       geo
     )}`;
 
@@ -100,9 +104,12 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
         meta_description: article.meta_description,
         key_takeaways: article.key_takeaways,
         category: TREND_CATEGORY,
-        source_name: GOOGLE_TRENDS_SOURCE,
+        source_name:
+          seed.sourceName === GOOGLE_TRENDS_SOURCE
+            ? GOOGLE_TRENDS_SOURCE
+            : `${GOOGLE_TRENDS_SOURCE} / ${seed.sourceName}`,
         source_url: seed.sourceUrl,
-        image_url: null,
+        image_url: seed.imageUrl,
         share_id: shareId,
         status: "published",
         published_at: seed.publishedAt ?? new Date().toISOString()
@@ -131,35 +138,76 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
 function toTrendSeed(item: Parser.Item): TrendSeed {
   const custom = item as Parser.Item & {
     approxTraffic?: string;
+    picture?: string | string[];
+    pictureSource?: string | string[];
     newsItems?: Array<{
-      "ht:news_item_title"?: string;
-      "ht:news_item_snippet"?: string;
-      "ht:news_item_url"?: string;
+      "ht:news_item_title"?: string | string[];
+      "ht:news_item_snippet"?: string | string[];
+      "ht:news_item_url"?: string | string[];
+      "ht:news_item_picture"?: string | string[];
+      "ht:news_item_source"?: string | string[];
       title?: string;
       snippet?: string;
       url?: string;
+      picture?: string;
+      source?: string;
     }>;
   };
   const newsItems = custom.newsItems ?? [];
-  const firstNewsUrl =
-    newsItems.find((newsItem) => newsItem["ht:news_item_url"] ?? newsItem.url)?.[
-      "ht:news_item_url"
-    ] ?? newsItems.find((newsItem) => newsItem.url)?.url;
+  const firstNewsWithUrl = newsItems.find((newsItem) =>
+    asString(newsItem["ht:news_item_url"] ?? newsItem.url)
+  );
+  const firstNewsWithImage = newsItems.find((newsItem) =>
+    asString(newsItem["ht:news_item_picture"] ?? newsItem.picture)
+  );
+  const sourceUrl =
+    asString(firstNewsWithUrl?.["ht:news_item_url"] ?? firstNewsWithUrl?.url) ??
+    buildTrendSearchUrl(item.title ?? "");
+  const imageUrl =
+    asString(firstNewsWithImage?.["ht:news_item_picture"] ?? firstNewsWithImage?.picture) ??
+    asString(custom.picture) ??
+    null;
+  const sourceName =
+    asString(firstNewsWithUrl?.["ht:news_item_source"] ?? firstNewsWithUrl?.source) ??
+    asString(custom.pictureSource) ??
+    GOOGLE_TRENDS_SOURCE;
 
   return {
     title: item.title?.trim() ?? "",
-    sourceUrl: firstNewsUrl ?? item.link ?? buildTrendSearchUrl(item.title ?? ""),
-    traffic: custom.approxTraffic,
+    sourceUrl,
+    sourceName,
+    imageUrl,
+    traffic: asString(custom.approxTraffic),
     publishedAt: item.isoDate ?? item.pubDate,
     newsTitles: newsItems
-      .map((newsItem) => newsItem["ht:news_item_title"] ?? newsItem.title ?? "")
-      .filter(Boolean)
+      .map((newsItem) =>
+        asString(newsItem["ht:news_item_title"] ?? newsItem.title)
+      )
+      .filter(isString)
       .slice(0, 5),
     newsSnippets: newsItems
-      .map((newsItem) => newsItem["ht:news_item_snippet"] ?? newsItem.snippet ?? "")
-      .filter(Boolean)
+      .map((newsItem) =>
+        asString(newsItem["ht:news_item_snippet"] ?? newsItem.snippet)
+      )
+      .filter(isString)
       .slice(0, 5)
   };
+}
+
+function asString(value: unknown) {
+  if (typeof value === "string") {
+    return value.trim() || undefined;
+  }
+
+  if (Array.isArray(value)) {
+    return asString(value[0]);
+  }
+
+  return undefined;
+}
+
+function isString(value: string | undefined): value is string {
+  return typeof value === "string" && value.length > 0;
 }
 
 function buildTrendSearchUrl(query: string) {
