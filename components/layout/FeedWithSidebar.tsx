@@ -16,7 +16,7 @@ export function FeedWithSidebar({
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
         <div className="min-w-0">{children}</div>
         <aside className="hidden lg:block">
-          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
+          <div className="sticky top-24">
             <SiteSidebar activeCategory={activeCategory} />
           </div>
         </aside>
