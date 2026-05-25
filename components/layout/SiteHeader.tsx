@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -26,9 +27,17 @@ export function SiteHeader({
           <Link
             href="/"
             onClick={() => setIsMenuOpen(false)}
-            className="text-lg font-black tracking-tight text-ink"
+            className="flex items-center gap-3 text-lg font-black tracking-tight text-ink"
           >
-            {siteConfig.name}
+            <Image
+              src="/logo.svg"
+              alt=""
+              width={40}
+              height={40}
+              priority
+              className="h-10 w-10 rounded-2xl"
+            />
+            <span>{siteConfig.name}</span>
           </Link>
 
           {navCategories.length > 0 ? (
