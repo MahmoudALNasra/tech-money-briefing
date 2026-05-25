@@ -11,6 +11,7 @@
     "ingest:bootstrap": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --once --max-new=10 --scan=50",
     "ingest:trends": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-trends.ts --max-new=3 --scan=12",
     "ingest:trends:clear": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/clear-trends.ts",
+    "ingest:trends:backfill-images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-trends-images.ts",
     "ingest:watch": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --max-new=5 --scan=25",
     "add-source": "node --env-file=.env.local scripts/add-source.js",
     "normalize:categories": "node --env-file=.env.local scripts/normalize-categories.js",

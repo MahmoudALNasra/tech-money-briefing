@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import Parser from "rss-parser";
 
+import { fetchOpenGraphImage } from "./ingestion";
 import { generateShareId } from "./share-id";
 import { slugify } from "./slug";
 import { supabase } from "./supabase";
@@ -96,7 +97,9 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
       const article = await writeTrendArticle(seed);
       const slug = await createUniqueSlug(article.title);
       const shareId = await createUniqueShareId();
-      const status = seed.imageUrl ? "published" : "draft";
+      const sourceImageUrl = await fetchOpenGraphImage(seed.sourceUrl);
+      const imageUrl = sourceImageUrl ?? seed.imageUrl;
+      const status = imageUrl ? "published" : "draft";
 
       const { error } = await supabase.from("articles").insert({
         title: article.title,
@@ -110,7 +113,7 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
             ? GOOGLE_TRENDS_SOURCE
             : `${GOOGLE_TRENDS_SOURCE} / ${seed.sourceName}`,
         source_url: seed.sourceUrl,
-        image_url: seed.imageUrl,
+        image_url: imageUrl,
         share_id: shareId,
         status,
         published_at: seed.publishedAt ?? new Date().toISOString()
