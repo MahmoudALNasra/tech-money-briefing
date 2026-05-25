@@ -161,11 +161,11 @@ function toTrendSeed(item: Parser.Item): TrendSeed {
     asString(newsItem["ht:news_item_picture"] ?? newsItem.picture)
   );
   const sourceUrl =
-    asString(firstNewsWithUrl?.["ht:news_item_url"] ?? firstNewsWithUrl?.url) ??
+    asHttpUrl(firstNewsWithUrl?.["ht:news_item_url"] ?? firstNewsWithUrl?.url) ??
     buildTrendSearchUrl(item.title ?? "");
   const imageUrl =
-    asString(firstNewsWithImage?.["ht:news_item_picture"] ?? firstNewsWithImage?.picture) ??
-    asString(custom.picture) ??
+    asHttpUrl(firstNewsWithImage?.["ht:news_item_picture"] ?? firstNewsWithImage?.picture) ??
+    asHttpUrl(custom.picture) ??
     null;
   const sourceName =
     asString(firstNewsWithUrl?.["ht:news_item_source"] ?? firstNewsWithUrl?.source) ??
@@ -196,7 +196,17 @@ function toTrendSeed(item: Parser.Item): TrendSeed {
 
 function asString(value: unknown) {
   if (typeof value === "string") {
-    return value.trim() || undefined;
+    const trimmed = value.trim();
+
+    if (trimmed.startsWith("[")) {
+      try {
+        return asString(JSON.parse(trimmed));
+      } catch {
+        return trimmed || undefined;
+      }
+    }
+
+    return trimmed || undefined;
   }
 
   if (Array.isArray(value)) {
@@ -204,6 +214,23 @@ function asString(value: unknown) {
   }
 
   return undefined;
+}
+
+function asHttpUrl(value: unknown) {
+  const candidate = asString(value);
+
+  if (!candidate) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(candidate);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.toString()
+      : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function isString(value: string | undefined): value is string {
@@ -256,7 +283,8 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
             "Optimize for search intent with clear explanations, related context, and useful angles for publishers, creators, founders, marketers, or operators.",
             "Do not claim exact ranking positions unless provided. Treat traffic numbers as approximate demand signals.",
             "Include practical implications, why people are searching, what to watch next, and risks of overreacting to a spike.",
-            "Use short paragraphs and include 3-5 markdown-style section headings inside content.",
+            "Use short paragraphs and include 3-5 markdown-style section headings inside content. Do not escape markdown characters.",
+            "Do not include a separate Key Takeaways section inside content because key_takeaways is stored separately.",
             "Generate exactly 3 actionable key_takeaways.",
             `End content with this exact source note: Source: ${GOOGLE_TRENDS_SOURCE}.`
           ],

@@ -22,7 +22,46 @@ type ArticlePageProps = {
   }>;
 };
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+function normalizeArticleContent(content: string) {
+  return content.replace(/\\([#*_`])/g, "$1");
+}
+
+function renderArticleBlock(block: string) {
+  const headingMatch = block.match(/^(#{2,4})\s+(.+)$/);
+
+  if (headingMatch) {
+    return (
+      <h2 key={block}>
+        {headingMatch[2].replace(/\*\*/g, "")}
+      </h2>
+    );
+  }
+
+  const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+  const isUnorderedList =
+    lines.length > 1 && lines.every((line) => /^[-*]\s+/.test(line));
+  const isOrderedList =
+    lines.length > 1 && lines.every((line) => /^\d+\.\s+/.test(line));
+
+  if (isUnorderedList || isOrderedList) {
+    const ListTag = isOrderedList ? "ol" : "ul";
+
+    return (
+      <ListTag key={block}>
+        {lines.map((line) => (
+          <li key={line}>
+            {line.replace(/^([-*]|\d+\.)\s+/, "").replace(/\*\*/g, "")}
+          </li>
+        ))}
+      </ListTag>
+    );
+  }
+
+  return <p key={block}>{block.replace(/\*\*/g, "")}</p>;
+}
 
 export async function generateMetadata({
   params
@@ -76,7 +115,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   const jsonLd = newsArticleJsonLd(article);
-  const paragraphs = article.content
+  const contentBlocks = normalizeArticleContent(article.content)
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
@@ -177,9 +216,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 </ul>
               </aside>
             ) : null}
-            {paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
+            {contentBlocks.map(renderArticleBlock)}
           </div>
 
           <aside className="mt-10 rounded-3xl border border-stone-200 bg-stone-50 p-6">
