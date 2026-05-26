@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
+import Script from "next/script";
 import type { ReactNode } from "react";
 
 import "@/app/globals.css";
@@ -56,16 +57,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
   return (
     <html lang="en" className={geistSans.variable}>
-      <head>
+      <body className="font-sans antialiased" suppressHydrationWarning>
         {shouldLoadAds ? (
-          <script
-            async
+          <Script
+            id="adsbygoogle-loader"
+            strategy="lazyOnload"
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`}
             crossOrigin="anonymous"
           />
         ) : null}
-      </head>
-      <body className="font-sans antialiased" suppressHydrationWarning>
         <GoogleTagManager />
         {children}
         <SiteFooter />

@@ -42,9 +42,8 @@ export function ArticleCard({
               src={article.image_url}
               alt=""
               fill
-              sizes="220px"
+              sizes="(min-width: 768px) 220px, calc(100vw - 2.5rem)"
               priority={priority}
-              unoptimized
               className="object-cover transition duration-300 group-hover:scale-[1.02]"
             />
           ) : (

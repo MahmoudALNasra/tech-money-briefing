@@ -95,7 +95,6 @@ export async function SiteSidebar({ activeCategory }: SiteSidebarProps) {
                           alt=""
                           fill
                           sizes="52px"
-                          unoptimized
                           className="object-cover"
                         />
                       ) : (
