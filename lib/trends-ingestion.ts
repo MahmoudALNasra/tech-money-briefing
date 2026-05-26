@@ -22,6 +22,7 @@ type TrendSeed = {
   sourceUrl: string;
   sourceName: string;
   imageUrl: string | null;
+  imageSourceUrl?: string;
   traffic?: string;
   publishedAt?: string;
   newsTitles: string[];
@@ -141,9 +142,13 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
       const article = await writeTrendArticle(hydratedSeed);
       const slug = await createUniqueSlug(article.title);
       const shareId = await createUniqueShareId();
-      const sourceImageUrl = await fetchOpenGraphImage(hydratedSeed.sourceUrl);
-      const imageUrl = sourceImageUrl ?? hydratedSeed.imageUrl;
-      const status = imageUrl ? "published" : "draft";
+      const sourceImageUrl = await fetchOpenGraphImage(
+        hydratedSeed.imageSourceUrl ?? hydratedSeed.sourceUrl
+      );
+      const imageUrl = getUsableTrendImage(
+        sourceImageUrl ?? hydratedSeed.imageUrl
+      );
+      const status = "published";
 
       const { error } = await supabase.from("articles").insert({
         title: article.title,
@@ -267,6 +272,7 @@ async function hydrateTrendSeed(seed: TrendSeed): Promise<TrendSeed> {
     return {
       ...seed,
       imageUrl: firstArticle?.image ?? seed.imageUrl,
+      imageSourceUrl: firstArticle?.url ?? seed.imageSourceUrl,
       newsTitles: [
         ...articles.map((article) => article.title).filter(Boolean),
         ...seed.newsTitles
@@ -331,6 +337,18 @@ function selectTrendSeeds(seeds: TrendSeed[]) {
     seen.add(key);
     return true;
   });
+}
+
+function isGoogleThumbnail(url: string | null | undefined) {
+  return Boolean(url?.includes("encrypted-tbn"));
+}
+
+function getUsableTrendImage(url: string | null | undefined) {
+  if (!url || isGoogleThumbnail(url)) {
+    return null;
+  }
+
+  return url;
 }
 
 function toTrendSeed(item: Parser.Item): TrendSeed {
