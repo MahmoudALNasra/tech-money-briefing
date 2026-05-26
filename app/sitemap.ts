@@ -7,12 +7,7 @@ import { absoluteUrl } from "@/lib/site";
 
 export const revalidate = 3600;
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, categories] = await Promise.all([
-    getPublishedSitemapEntries(),
-    getPublishedCategories()
-  ]);
-
+function staticSitemapEntries(): MetadataRoute.Sitemap {
   return [
     {
       url: absoluteUrl("/"),
@@ -43,7 +38,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.55
-    })),
+    }))
+  ];
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  let articles: Awaited<ReturnType<typeof getPublishedSitemapEntries>> = [];
+  let categories: string[] = [];
+
+  try {
+    [articles, categories] = await Promise.all([
+      getPublishedSitemapEntries(),
+      getPublishedCategories()
+    ]);
+  } catch (error) {
+    console.warn(
+      "[sitemap] Database unavailable during build; emitting static URLs only.",
+      error instanceof Error ? error.message : error
+    );
+    return staticSitemapEntries();
+  }
+
+  return [
+    ...staticSitemapEntries(),
     ...categories.map((category) => ({
       url: absoluteUrl(`/${category}`),
       lastModified: new Date(),
