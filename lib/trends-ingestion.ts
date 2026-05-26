@@ -1,7 +1,7 @@
-import OpenAI from "openai";
 import Parser from "rss-parser";
 
 import { fetchOpenGraphImage } from "./ingestion";
+import { getOpenAIClient } from "./openai";
 import { generateShareId } from "./share-id";
 import { slugify } from "./slug";
 import { supabase } from "./supabase";
@@ -81,10 +81,6 @@ const parser = new Parser({
     "User-Agent":
       "TechRevenueBrief/1.0 (+https://techrevenuebrief.com; trends ingestion)"
   }
-});
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
 });
 
 export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
@@ -560,7 +556,7 @@ function intentInstructions(intent: string) {
 
 async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
   const searchIntent = classifyTrendIntent(seed);
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAIClient().chat.completions.create({
     model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     temperature: 0.4,
     response_format: {
