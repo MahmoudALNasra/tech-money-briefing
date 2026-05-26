@@ -9,6 +9,8 @@ const nextConfig = {
     root: projectRoot
   },
   images: {
+    deviceSizes: [384, 640, 750, 828, 1080, 1200],
+    imageSizes: [64, 128, 220, 256, 384],
     remotePatterns: [
       {
         protocol: "https",

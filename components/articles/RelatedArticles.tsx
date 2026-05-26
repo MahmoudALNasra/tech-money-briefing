@@ -45,6 +45,7 @@ export async function RelatedArticles({
                       src={article.image_url}
                       alt=""
                       fill
+                      quality={65}
                       sizes="(min-width: 768px) 33vw, 100vw"
                       className="object-cover transition duration-300 group-hover:scale-[1.02]"
                     />

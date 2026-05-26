@@ -13,7 +13,7 @@ export function GoogleTagManager({
 
   return (
     <>
-      <Script id="gtm-init" strategy="afterInteractive">
+      <Script id="gtm-init" strategy="lazyOnload">
         {`
           window.dataLayer = window.dataLayer || [];
           window.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
@@ -21,7 +21,7 @@ export function GoogleTagManager({
       </Script>
       <Script
         id="gtm-script"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         src={`https://www.googletagmanager.com/gtm.js?id=${containerId}`}
       />
       <noscript>

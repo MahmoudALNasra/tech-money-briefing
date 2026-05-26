@@ -216,6 +216,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 alt=""
                 fill
                 priority
+                quality={65}
                 sizes="(min-width: 768px) 768px, 100vw"
                 className="object-cover"
               />

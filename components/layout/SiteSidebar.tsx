@@ -94,6 +94,7 @@ export async function SiteSidebar({ activeCategory }: SiteSidebarProps) {
                           src={article.image_url}
                           alt=""
                           fill
+                          quality={65}
                           sizes="52px"
                           className="object-cover"
                         />

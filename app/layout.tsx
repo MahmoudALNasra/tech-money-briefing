@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
-import Script from "next/script";
 import type { ReactNode } from "react";
 
 import "@/app/globals.css";
+import { DeferredAdSense } from "@/components/analytics/DeferredAdSense";
 import { GoogleTagManager } from "@/components/analytics/GoogleTagManager";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { siteConfig } from "@/lib/site";
@@ -58,14 +58,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={geistSans.variable}>
       <body className="font-sans antialiased" suppressHydrationWarning>
-        {shouldLoadAds ? (
-          <Script
-            id="adsbygoogle-loader"
-            strategy="lazyOnload"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`}
-            crossOrigin="anonymous"
-          />
-        ) : null}
+        {shouldLoadAds ? <DeferredAdSense client={adClient} /> : null}
         <GoogleTagManager />
         {children}
         <SiteFooter />

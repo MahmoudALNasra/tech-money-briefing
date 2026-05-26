@@ -1,6 +1,6 @@
 "use client";
 
-import Script from "next/script";
+import { useEffect, useRef, useState } from "react";
 
 import { useDataLayer } from "@/hooks/useDataLayer";
 
@@ -15,19 +15,82 @@ const adSlot =
     ? configuredAdSlot
     : "8512522207";
 const shouldRenderLiveAd =
-  process.env.NODE_ENV === "production" &&
-  adClient &&
-  adSlot;
+  process.env.NODE_ENV === "production" && adClient && adSlot;
 
 type NativeAdCardProps = {
   slotIndex: number;
 };
 
+function pushAdSlot() {
+  const adsbygoogle = (
+    window as Window & { adsbygoogle?: Array<Record<string, unknown>> }
+  ).adsbygoogle;
+
+  adsbygoogle?.push({});
+}
+
 export function NativeAdCard({ slotIndex }: NativeAdCardProps) {
   const pushToDataLayer = useDataLayer();
+  const containerRef = useRef<HTMLElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [adPushed, setAdPushed] = useState(false);
+
+  useEffect(() => {
+    const node = containerRef.current;
+
+    if (!node || !shouldRenderLiveAd) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px 0px" }
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible || adPushed || !shouldRenderLiveAd) {
+      return;
+    }
+
+    const tryPush = () => {
+      if (
+        typeof window !== "undefined" &&
+        (window as Window & { adsbygoogle?: unknown }).adsbygoogle
+      ) {
+        pushAdSlot();
+        setAdPushed(true);
+        return true;
+      }
+
+      return false;
+    };
+
+    if (tryPush()) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      if (tryPush()) {
+        window.clearInterval(interval);
+      }
+    }, 250);
+
+    return () => window.clearInterval(interval);
+  }, [isVisible, adPushed]);
 
   return (
     <article
+      ref={containerRef}
       className="block rounded-2xl border border-stone-200 bg-white p-4 shadow-sm"
       onClick={() =>
         pushToDataLayer({
@@ -41,7 +104,7 @@ export function NativeAdCard({ slotIndex }: NativeAdCardProps) {
         Sponsored
       </p>
       <div className="overflow-hidden rounded-xl bg-stone-50">
-        {shouldRenderLiveAd ? (
+        {shouldRenderLiveAd && isVisible ? (
           <ins
             className="adsbygoogle"
             style={{ display: "block" }}
@@ -56,12 +119,6 @@ export function NativeAdCard({ slotIndex }: NativeAdCardProps) {
           </div>
         )}
       </div>
-
-      {shouldRenderLiveAd ? (
-        <Script id={`native-ad-${slotIndex}`} strategy="afterInteractive">
-          {`(adsbygoogle = window.adsbygoogle || []).push({});`}
-        </Script>
-      ) : null}
     </article>
   );
 }
