@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ArticleReadTracker } from "@/components/analytics/ArticleReadTracker";
+import { ArticleToolRecommendations } from "@/components/articles/ArticleToolRecommendations";
 import { RelatedArticles } from "@/components/articles/RelatedArticles";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { ScrollNewsletter } from "@/components/newsletter/ScrollNewsletter";
@@ -29,13 +30,37 @@ function normalizeArticleContent(content: string) {
   return content.replace(/\\([#*_`])/g, "$1");
 }
 
+function renderInlineContent(text: string) {
+  const cleaned = text.replace(/\*\*/g, "");
+  const parts = cleaned.split(/(\[[^\]]+\]\(https?:\/\/[^)]+\))/g);
+
+  return parts.map((part, index) => {
+    const match = part.match(/^\[([^\]]+)\]\((https?:\/\/[^)]+)\)$/);
+
+    if (!match) {
+      return part;
+    }
+
+    return (
+      <a
+        key={`${match[2]}-${index}`}
+        href={match[2]}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {match[1]}
+      </a>
+    );
+  });
+}
+
 function renderArticleBlock(block: string) {
   const headingMatch = block.match(/^(#{2,4})\s+(.+)$/);
 
   if (headingMatch) {
     return (
       <h2 key={block}>
-        {headingMatch[2].replace(/\*\*/g, "")}
+        {renderInlineContent(headingMatch[2])}
       </h2>
     );
   }
@@ -53,14 +78,14 @@ function renderArticleBlock(block: string) {
       <ListTag key={block}>
         {lines.map((line) => (
           <li key={line}>
-            {line.replace(/^([-*]|\d+\.)\s+/, "").replace(/\*\*/g, "")}
+            {renderInlineContent(line.replace(/^([-*]|\d+\.)\s+/, ""))}
           </li>
         ))}
       </ListTag>
     );
   }
 
-  return <p key={block}>{block.replace(/\*\*/g, "")}</p>;
+  return <p key={block}>{renderInlineContent(block)}</p>;
 }
 
 export async function generateMetadata({
@@ -218,6 +243,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             ) : null}
             {contentBlocks.map(renderArticleBlock)}
           </div>
+
+          <ArticleToolRecommendations article={article} />
 
           <aside className="mt-10 rounded-3xl border border-stone-200 bg-stone-50 p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">

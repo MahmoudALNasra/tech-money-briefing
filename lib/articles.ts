@@ -238,6 +238,41 @@ export const getArticleBySlug = cache(
   )
 );
 
+function sanitizeSearchTerm(query: string) {
+  return query
+    .trim()
+    .replace(/[%_,()]/g, " ")
+    .replace(/\s+/g, " ")
+    .slice(0, 120);
+}
+
+export async function searchPublishedArticles(query: string, limit = 24) {
+  const term = sanitizeSearchTerm(query);
+
+  if (!term) {
+    return [];
+  }
+
+  const pattern = `%${term}%`;
+  const { data, error } = await supabase
+    .from("articles")
+    .select(articleSummaryColumns)
+    .eq("status", "published")
+    .or(
+      `title.ilike.${pattern},meta_description.ilike.${pattern},content.ilike.${pattern},source_name.ilike.${pattern}`
+    )
+    .order("published_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(formatSupabaseError("Failed to search articles", error));
+  }
+
+  return (data ?? []).map((row) =>
+    mapArticleSummary(row as Record<string, unknown>)
+  );
+}
+
 export const getPublishedSitemapEntries = cache(async () => {
   const { data, error } = await supabase
     .from("articles")

@@ -327,7 +327,124 @@ function buildTrendSearchUrl(query: string) {
   return `https://trends.google.com/trends/explore?q=${encodeURIComponent(query)}`;
 }
 
+function classifyTrendIntent(seed: TrendSeed) {
+  const text = [seed.title, ...seed.newsTitles, ...seed.newsSnippets]
+    .join(" ")
+    .toLowerCase();
+  const hasHolidayTerm =
+    text.includes("memorial day") ||
+    text.includes("labor day") ||
+    text.includes("thanksgiving") ||
+    text.includes("christmas") ||
+    text.includes("new year") ||
+    text.includes("easter") ||
+    text.includes("halloween") ||
+    text.includes("juneteenth") ||
+    text.includes("independence day") ||
+    text.includes("fourth of july") ||
+    text.includes("4th of july");
+
+  if (
+    text.includes("open today") ||
+    text.includes("hours") ||
+    text.includes("holiday hours") ||
+    text.includes("closed today") ||
+    text.includes("open on") ||
+    text.includes("closed on")
+  ) {
+    return "hours-and-status";
+  }
+
+  if (hasHolidayTerm) {
+    return "holiday-explainer";
+  }
+
+  if (
+    /\b(is|are|does|do|did|can|when|where|why|how|what)\b/.test(text) ||
+    text.includes("?")
+  ) {
+    return "direct-answer";
+  }
+
+  if (
+    /\b(nfl|nba|mlb|nhl|wnba|ncaa|soccer|football|baseball|basketball|hockey|ufc|wwe|game|score|match|playoff|final|team|coach|player)\b/.test(
+      text
+    )
+  ) {
+    return "sports-context";
+  }
+
+  if (
+    /\b(celebrity|movie|music|actor|actress|singer|album|tour|show|netflix|disney|trailer|episode)\b/.test(
+      text
+    )
+  ) {
+    return "entertainment-context";
+  }
+
+  return "news-explainer";
+}
+
+function intentInstructions(intent: string) {
+  const shared = [
+    "Treat the Google Trends query as the target search phrase and answer the likely search intent immediately.",
+    "The title should be specific enough to compete for the query, not a vague trend-analysis headline.",
+    "Use the exact trending query naturally in the title, opening paragraph, one subheading, and meta description.",
+    "If facts are not present in the provided trend/news/source context, say what is known and how readers can verify it; do not invent hours, scores, dates, prices, injuries, quotes, or official statements.",
+    "Write for people searching right now, then add context after the direct answer."
+  ];
+
+  if (intent === "hours-and-status") {
+    return [
+      ...shared,
+      "Use an article shape like: direct answer, current status/hours, why people are searching, how to verify locally, what to watch next.",
+      "For business hours or holiday queries, include a clear caveat that hours can vary by location and readers should verify with the official store locator or local listing.",
+      "Example direction: for 'is Chick-fil-A open today', lead with whether the query is about today's/holiday hours, then explain Chick-fil-A hours and local verification without fabricating a universal schedule."
+    ];
+  }
+
+  if (intent === "holiday-explainer") {
+    return [
+      ...shared,
+      "Use an article shape like: what the holiday/event is, when it falls this year, why people are searching today, origin/history, what is open or closed only if source context supports it, and what to watch next.",
+      "For broad holiday keywords like 'Memorial Day', do not make the article only about store hours. Explain the holiday itself, its meaning, timing, history, and why searches spike.",
+      "If the keyword is a holiday plus a brand/store/service, then answer that narrower intent. If it is only the holiday/event name, write the broader explainer."
+    ];
+  }
+
+  if (intent === "direct-answer") {
+    return [
+      ...shared,
+      "Use an article shape like: short answer, details, why it is trending, related questions, what to watch next.",
+      "If the query is phrased as a question, answer that question in the first 1-2 sentences before adding analysis."
+    ];
+  }
+
+  if (intent === "sports-context") {
+    return [
+      ...shared,
+      "Use an article shape like: why this team/player/game is trending, quick background, recent context, history/rivalry if relevant, schedule or next milestone if provided, what fans are searching for.",
+      "For sports topics, prioritize team/player context, matchup history, records or schedule only when provided by source context, and explain why casual searchers care."
+    ];
+  }
+
+  if (intent === "entertainment-context") {
+    return [
+      ...shared,
+      "Use an article shape like: who/what it is, why it is trending now, short timeline, fan/search context, what to watch next.",
+      "For entertainment or celebrity topics, avoid gossip beyond the provided source context and focus on verifiable context."
+    ];
+  }
+
+  return [
+    ...shared,
+    "Use an article shape like: what happened, why searches are spiking, practical context, related angles, what to watch next.",
+    "For random news topics, explain the entity/event clearly enough for readers arriving from search who have no prior context."
+  ];
+}
+
 async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
+  const searchIntent = classifyTrendIntent(seed);
   const completion = await openai.chat.completions.create({
     model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     temperature: 0.4,
@@ -358,22 +475,23 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
       {
         role: "system",
         content:
-          "You are an expert trend analyst and technical SEO strategist for a publisher. Return only valid JSON. Create original, useful analysis; do not keyword stuff, fabricate facts, or pretend Google Trends proves more than it does."
+          "You are an expert search-intent editor and technical SEO strategist for a publisher. Return only valid JSON. Create original, useful articles that directly satisfy the live query intent; do not keyword stuff, fabricate facts, or pretend Google Trends proves more than it does."
       },
       {
         role: "user",
         content: JSON.stringify({
           instructions: [
-            "Write a timely article for the 'others' category based on this Google Trends topic.",
-            "Use the trending query naturally in the title, opening paragraph, one subheading, and meta description.",
-            "Optimize for search intent with clear explanations, related context, and useful angles for publishers, creators, founders, marketers, or operators.",
+            "Write a timely search article for the 'others' category based on this Google Trends topic.",
+            ...intentInstructions(searchIntent),
+            "Optimize for search intent first, then add useful context for publishers, creators, founders, marketers, or operators when it fits naturally.",
             "Do not claim exact ranking positions unless provided. Treat traffic numbers as approximate demand signals.",
-            "Include practical implications, why people are searching, what to watch next, and risks of overreacting to a spike.",
+            "Include why people are searching, what readers should know now, what to watch next, and risks of overreacting to a spike.",
             "Use short paragraphs and include 3-5 markdown-style section headings inside content. Do not escape markdown characters.",
             "Do not include a separate Key Takeaways section inside content because key_takeaways is stored separately.",
             "Generate exactly 3 actionable key_takeaways.",
             `End content with this exact source note: Source: ${GOOGLE_TRENDS_SOURCE}.`
           ],
+          searchIntent,
           trend: seed.title,
           approximateTraffic: seed.traffic,
           newsTitles: seed.newsTitles,

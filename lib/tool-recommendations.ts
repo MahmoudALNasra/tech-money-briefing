@@ -3,6 +3,7 @@ import { FREE_TOOLS } from "./free-tools";
 export type RecommendedTool = {
   href: string;
   title: string;
+  description: string;
 };
 
 type ToolRule = {
@@ -82,10 +83,35 @@ const TOOL_RULES: ToolRule[] = [
   {
     href: "/image-compressor",
     keywords: ["image", "photo", "compress", "webp", "png", "performance"]
+  },
+  {
+    href: "/youtube-title-generator",
+    keywords: ["sports", "nfl", "nba", "mlb", "soccer", "football", "game", "score"]
+  },
+  {
+    href: "/tiktok-hook-generator",
+    keywords: ["sports", "celebrity", "entertainment", "random", "viral", "breaking news"]
+  },
+  {
+    href: "/meme-generator",
+    keywords: ["sports", "celebrity", "entertainment", "random", "viral", "culture"]
+  },
+  {
+    href: "/x-card-generator",
+    keywords: ["breaking", "news", "trend", "sports", "celebrity", "recap"]
   }
 ];
 
 const toolTitleByHref = new Map(FREE_TOOLS.map((tool) => [tool.href, tool.title]));
+const toolDescriptionByHref = new Map(
+  FREE_TOOLS.map((tool) => [tool.href, tool.description])
+);
+const FALLBACK_TOOL_HREFS = [
+  "/blog-title-generator",
+  "/youtube-title-generator",
+  "/tiktok-hook-generator",
+  "/meme-generator"
+];
 
 function normalizeText(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
@@ -106,7 +132,19 @@ export function getRecommendedToolsForTrend(
   newsTitles: string[] = [],
   limit = 4
 ): RecommendedTool[] {
-  const haystack = normalizeText([trendTitle, ...newsTitles].join(" "));
+  return getRecommendedToolsForText(
+    [trendTitle, ...newsTitles].join(" "),
+    limit,
+    true
+  );
+}
+
+export function getRecommendedToolsForText(
+  text: string,
+  limit = 4,
+  includeFallback = false
+): RecommendedTool[] {
+  const haystack = normalizeText(text);
   const ranked = TOOL_RULES.map((rule) => ({
     href: rule.href,
     score: scoreRule(haystack, rule.keywords.map(normalizeText))
@@ -125,8 +163,24 @@ export function getRecommendedToolsForTrend(
     seen.add(entry.href);
     recommendations.push({
       href: entry.href,
-      title: toolTitleByHref.get(entry.href) ?? entry.href
+      title: toolTitleByHref.get(entry.href) ?? entry.href,
+      description: toolDescriptionByHref.get(entry.href) ?? "Open this free tool."
     });
+  }
+
+  if (includeFallback && recommendations.length < limit) {
+    for (const href of FALLBACK_TOOL_HREFS) {
+      if (seen.has(href) || recommendations.length >= limit) {
+        continue;
+      }
+
+      seen.add(href);
+      recommendations.push({
+        href,
+        title: toolTitleByHref.get(href) ?? href,
+        description: toolDescriptionByHref.get(href) ?? "Open this free tool."
+      });
+    }
   }
 
   return recommendations;
