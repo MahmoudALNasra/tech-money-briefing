@@ -1,5 +1,6 @@
 import Parser from "rss-parser";
 
+import { enrichArticleMedia } from "./article-media";
 import { fetchOpenGraphImage } from "./ingestion";
 import { getOpenAIClient } from "./openai";
 import { generateShareId } from "./share-id";
@@ -150,24 +151,28 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
       );
       const status = "published";
 
-      const { error } = await supabase.from("articles").insert({
-        title: article.title,
-        slug,
-        content: article.content,
-        meta_description: article.meta_description,
-        key_takeaways: article.key_takeaways,
-        category: TREND_CATEGORY,
-        source_name:
-          hydratedSeed.sourceName === GOOGLE_TRENDS_SOURCE
-            ? GOOGLE_TRENDS_SOURCE
-            : `${GOOGLE_TRENDS_SOURCE} / ${hydratedSeed.sourceName}`,
-        source_url: hydratedSeed.sourceUrl,
-        image_url: imageUrl,
-        share_id: shareId,
-        status,
-        // Use our publish time so feeds sort newest-first on the site.
-        published_at: new Date().toISOString()
-      });
+      const { data: insertedArticle, error } = await supabase
+        .from("articles")
+        .insert({
+          title: article.title,
+          slug,
+          content: article.content,
+          meta_description: article.meta_description,
+          key_takeaways: article.key_takeaways,
+          category: TREND_CATEGORY,
+          source_name:
+            hydratedSeed.sourceName === GOOGLE_TRENDS_SOURCE
+              ? GOOGLE_TRENDS_SOURCE
+              : `${GOOGLE_TRENDS_SOURCE} / ${hydratedSeed.sourceName}`,
+          source_url: hydratedSeed.sourceUrl,
+          image_url: imageUrl,
+          share_id: shareId,
+          status,
+          // Use our publish time so feeds sort newest-first on the site.
+          published_at: new Date().toISOString()
+        })
+        .select("id")
+        .single();
 
       if (error) {
         if (error.code === "23505") {
@@ -179,6 +184,15 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
       }
 
       result.inserted += 1;
+
+      if (insertedArticle?.id) {
+        await enrichArticleMedia({
+          articleId: String(insertedArticle.id),
+          title: article.title,
+          category: TREND_CATEGORY,
+          metaDescription: article.meta_description
+        });
+      }
     } catch (error) {
       result.errors.push(
         `${hydratedSeed.title}: ${error instanceof Error ? error.message : String(error)}`

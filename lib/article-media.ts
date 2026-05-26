@@ -1,0 +1,129 @@
+import { supabase } from "./supabase";
+import type { ArticleMedia } from "./types";
+import {
+  isYouTubeQuotaError,
+  searchYouTubeVideos,
+  type YouTubeVideo
+} from "./youtube";
+
+function mapArticleMedia(row: Record<string, unknown>): ArticleMedia {
+  return {
+    id: String(row.id),
+    article_id: String(row.article_id),
+    provider: "youtube",
+    provider_id: String(row.provider_id),
+    title: String(row.title),
+    thumbnail_url: row.thumbnail_url ? String(row.thumbnail_url) : null,
+    url: String(row.url),
+    position: Number(row.position ?? 0),
+    created_at: row.created_at ? String(row.created_at) : undefined,
+    updated_at: row.updated_at ? String(row.updated_at) : undefined
+  };
+}
+
+function isMissingTableError(error: { code?: string; message?: string }) {
+  return (
+    error.code === "42P01" ||
+    error.message?.toLowerCase().includes("article_media") ||
+    error.message?.toLowerCase().includes("does not exist")
+  );
+}
+
+export async function getArticleMedia(articleId: string) {
+  const { data, error } = await supabase
+    .from("article_media")
+    .select("*")
+    .eq("article_id", articleId)
+    .order("position", { ascending: true })
+    .limit(3);
+
+  if (error) {
+    if (isMissingTableError(error)) {
+      console.warn("[article-media] Skipped: article_media table is missing");
+      return [];
+    }
+
+    throw new Error(`Failed to load article media: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => mapArticleMedia(row as Record<string, unknown>));
+}
+
+export async function replaceArticleMedia(
+  articleId: string,
+  videos: YouTubeVideo[]
+) {
+  const { error: deleteError } = await supabase
+    .from("article_media")
+    .delete()
+    .eq("article_id", articleId);
+
+  if (deleteError) {
+    if (isMissingTableError(deleteError)) {
+      console.warn("[article-media] Skipped: article_media table is missing");
+      return { inserted: 0, skipped: videos.length };
+    }
+
+    throw new Error(`Failed to clear article media: ${deleteError.message}`);
+  }
+
+  if (videos.length === 0) {
+    return { inserted: 0, skipped: 0 };
+  }
+
+  const rows = videos.slice(0, 3).map((video, index) => ({
+    article_id: articleId,
+    provider: video.provider,
+    provider_id: video.provider_id,
+    title: video.title,
+    thumbnail_url: video.thumbnail_url,
+    url: video.url,
+    position: index
+  }));
+  const { error: insertError } = await supabase.from("article_media").insert(rows);
+
+  if (insertError) {
+    if (isMissingTableError(insertError)) {
+      console.warn("[article-media] Skipped: article_media table is missing");
+      return { inserted: 0, skipped: videos.length };
+    }
+
+    throw new Error(`Failed to insert article media: ${insertError.message}`);
+  }
+
+  return { inserted: rows.length, skipped: 0 };
+}
+
+export async function enrichArticleMedia(input: {
+  articleId: string;
+  title: string;
+  category?: string;
+  metaDescription?: string;
+  throwOnQuota?: boolean;
+}) {
+  try {
+    const videos = await searchYouTubeVideos({
+      title: input.title,
+      category: input.category,
+      metaDescription: input.metaDescription,
+      maxResults: 3
+    });
+
+    if (videos.length === 0) {
+      return { inserted: 0, skipped: 0 };
+    }
+
+    return await replaceArticleMedia(input.articleId, videos);
+  } catch (error) {
+    if (input.throwOnQuota && isYouTubeQuotaError(error)) {
+      throw error;
+    }
+
+    console.warn(
+      "[article-media] Video enrichment skipped",
+      error instanceof Error ? error.message : error
+    );
+
+    return { inserted: 0, skipped: 0 };
+  }
+}

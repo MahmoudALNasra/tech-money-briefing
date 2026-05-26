@@ -1,4 +1,5 @@
 import { loadLocalEnv } from "../lib/load-env";
+import { enrichArticleMedia } from "../lib/article-media";
 import { getOpenAIClient } from "../lib/openai";
 import { revalidateSiteCache } from "../lib/revalidate-site";
 import { supabase } from "../lib/supabase";
@@ -211,6 +212,12 @@ async function run() {
       }
 
       result.updated += 1;
+      await enrichArticleMedia({
+        articleId: article.id,
+        title: improved.title,
+        category: "others",
+        metaDescription: improved.meta_description
+      });
       console.log(`[improve-trends] updated ${article.slug}`);
     } catch (error) {
       result.errors.push(

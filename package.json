@@ -13,6 +13,8 @@
     "ingest:trends:clear": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/clear-trends.ts",
     "ingest:trends:backfill-images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-trends-images.ts",
     "ingest:trends:improve": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/improve-trend-articles.ts",
+    "articles:backfill-media": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-media.ts",
+    "articles:backfill-media:slow": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-media.ts --limit=1000 --delay-ms=65000 --stop-on-quota",
     "ingest:watch": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --max-new=5 --scan=25",
     "add-source": "node --env-file=.env.local scripts/add-source.js",
     "normalize:categories": "node --env-file=.env.local scripts/normalize-categories.js",

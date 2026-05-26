@@ -4,10 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ArticleReadTracker } from "@/components/analytics/ArticleReadTracker";
+import { ArticleShareToolbar } from "@/components/articles/ArticleShareToolbar";
 import { ArticleToolRecommendations } from "@/components/articles/ArticleToolRecommendations";
+import { ArticleVideoSection } from "@/components/articles/ArticleVideoSection";
 import { RelatedArticles } from "@/components/articles/RelatedArticles";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { ScrollNewsletter } from "@/components/newsletter/ScrollNewsletter";
+import { getArticleMedia } from "@/lib/article-media";
 import { getArticleBySlug } from "@/lib/articles";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
@@ -54,13 +57,55 @@ function renderInlineContent(text: string) {
   });
 }
 
+function headingId(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function getContentHeadings(blocks: string[]) {
+  return blocks
+    .map((block) => {
+      const match = block.match(/^(#{2,4})\s+(.+)$/);
+
+      if (!match) {
+        return null;
+      }
+
+      const label = match[2].replace(/\*\*/g, "").trim();
+
+      return {
+        id: headingId(label),
+        label,
+        level: match[1].length
+      };
+    })
+    .filter((heading): heading is { id: string; label: string; level: number } =>
+      Boolean(heading?.id && heading.label)
+    )
+    .slice(0, 8);
+}
+
 function renderArticleBlock(block: string) {
   const headingMatch = block.match(/^(#{2,4})\s+(.+)$/);
 
   if (headingMatch) {
+    const label = headingMatch[2];
+    const id = headingId(label);
+
+    if (headingMatch[1].length >= 3) {
+      return (
+        <h3 key={block} id={id}>
+          {renderInlineContent(label)}
+        </h3>
+      );
+    }
+
     return (
-      <h2 key={block}>
-        {renderInlineContent(headingMatch[2])}
+      <h2 key={block} id={id}>
+        {renderInlineContent(label)}
       </h2>
     );
   }
@@ -139,6 +184,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
+  const articleMedia = await getArticleMedia(article.id);
   const jsonLd = newsArticleJsonLd(article);
   const faqLd = faqJsonLd(article);
   const contentBlocks = normalizeArticleContent(article.content)
@@ -154,6 +200,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       }).format(new Date(article.published_at))
     : null;
   const readingTime = calculateReadingTime(article.content);
+  const tableOfContents = getContentHeadings(contentBlocks);
+  const url = articleUrl(article);
 
   return (
     <>
@@ -195,6 +243,61 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {article.meta_description}
           </p>
 
+          <ArticleShareToolbar title={article.title} url={url} />
+
+          <section className="mt-8 overflow-hidden rounded-3xl border border-stone-200 bg-gradient-to-br from-stone-950 via-stone-900 to-stone-800 text-white shadow-xl shadow-stone-950/10">
+            <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="p-6 sm:p-8">
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-stone-300">
+                  Start Here
+                </p>
+                <h2 className="mt-3 text-2xl font-black tracking-tight">
+                  TL;DR
+                </h2>
+                {article.key_takeaways.length > 0 ? (
+                  <ul className="mt-5 space-y-3 text-sm leading-6 text-stone-100">
+                    {article.key_takeaways.slice(0, 3).map((takeaway) => (
+                      <li key={takeaway} className="flex gap-3">
+                        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-lime-300" />
+                        <span>{takeaway}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-4 text-sm leading-6 text-stone-100">
+                    Read the quick answer first, then use the section links to
+                    jump into details.
+                  </p>
+                )}
+              </div>
+
+              <div className="border-t border-white/10 bg-white/5 p-6 sm:p-8 lg:border-l lg:border-t-0">
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-stone-300">
+                  In This Briefing
+                </p>
+                {tableOfContents.length > 0 ? (
+                  <nav className="mt-4 grid gap-2" aria-label="Article table of contents">
+                    {tableOfContents.map((heading) => (
+                      <a
+                        key={heading.id}
+                        href={`#${heading.id}`}
+                        className={`rounded-2xl px-3 py-2 text-sm font-semibold text-stone-100 transition hover:bg-white/10 ${
+                          heading.level >= 3 ? "ml-3 text-stone-300" : ""
+                        }`}
+                      >
+                        {heading.label}
+                      </a>
+                    ))}
+                  </nav>
+                ) : (
+                  <p className="mt-4 text-sm leading-6 text-stone-100">
+                    Scroll for the main answer, source context, and related tools.
+                  </p>
+                )}
+              </div>
+            </div>
+          </section>
+
           <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-500">
             <li>
               Source:{" "}
@@ -216,6 +319,33 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <li>Share ID: {article.share_id}</li>
           </ul>
 
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-stone-500">
+                Scan Path
+              </p>
+              <p className="mt-2 text-sm font-semibold text-ink">
+                Answer first, details second
+              </p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-stone-500">
+                Trust Cue
+              </p>
+              <p className="mt-2 text-sm font-semibold text-ink">
+                Source linked for verification
+              </p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-stone-500">
+                Time Cost
+              </p>
+              <p className="mt-2 text-sm font-semibold text-ink">
+                {readingTime} min read
+              </p>
+            </div>
+          </div>
+
           <div className="relative mt-8 aspect-square overflow-hidden rounded-3xl bg-gray-100">
             {article.image_url ? (
               <Image
@@ -232,24 +362,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             )}
           </div>
 
-          <div className="article-content prose prose-lg mt-10 max-w-none prose-headings:text-ink prose-a:text-ink">
-            {article.key_takeaways.length > 0 ? (
-              <aside className="not-prose mb-10 rounded-3xl border border-gray-200 bg-[#fbfaf7] p-6">
-                <h2 className="text-sm font-bold uppercase tracking-[0.2em] text-gray-500">
-                  Analyst Takeaways
-                </h2>
-                <ul className="mt-4 space-y-3 text-base leading-7 text-ink">
-                  {article.key_takeaways.map((takeaway) => (
-                    <li key={takeaway} className="flex gap-3">
-                      <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-900" />
-                      <span>{takeaway}</span>
-                    </li>
-                  ))}
-                </ul>
-              </aside>
-            ) : null}
+          <div className="article-content prose prose-lg mt-10 max-w-none scroll-mt-24 prose-headings:scroll-mt-24 prose-headings:text-ink prose-a:text-ink">
             {contentBlocks.map(renderArticleBlock)}
           </div>
+
+          <ArticleVideoSection media={articleMedia} />
 
           <ArticleToolRecommendations article={article} />
 

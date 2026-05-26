@@ -18,6 +18,21 @@ export type Article = {
   updated_at?: string;
 };
 
+export type ArticleMediaProvider = "youtube";
+
+export type ArticleMedia = {
+  id: string;
+  article_id: string;
+  provider: ArticleMediaProvider;
+  provider_id: string;
+  title: string;
+  thumbnail_url: string | null;
+  url: string;
+  position: number;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type ArticleSummary = Pick<
   Article,
   | "id"

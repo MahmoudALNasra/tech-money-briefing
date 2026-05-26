@@ -1,5 +1,6 @@
 import Parser from "rss-parser";
 
+import { enrichArticleMedia } from "./article-media";
 import { getOpenAIClient } from "./openai";
 import { generateShareId } from "./share-id";
 import { slugify, normalizeCategory } from "./slug";
@@ -149,20 +150,24 @@ async function ingestSource(
           item.isoDate ?? item.pubDate ?? new Date().toISOString();
         const status = imageUrl ? "published" : "draft";
 
-        const { error: insertError } = await supabase.from("articles").insert({
-          title: rewritten.title,
-          slug,
-          content: rewritten.content,
-          meta_description: rewritten.meta_description,
-          key_takeaways: rewritten.key_takeaways,
-          category: normalizeCategory(source.category),
-          source_name: source.name,
-          source_url: sourceUrl,
-          image_url: imageUrl,
-          share_id: shareId,
-          status,
-          published_at: publishedAt
-        });
+        const { data: insertedArticle, error: insertError } = await supabase
+          .from("articles")
+          .insert({
+            title: rewritten.title,
+            slug,
+            content: rewritten.content,
+            meta_description: rewritten.meta_description,
+            key_takeaways: rewritten.key_takeaways,
+            category: normalizeCategory(source.category),
+            source_name: source.name,
+            source_url: sourceUrl,
+            image_url: imageUrl,
+            share_id: shareId,
+            status,
+            published_at: publishedAt
+          })
+          .select("id")
+          .single();
 
         if (insertError) {
           if (insertError.code === "23505") {
@@ -175,6 +180,15 @@ async function ingestSource(
 
         result.inserted += 1;
         options.budget.remaining -= 1;
+
+        if (insertedArticle?.id) {
+          await enrichArticleMedia({
+            articleId: String(insertedArticle.id),
+            title: rewritten.title,
+            category: normalizeCategory(source.category),
+            metaDescription: rewritten.meta_description
+          });
+        }
       } catch (error) {
         if (error instanceof IrrelevantArticleError) {
           result.skipped += 1;
