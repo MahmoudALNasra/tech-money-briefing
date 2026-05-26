@@ -25,7 +25,8 @@
     "openai": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "rss-parser": "latest"
+    "rss-parser": "latest",
+    "trendsearch": "^0.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "latest",

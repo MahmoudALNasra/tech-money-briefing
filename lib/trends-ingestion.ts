@@ -26,6 +26,8 @@ type TrendSeed = {
   publishedAt?: string;
   newsTitles: string[];
   newsSnippets: string[];
+  rank?: number;
+  articleKeys?: Array<[number, string, string]>;
 };
 
 type TrendsIngestionOptions = {
@@ -97,14 +99,23 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
       geo
     )}`;
 
-  const feed = await parser.parseURL(feedUrl);
-  const allSeeds = feed.items.slice(0, maxTrends).map(toTrendSeed);
-  const seeds = selectTrendSeeds(allSeeds);
+  const sourceSeeds = await loadRankedTrendSeeds({
+    feedUrl,
+    geo,
+    maxTrends
+  });
+  const seeds = selectTrendSeeds(sourceSeeds);
   const result = {
     ok: true,
     source: GOOGLE_TRENDS_SOURCE,
     geo,
     maxNewArticles,
+    selected: seeds.map((seed) => ({
+      rank: seed.rank,
+      title: seed.title,
+      traffic: seed.traffic,
+      source: seed.sourceName
+    })),
     processed: 0,
     inserted: 0,
     skipped: 0,
@@ -123,17 +134,19 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
       continue;
     }
 
-    if (await articleExists(seed.sourceUrl)) {
+    const hydratedSeed = await hydrateTrendSeed(seed);
+
+    if (await articleExists(hydratedSeed.sourceUrl)) {
       result.skipped += 1;
       continue;
     }
 
     try {
-      const article = await writeTrendArticle(seed);
+      const article = await writeTrendArticle(hydratedSeed);
       const slug = await createUniqueSlug(article.title);
       const shareId = await createUniqueShareId();
-      const sourceImageUrl = await fetchOpenGraphImage(seed.sourceUrl);
-      const imageUrl = sourceImageUrl ?? seed.imageUrl;
+      const sourceImageUrl = await fetchOpenGraphImage(hydratedSeed.sourceUrl);
+      const imageUrl = sourceImageUrl ?? hydratedSeed.imageUrl;
       const status = imageUrl ? "published" : "draft";
 
       const { error } = await supabase.from("articles").insert({
@@ -144,14 +157,14 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
         key_takeaways: article.key_takeaways,
         category: TREND_CATEGORY,
         source_name:
-          seed.sourceName === GOOGLE_TRENDS_SOURCE
+          hydratedSeed.sourceName === GOOGLE_TRENDS_SOURCE
             ? GOOGLE_TRENDS_SOURCE
-            : `${GOOGLE_TRENDS_SOURCE} / ${seed.sourceName}`,
-        source_url: seed.sourceUrl,
+            : `${GOOGLE_TRENDS_SOURCE} / ${hydratedSeed.sourceName}`,
+        source_url: hydratedSeed.sourceUrl,
         image_url: imageUrl,
         share_id: shareId,
         status,
-        published_at: seed.publishedAt ?? new Date().toISOString()
+        published_at: hydratedSeed.publishedAt ?? new Date().toISOString()
       });
 
       if (error) {
@@ -166,12 +179,114 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
       result.inserted += 1;
     } catch (error) {
       result.errors.push(
-        `${seed.title}: ${error instanceof Error ? error.message : String(error)}`
+        `${hydratedSeed.title}: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }
 
   return result;
+}
+
+async function loadRankedTrendSeeds({
+  feedUrl,
+  geo,
+  maxTrends
+}: {
+  feedUrl: string;
+  geo: string;
+  maxTrends: number;
+}) {
+  if (process.env.GOOGLE_TRENDS_SOURCE === "rss") {
+    return loadRssTrendSeeds(feedUrl, maxTrends);
+  }
+
+  try {
+    return await loadTrendingNowSeeds(geo, maxTrends);
+  } catch (error) {
+    console.warn(
+      "[trends] Trending Now source failed, falling back to RSS",
+      error
+    );
+    return loadRssTrendSeeds(feedUrl, maxTrends);
+  }
+}
+
+async function loadRssTrendSeeds(feedUrl: string, maxTrends: number) {
+  const feed = await parser.parseURL(feedUrl);
+  return feed.items.slice(0, maxTrends).map(toTrendSeed);
+}
+
+async function loadTrendingNowSeeds(geo: string, maxTrends: number) {
+  const { trendingNow } = await import("trendsearch");
+  const requestedHours = Number(process.env.GOOGLE_TRENDS_HOURS ?? 24);
+  const hours =
+    requestedHours === 4 ||
+    requestedHours === 24 ||
+    requestedHours === 48 ||
+    requestedHours === 168
+      ? requestedHours
+      : 24;
+  const result = await trendingNow({
+    geo,
+    language: process.env.GOOGLE_TRENDS_LANGUAGE ?? "en",
+    hours
+  });
+
+  return result.data.items.slice(0, maxTrends).map((item, index) => {
+    const relatedKeywords = item.relatedKeywords ?? [];
+
+    return {
+      title: item.keyword,
+      sourceUrl: buildTrendSearchUrl(item.keyword),
+      sourceName: "Google Trends Trending Now",
+      imageUrl: null,
+      traffic:
+        typeof item.traffic === "number"
+          ? `${item.traffic.toLocaleString()}+`
+          : undefined,
+      publishedAt: item.activeTime,
+      newsTitles: relatedKeywords.slice(0, 8),
+      newsSnippets: relatedKeywords.slice(8, 16),
+      rank: index + 1,
+      articleKeys: item.articleKeys?.slice(0, 5)
+    } satisfies TrendSeed;
+  });
+}
+
+async function hydrateTrendSeed(seed: TrendSeed): Promise<TrendSeed> {
+  if (!seed.articleKeys || seed.articleKeys.length === 0 || seed.imageUrl) {
+    return seed;
+  }
+
+  try {
+    const { trendingArticles } = await import("trendsearch");
+    const result = await trendingArticles({
+      articleKeys: seed.articleKeys,
+      articleCount: 3
+    });
+    const articles = result.data.articles ?? [];
+    const firstArticle = articles.find((article) => article.url);
+
+    return {
+      ...seed,
+      imageUrl: firstArticle?.image ?? seed.imageUrl,
+      newsTitles: [
+        ...articles.map((article) => article.title).filter(Boolean),
+        ...seed.newsTitles
+      ].slice(0, 8),
+      newsSnippets: [
+        ...articles
+          .map((article) =>
+            article.source ? `Source context from ${article.source}` : undefined
+          )
+          .filter(isString),
+        ...seed.newsSnippets
+      ].slice(0, 8)
+    };
+  } catch (error) {
+    console.warn("[trends] Failed to hydrate trend articles", seed.title, error);
+    return seed;
+  }
 }
 
 function normalizeTrendText(value: string) {
