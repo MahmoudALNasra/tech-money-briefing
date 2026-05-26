@@ -160,7 +160,8 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
         image_url: imageUrl,
         share_id: shareId,
         status,
-        published_at: hydratedSeed.publishedAt ?? new Date().toISOString()
+        // Use our publish time so feeds sort newest-first on the site.
+        published_at: new Date().toISOString()
       });
 
       if (error) {
