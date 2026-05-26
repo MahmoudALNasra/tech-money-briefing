@@ -39,3 +39,54 @@ export function newsArticleJsonLd(article: Article) {
     }
   };
 }
+
+export function faqJsonLd(article: Article) {
+  const faqItems = extractFaqItems(article.content);
+
+  if (faqItems.length === 0) {
+    return null;
+  }
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer
+      }
+    }))
+  };
+}
+
+function extractFaqItems(content: string) {
+  const normalized = content.replace(/\\([#*_`])/g, "$1");
+  const faqStart = normalized.search(/^##\s+FAQ\b/im);
+
+  if (faqStart === -1) {
+    return [];
+  }
+
+  const faqContent = normalized.slice(faqStart);
+  const questionMatches = [...faqContent.matchAll(/^###\s+(.+\?)\s*$/gim)];
+
+  return questionMatches
+    .map((match, index) => {
+      const questionStart = (match.index ?? 0) + match[0].length;
+      const nextQuestionStart = questionMatches[index + 1]?.index ?? faqContent.length;
+      const answer = faqContent
+        .slice(questionStart, nextQuestionStart)
+        .replace(/^#{2,4}\s+.+$/gm, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return {
+        question: match[1].trim(),
+        answer
+      };
+    })
+    .filter((item) => item.question && item.answer)
+    .slice(0, 4);
+}

@@ -11,7 +11,7 @@ import { ScrollNewsletter } from "@/components/newsletter/ScrollNewsletter";
 import { getArticleBySlug } from "@/lib/articles";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
-import { articleImage, articleUrl, newsArticleJsonLd } from "@/lib/seo";
+import { articleImage, articleUrl, faqJsonLd, newsArticleJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 import { normalizeCategory } from "@/lib/slug";
 import { calculateReadingTime } from "@/lib/utils";
@@ -140,6 +140,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   const jsonLd = newsArticleJsonLd(article);
+  const faqLd = faqJsonLd(article);
   const contentBlocks = normalizeArticleContent(article.content)
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
@@ -165,6 +166,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {faqLd ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+          />
+        ) : null}
         <ArticleReadTracker
           articleId={article.id}
           slug={article.slug}

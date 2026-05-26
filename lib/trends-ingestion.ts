@@ -521,7 +521,11 @@ function intentInstructions(intent: string) {
     "The title should be specific enough to compete for the query, not a vague trend-analysis headline.",
     "Use the exact trending query naturally in the title, opening paragraph, one subheading, and meta description.",
     "If facts are not present in the provided trend/news/source context, say what is known and how readers can verify it; do not invent hours, scores, dates, prices, injuries, quotes, or official statements.",
-    "Write for people searching right now, then add context after the direct answer."
+    "Write for people searching right now, then add context after the direct answer.",
+    "Open with a 35-60 word direct-answer paragraph that includes the exact query or the closest natural phrase.",
+    "Include a clear '## Quick Answer' section and a '## FAQ' section with 3-4 question-style subheadings.",
+    "Use related search phrases naturally in headings, not as a keyword list.",
+    "Aim for 650-900 words unless the source context is too thin; never pad with invented facts."
   ];
 
   if (intent === "hours-and-status") {
@@ -615,9 +619,10 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
             ...intentInstructions(searchIntent),
             "Optimize for search intent first, then add useful context for publishers, creators, founders, marketers, or operators when it fits naturally.",
             "Do not claim exact ranking positions unless provided. Treat traffic numbers as approximate demand signals.",
-            "Include why people are searching, what readers should know now, what to watch next, and risks of overreacting to a spike.",
-            "Use short paragraphs and include 3-5 markdown-style section headings inside content. Do not escape markdown characters.",
+            "Include why people are searching, what readers should know now, how to verify key facts, what to watch next, and risks of overreacting to a spike.",
+            "Use short paragraphs and include 5-8 markdown-style section headings inside content. Do not escape markdown characters.",
             "Do not include a separate Key Takeaways section inside content because key_takeaways is stored separately.",
+            "Do not include a title line inside content; the article title is stored separately.",
             "Generate exactly 3 actionable key_takeaways.",
             `End content with this exact source note: Source: ${GOOGLE_TRENDS_SOURCE}.`
           ],
