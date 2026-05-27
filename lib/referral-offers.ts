@@ -42,5 +42,28 @@ export const REFERRAL_OFFERS: ReferralOffer[] = [
     articlePath:
       "/digital-marketing/zoho-referral-link-click-here-to-sign-up-for-business-software",
     cta: "Read the Zoho referral guide"
+  },
+  {
+    id: "google-ads",
+    name: "Google Ads",
+    title: "Google Ads has a referral welcome offer",
+    description:
+      "Useful for businesses that want to test paid search, YouTube, Performance Max, or demand generation with a starter offer.",
+    referralUrl:
+      "https://business.google.com/us/google-ads/welcome-offer/?utm_source=ads-refer&utm_medium=refer-program&utm_campaign=sv-copylinkbutton",
+    articlePath:
+      "/digital-marketing/google-ads-referral-link-click-here-to-sign-up-for-ad-credit",
+    cta: "Read the Google Ads referral guide"
+  },
+  {
+    id: "google-workspace",
+    name: "Google Workspace",
+    title: "Google Workspace has a referral signup link",
+    description:
+      "Useful for teams that need business email, shared calendars, Docs, Drive, Meet, and admin controls.",
+    referralUrl: "https://referworkspace.app.goo.gl/fFHY",
+    articlePath:
+      "/startups/google-workspace-referral-link-click-here-to-sign-up-for-business-email",
+    cta: "Read the Google Workspace referral guide"
   }
 ];
