@@ -406,6 +406,7 @@ async function rewriteArticle(input: {
             "Summarize the original article quickly, then dedicate at least 50% of the output to explaining why this matters for professionals in this industry.",
             "Add original analysis, operational implications, buyer or operator context, and concrete risks or opportunities without inventing facts.",
             "Generate exactly 3 actionable key_takeaways as short bullet-ready strings.",
+            "When relevant, include 1-2 natural internal markdown links to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator or /compare/beehiiv-vs-substack. Do not force links.",
             "Generate a 2-sentence meta_description.",
             `Cite the original source clearly at the bottom of content with this exact format: Source: ${input.sourceName}.`,
             "For relevant articles, set is_relevant true and return complete title, content, meta_description, and key_takeaways fields."

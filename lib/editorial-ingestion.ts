@@ -1,0 +1,311 @@
+import {
+  EDITORIAL_TOPICS,
+  editorialSourceUrl,
+  type EditorialTopic
+} from "@/data/editorial-topics";
+
+import { enrichArticleMedia } from "./article-media";
+import {
+  articleExistsBySourceUrl,
+  createUniqueShareId,
+  createUniqueSlug
+} from "./article-publish";
+import {
+  formatInternalLinksMarkdown,
+  getStaticInternalLinksForText
+} from "./internal-links";
+import { getOpenAIClient } from "./openai";
+import { siteConfig } from "./site";
+import { supabase } from "./supabase";
+import {
+  formatToolRecommendationsMarkdown,
+  getRecommendedToolsForText
+} from "./tool-recommendations";
+
+export const EDITORIAL_SOURCE_NAME = "Tech Revenue Brief Editorial";
+
+type EditorialArticle = {
+  title: string;
+  content: string;
+  meta_description: string;
+  key_takeaways: string[];
+};
+
+export type EditorialIngestionOptions = {
+  maxNewArticles?: number;
+  topicId?: string;
+};
+
+export type EditorialIngestionResult = {
+  ok: boolean;
+  maxNewArticles: number;
+  queued: number;
+  processed: number;
+  inserted: number;
+  skipped: number;
+  topics: Array<{ id: string; title: string; status: string }>;
+  errors: string[];
+};
+
+const EDITORIAL_SYSTEM_PROMPT =
+  "You are a senior operator and technical educator writing practical how-to guides for founders, creators, and publishers. Return only valid JSON. Do not invent product features, pricing, or version numbers—stick to widely known capabilities and say when details may change.";
+
+export async function runEditorialIngestion(
+  options: EditorialIngestionOptions = {}
+): Promise<EditorialIngestionResult> {
+  const maxNewArticles = options.maxNewArticles ?? 1;
+  const topics = await selectPendingTopics(maxNewArticles, options.topicId);
+
+  const result: EditorialIngestionResult = {
+    ok: true,
+    maxNewArticles,
+    queued: topics.length,
+    processed: 0,
+    inserted: 0,
+    skipped: 0,
+    topics: [],
+    errors: []
+  };
+
+  for (const topic of topics) {
+    result.processed += 1;
+    const sourceUrl = editorialSourceUrl(topic.id);
+
+    if (await articleExistsBySourceUrl(sourceUrl)) {
+      result.skipped += 1;
+      result.topics.push({
+        id: topic.id,
+        title: topic.title,
+        status: "already_published"
+      });
+      continue;
+    }
+
+    try {
+      const article = await writeEditorialArticle(topic);
+      const slug = await createUniqueSlug(article.title);
+      const shareId = await createUniqueShareId();
+
+      const { data: insertedArticle, error } = await supabase
+        .from("articles")
+        .insert({
+          title: article.title,
+          slug,
+          content: article.content,
+          meta_description: article.meta_description,
+          key_takeaways: article.key_takeaways,
+          category: topic.category,
+          source_name: EDITORIAL_SOURCE_NAME,
+          source_url: sourceUrl,
+          image_url: null,
+          share_id: shareId,
+          status: "published",
+          published_at: new Date().toISOString()
+        })
+        .select("id")
+        .single();
+
+      if (error) {
+        if (error.code === "23505") {
+          result.skipped += 1;
+          result.topics.push({
+            id: topic.id,
+            title: topic.title,
+            status: "duplicate_skipped"
+          });
+          continue;
+        }
+
+        throw error;
+      }
+
+      result.inserted += 1;
+      result.topics.push({
+        id: topic.id,
+        title: article.title,
+        status: "published"
+      });
+
+      if (insertedArticle?.id) {
+        await enrichArticleMedia({
+          articleId: String(insertedArticle.id),
+          title: article.title,
+          category: topic.category,
+          metaDescription: article.meta_description
+        });
+      }
+    } catch (error) {
+      result.errors.push(
+        `${topic.id}: ${error instanceof Error ? error.message : String(error)}`
+      );
+      result.topics.push({
+        id: topic.id,
+        title: topic.title,
+        status: "error"
+      });
+    }
+  }
+
+  return result;
+}
+
+async function selectPendingTopics(limit: number, topicId?: string) {
+  if (topicId) {
+    const topic = EDITORIAL_TOPICS.find((entry) => entry.id === topicId);
+
+    if (!topic) {
+      throw new Error(`Unknown editorial topic id: ${topicId}`);
+    }
+
+    return [topic];
+  }
+
+  const pending: EditorialTopic[] = [];
+
+  for (const topic of EDITORIAL_TOPICS) {
+    if (pending.length >= limit) {
+      break;
+    }
+
+    const exists = await articleExistsBySourceUrl(editorialSourceUrl(topic.id));
+
+    if (!exists) {
+      pending.push(topic);
+    }
+  }
+
+  return pending;
+}
+
+async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialArticle> {
+  const completion = await getOpenAIClient().chat.completions.create({
+    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+    temperature: 0.45,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "editorial_guide_article",
+        strict: true,
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            title: { type: "string" },
+            content: { type: "string" },
+            meta_description: { type: "string" },
+            key_takeaways: {
+              type: "array",
+              minItems: 3,
+              maxItems: 3,
+              items: { type: "string" }
+            }
+          },
+          required: ["title", "content", "meta_description", "key_takeaways"]
+        }
+      }
+    },
+    messages: [
+      {
+        role: "system",
+        content: EDITORIAL_SYSTEM_PROMPT
+      },
+      {
+        role: "user",
+        content: JSON.stringify({
+          siteName: siteConfig.name,
+          instructions: [
+            "Write an original practical guide (not a news rewrite).",
+            "Target readers: founders, creators, publishers, and operators.",
+            "Use markdown with ## and ### headings only (no H1 in body).",
+            "Open with a 40-60 word direct answer to the main question.",
+            "Include sections: ## Quick Answer, step-by-step workflow (numbered steps in prose or lists), common mistakes, and ## FAQ with 3-4 questions.",
+            "Aim for 750-1100 words. Be specific and actionable.",
+            "Include 2-4 natural internal markdown links to on-site tools or comparisons when relevant (paths like /ai-headline-generator, /compare/beehiiv-vs-substack).",
+            "Do not cite fake statistics or fabricated quotes.",
+            "End content with: Source: Tech Revenue Brief Editorial.",
+            "Generate exactly 3 actionable key_takeaways.",
+            "meta_description: exactly 2 sentences, under 160 characters total if possible."
+          ],
+          topic: {
+            workingTitle: topic.title,
+            category: topic.category,
+            angle: topic.angle,
+            referenceUrls: topic.referenceUrls ?? []
+          }
+        })
+      }
+    ]
+  });
+
+  const raw = completion.choices[0]?.message.content;
+
+  if (!raw) {
+    throw new Error("OpenAI returned an empty editorial response");
+  }
+
+  const parsed = JSON.parse(raw) as Record<string, unknown>;
+  const title = stringifyAiField(parsed.title).trim();
+  const contentBody = stringifyAiField(parsed.content).trim();
+  const metaDescription = stringifyAiField(parsed.meta_description).trim();
+
+  if (
+    !title ||
+    !contentBody ||
+    !metaDescription ||
+    !Array.isArray(parsed.key_takeaways)
+  ) {
+    throw new Error("OpenAI editorial response missed required fields");
+  }
+
+  const keyTakeaways = parsed.key_takeaways
+    .map((takeaway) => String(takeaway).trim())
+    .filter(Boolean)
+    .slice(0, 3);
+
+  if (keyTakeaways.length !== 3) {
+    throw new Error("OpenAI editorial response must include exactly 3 takeaways");
+  }
+
+  const haystack = [title, topic.angle, topic.title, topic.category].join(" ");
+  const tools = getRecommendedToolsForText(haystack, 3, true);
+  const toolsSection = formatToolRecommendationsMarkdown(
+    tools,
+    siteConfig.url
+  ).replace("## Useful tools for this trend", "## Tools mentioned in this guide");
+  const internalLinks = formatInternalLinksMarkdown(
+    getStaticInternalLinksForText(haystack, 4)
+  );
+
+  const sections = [contentBody, toolsSection, internalLinks].filter(Boolean);
+  const sourceCitation = `Source: ${EDITORIAL_SOURCE_NAME}.`;
+  const body = sections.join("\n\n");
+  const content = body.includes(sourceCitation)
+    ? body
+    : `${body}\n\n${sourceCitation}`;
+
+  return {
+    title,
+    content,
+    meta_description: metaDescription,
+    key_takeaways: keyTakeaways
+  };
+}
+
+function stringifyAiField(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => stringifyAiField(item)).join("\n\n");
+  }
+
+  if (value && typeof value === "object") {
+    return Object.values(value)
+      .map((item) => stringifyAiField(item))
+      .filter(Boolean)
+      .join("\n\n");
+  }
+
+  return "";
+}

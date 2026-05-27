@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { ArticleReadTracker } from "@/components/analytics/ArticleReadTracker";
 import { ArticleShareToolbar } from "@/components/articles/ArticleShareToolbar";
+import { ArticleInternalLinks } from "@/components/articles/ArticleInternalLinks";
 import { ArticleToolRecommendations } from "@/components/articles/ArticleToolRecommendations";
 import { ArticleVideoSection } from "@/components/articles/ArticleVideoSection";
 import { RelatedArticles } from "@/components/articles/RelatedArticles";
@@ -369,6 +370,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <ArticleVideoSection media={articleMedia} />
 
           <ArticleToolRecommendations article={article} />
+
+          <ArticleInternalLinks article={article} />
 
           <aside className="mt-10 rounded-3xl border border-stone-200 bg-stone-50 p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">

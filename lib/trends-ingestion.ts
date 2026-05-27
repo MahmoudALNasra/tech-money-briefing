@@ -637,6 +637,7 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
             "Use short paragraphs and include 5-8 markdown-style section headings inside content. Do not escape markdown characters.",
             "Do not include a separate Key Takeaways section inside content because key_takeaways is stored separately.",
             "Do not include a title line inside content; the article title is stored separately.",
+            "When relevant, include 1-2 natural internal markdown links to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator or /compare/beehiiv-vs-substack. Do not force links.",
             "Generate exactly 3 actionable key_takeaways.",
             `End content with this exact source note: Source: ${GOOGLE_TRENDS_SOURCE}.`
           ],

@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/ingest-trends",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/ingest-editorial",
+      "schedule": "0 6 * * *"
     }
   ]
 }
