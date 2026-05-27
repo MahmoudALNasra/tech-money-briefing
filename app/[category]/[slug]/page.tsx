@@ -156,24 +156,22 @@ function ArticleVisualBreak({
   category: string;
 }) {
   return (
-    <aside className="not-prose my-8 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
-      <div className="relative min-h-56 bg-gradient-to-br from-ink via-stone-800 to-emerald-700 p-6 text-white">
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
-        <div className="absolute -bottom-12 left-8 h-36 w-36 rounded-full bg-lime-300/20" />
-        <div className="relative">
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-lime-200">
+    <aside className="not-prose my-8 overflow-hidden rounded-3xl border border-emerald-200 bg-white shadow-sm">
+      <div className="border-b border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-stone-50 p-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-800">
             {label}
           </p>
-          <h3 className="mt-4 max-w-xl text-2xl font-black leading-tight tracking-tight">
-            {title}
-          </h3>
-          <p className="mt-5 max-w-xl text-sm font-semibold uppercase tracking-[0.18em] text-stone-300">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-stone-500">
             {formatCategory(category)}
           </p>
         </div>
+        <h3 className="mt-4 text-xl font-black leading-tight tracking-tight text-ink sm:text-2xl">
+          {title}
+        </h3>
       </div>
-      <div className="bg-stone-50 p-5">
-        <p className="text-sm font-semibold leading-6 text-stone-700">
+      <div className="bg-white p-5">
+        <p className="text-base font-semibold leading-7 text-stone-800">
           {takeaway}
         </p>
       </div>
@@ -236,6 +234,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const inlineVideos = articleMedia
     .filter((item) => item.provider === "youtube")
     .slice(0, 2);
+  const prefersVideoMedia = inlineVideos.length > 0;
   const heroImageUrl = article.image_url;
   const jsonLd = newsArticleJsonLd(article);
   const faqLd = faqJsonLd(article);
@@ -433,7 +432,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     label="Related Watch"
                   />
                 ) : null}
-                {index === 4 && article.key_takeaways[0] ? (
+                {index === 4 && article.key_takeaways[0] && !prefersVideoMedia ? (
                   <ArticleVisualBreak
                     label="Key Takeaway"
                     title={article.title}
@@ -447,7 +446,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     label="More Context"
                   />
                 ) : null}
-                {index === 10 && article.key_takeaways[1] ? (
+                {index === 10 && article.key_takeaways[1] && inlineVideos.length < 2 ? (
                   <ArticleVisualBreak
                     label="Operator Note"
                     title="What to remember"
