@@ -6,8 +6,14 @@ type DeferredAdSenseProps = {
   client: string;
 };
 
+const ANALYTICS_OPT_OUT_KEY = "tech-revenue-brief-disable-analytics";
+
 export function DeferredAdSense({ client }: DeferredAdSenseProps) {
   useEffect(() => {
+    if (window.localStorage.getItem(ANALYTICS_OPT_OUT_KEY) === "true") {
+      return;
+    }
+
     const load = () => {
       if (document.getElementById("adsbygoogle-loader")) {
         return;
