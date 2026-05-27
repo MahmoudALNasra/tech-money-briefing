@@ -419,12 +419,15 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
 
   const haystack = [title, topic.angle, topic.title, topic.category].join(" ");
   const tools = getRecommendedToolsForText(haystack, 3, true);
+  const toolHrefs = new Set(tools.map((tool) => tool.href));
   const toolsSection = formatToolRecommendationsMarkdown(
     tools,
     siteConfig.url
   ).replace("## Useful tools for this trend", "## Tools mentioned in this guide");
   const internalLinks = formatInternalLinksMarkdown(
-    getStaticInternalLinksForText(haystack, 4)
+    getStaticInternalLinksForText(haystack, 6)
+      .filter((item) => !toolHrefs.has(item.href))
+      .slice(0, 4)
   );
 
   const sections = [contentBody, toolsSection, internalLinks].filter(Boolean);

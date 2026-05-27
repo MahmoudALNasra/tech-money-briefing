@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Fragment } from "react";
 
 import { ArticleReadTracker } from "@/components/analytics/ArticleReadTracker";
 import { ArticleShareToolbar } from "@/components/articles/ArticleShareToolbar";
+import { ArticleInlineMedia } from "@/components/articles/ArticleInlineMedia";
 import { ArticleInternalLinks } from "@/components/articles/ArticleInternalLinks";
 import { ArticleToolRecommendations } from "@/components/articles/ArticleToolRecommendations";
 import { ArticleVideoSection } from "@/components/articles/ArticleVideoSection";
@@ -36,13 +38,21 @@ function normalizeArticleContent(content: string) {
 
 function renderInlineContent(text: string) {
   const cleaned = text.replace(/\*\*/g, "");
-  const parts = cleaned.split(/(\[[^\]]+\]\(https?:\/\/[^)]+\))/g);
+  const parts = cleaned.split(/(\[[^\]]+\]\((?:https?:\/\/|\/)[^)]+\))/g);
 
   return parts.map((part, index) => {
-    const match = part.match(/^\[([^\]]+)\]\((https?:\/\/[^)]+)\)$/);
+    const match = part.match(/^\[([^\]]+)\]\(((?:https?:\/\/|\/)[^)]+)\)$/);
 
     if (!match) {
       return part;
+    }
+
+    if (match[2].startsWith("/")) {
+      return (
+        <Link key={`${match[2]}-${index}`} href={match[2]}>
+          {match[1]}
+        </Link>
+      );
     }
 
     return (
@@ -134,6 +144,43 @@ function renderArticleBlock(block: string) {
   return <p key={block}>{renderInlineContent(block)}</p>;
 }
 
+function ArticleVisualBreak({
+  label,
+  title,
+  takeaway,
+  category
+}: {
+  label: string;
+  title: string;
+  takeaway: string;
+  category: string;
+}) {
+  return (
+    <aside className="not-prose my-8 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
+      <div className="relative min-h-56 bg-gradient-to-br from-ink via-stone-800 to-emerald-700 p-6 text-white">
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
+        <div className="absolute -bottom-12 left-8 h-36 w-36 rounded-full bg-lime-300/20" />
+        <div className="relative">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-lime-200">
+            {label}
+          </p>
+          <h3 className="mt-4 max-w-xl text-2xl font-black leading-tight tracking-tight">
+            {title}
+          </h3>
+          <p className="mt-5 max-w-xl text-sm font-semibold uppercase tracking-[0.18em] text-stone-300">
+            {formatCategory(category)}
+          </p>
+        </div>
+      </div>
+      <div className="bg-stone-50 p-5">
+        <p className="text-sm font-semibold leading-6 text-stone-700">
+          {takeaway}
+        </p>
+      </div>
+    </aside>
+  );
+}
+
 export async function generateMetadata({
   params
 }: ArticlePageProps): Promise<Metadata> {
@@ -186,6 +233,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   const articleMedia = await getArticleMedia(article.id);
+  const inlineVideos = articleMedia
+    .filter((item) => item.provider === "youtube")
+    .slice(0, 2);
+  const heroImageUrl = article.image_url;
   const jsonLd = newsArticleJsonLd(article);
   const faqLd = faqJsonLd(article);
   const contentBlocks = normalizeArticleContent(article.content)
@@ -348,9 +399,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
 
           <div className="relative mt-8 aspect-square overflow-hidden rounded-3xl bg-gray-100">
-            {article.image_url ? (
+            {heroImageUrl ? (
               <Image
-                src={article.image_url}
+                src={heroImageUrl}
                 alt=""
                 fill
                 priority
@@ -359,12 +410,53 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 className="object-cover"
               />
             ) : (
-              <div className="h-full w-full bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300" />
+              <div className="grid h-full w-full place-items-end bg-gradient-to-br from-ink via-stone-800 to-emerald-700 p-8 text-white">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-lime-200">
+                    Tech Revenue Brief
+                  </p>
+                  <p className="mt-4 text-3xl font-black leading-tight">
+                    {article.title}
+                  </p>
+                </div>
+              </div>
             )}
           </div>
 
           <div className="article-content prose prose-lg mt-10 max-w-none scroll-mt-24 prose-headings:scroll-mt-24 prose-headings:text-ink prose-a:text-ink">
-            {contentBlocks.map(renderArticleBlock)}
+            {contentBlocks.map((block, index) => (
+              <Fragment key={`${block}-${index}`}>
+                {renderArticleBlock(block)}
+                {index === 2 && inlineVideos[0] ? (
+                  <ArticleInlineMedia
+                    media={inlineVideos[0]}
+                    label="Related Watch"
+                  />
+                ) : null}
+                {index === 4 && article.key_takeaways[0] ? (
+                  <ArticleVisualBreak
+                    label="Key Takeaway"
+                    title={article.title}
+                    takeaway={article.key_takeaways[0]}
+                    category={article.category}
+                  />
+                ) : null}
+                {index === 7 && inlineVideos[1] ? (
+                  <ArticleInlineMedia
+                    media={inlineVideos[1]}
+                    label="More Context"
+                  />
+                ) : null}
+                {index === 10 && article.key_takeaways[1] ? (
+                  <ArticleVisualBreak
+                    label="Operator Note"
+                    title="What to remember"
+                    takeaway={article.key_takeaways[1]}
+                    category={article.category}
+                  />
+                ) : null}
+              </Fragment>
+            ))}
           </div>
 
           <ArticleVideoSection media={articleMedia} />

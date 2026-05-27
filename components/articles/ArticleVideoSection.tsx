@@ -3,6 +3,10 @@
 import { useState } from "react";
 
 import type { ArticleMedia } from "@/lib/types";
+import {
+  fallbackYouTubeThumbnail,
+  highQualityYouTubeThumbnail
+} from "@/lib/youtube-thumbnails";
 
 type ArticleVideoSectionProps = {
   media: ArticleMedia[];
@@ -10,6 +14,22 @@ type ArticleVideoSectionProps = {
 
 function youtubeEmbedUrl(videoId: string) {
   return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+}
+
+function VideoThumbnail({ video }: { video: ArticleMedia }) {
+  const [thumbnailSrc, setThumbnailSrc] = useState(
+    highQualityYouTubeThumbnail(video.provider_id)
+  );
+
+  return (
+    <img
+      src={thumbnailSrc}
+      alt=""
+      loading="lazy"
+      onError={() => setThumbnailSrc(fallbackYouTubeThumbnail(video.provider_id))}
+      className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+    />
+  );
 }
 
 export function ArticleVideoSection({ media }: ArticleVideoSectionProps) {
@@ -59,16 +79,7 @@ export function ArticleVideoSection({ media }: ArticleVideoSectionProps) {
                   className="group grid w-full gap-0 text-left sm:grid-cols-[180px_1fr]"
                 >
                   <div className="relative aspect-video overflow-hidden bg-stone-200 sm:aspect-[16/10]">
-                    {video.thumbnail_url ? (
-                      <img
-                        src={video.thumbnail_url}
-                        alt=""
-                        loading="lazy"
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                      />
-                    ) : (
-                      <div className="h-full w-full bg-gradient-to-br from-sky-100 via-stone-100 to-stone-200" />
-                    )}
+                    <VideoThumbnail video={video} />
                     <span className="absolute inset-0 grid place-items-center bg-stone-950/20">
                       <span className="rounded-full bg-white px-4 py-2 text-sm font-black text-ink shadow-lg">
                         Play
