@@ -635,9 +635,10 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
             "Do not claim exact ranking positions unless provided. Treat traffic numbers as approximate demand signals.",
             "Include why people are searching, what readers should know now, how to verify key facts, what to watch next, and risks of overreacting to a spike.",
             "Use short paragraphs and include 5-8 markdown-style section headings inside content. Do not escape markdown characters.",
+            "Keep the same reader-friendly structure as Tech Revenue Brief guides: direct answer first, ## Quick Answer, practical context, what to watch next, and ## FAQ when the query supports it.",
             "Do not include a separate Key Takeaways section inside content because key_takeaways is stored separately.",
             "Do not include a title line inside content; the article title is stored separately.",
-            "When relevant, include 1-2 natural internal markdown links to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator or /compare/beehiiv-vs-substack. Do not force links.",
+            "When relevant, include 2-4 natural internal markdown links between paragraphs to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator, /ai-headline-generator, /tools, or /compare/beehiiv-vs-substack. The links should help the reader take the next step and should not feel forced.",
             "Generate exactly 3 actionable key_takeaways.",
             "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
             `End content with this exact source note: Source: ${GOOGLE_TRENDS_SOURCE}.`

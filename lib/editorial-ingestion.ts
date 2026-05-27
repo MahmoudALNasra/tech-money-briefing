@@ -371,7 +371,7 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
             "Open with a 40-60 word direct answer to the main question.",
             "Include sections: ## Quick Answer, step-by-step workflow (numbered steps in prose or lists), common mistakes, a short checklist or decision framework, and ## FAQ with 3-4 questions.",
             "Aim for 900-1300 words. Be specific and actionable.",
-            "Include 2-4 natural internal markdown links to on-site tools or comparisons when relevant (paths like /ai-headline-generator, /compare/beehiiv-vs-substack).",
+            "Include 2-4 natural internal markdown links between paragraphs to on-site tools, hub pages, or comparisons when relevant (paths like /ai-headline-generator, /tools, /compare/beehiiv-vs-substack). The links should be highlighted by normal markdown syntax and should help the reader take the next step.",
             "Do not cite fake statistics or fabricated quotes.",
             "End content with: Source: Tech Revenue Brief Editorial.",
             "Generate exactly 3 actionable key_takeaways.",

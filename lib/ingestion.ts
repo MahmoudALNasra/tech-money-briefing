@@ -405,8 +405,10 @@ async function rewriteArticle(input: {
             "Write a highly specific, niche-targeted title for professionals in this industry.",
             "Summarize the original article quickly, then dedicate at least 50% of the output to explaining why this matters for professionals in this industry.",
             "Add original analysis, operational implications, buyer or operator context, and concrete risks or opportunities without inventing facts.",
+            "Use markdown with ## and ### headings only. Start with a short direct-answer opening paragraph, then include a ## Quick Answer section, practical implications, what to watch next, and a ## FAQ section when the topic supports it.",
+            "Use short paragraphs, clear subheadings, and concrete examples so the article renders with the same readable structure as other Tech Revenue Brief guides.",
             "Generate exactly 3 actionable key_takeaways as short bullet-ready strings.",
-            "When relevant, include 1-2 natural internal markdown links to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator or /compare/beehiiv-vs-substack. Do not force links.",
+            "When relevant, include 2-4 natural internal markdown links between paragraphs to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator, /ai-headline-generator, /tools, or /compare/beehiiv-vs-substack. The links should help the reader take the next step and should not feel forced.",
             "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
             `Cite the original source clearly at the bottom of content with this exact format: Source: ${input.sourceName}.`,
             "For relevant articles, set is_relevant true and return complete title, content, meta_description, and key_takeaways fields."

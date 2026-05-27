@@ -10,6 +10,36 @@ type ArticleCardProps = {
   priority?: boolean;
 };
 
+function GeneratedArticleThumbnail({
+  title,
+  category
+}: {
+  title: string;
+  category: string;
+}) {
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-stone-100 p-5">
+      <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-emerald-200/60" />
+      <div className="absolute -bottom-12 left-4 h-28 w-28 rounded-full bg-lime-200/70" />
+      <div className="relative flex h-full flex-col justify-between">
+        <div>
+          <p className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-800">
+            {formatCategory(category)}
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-stone-400">
+            Tech Revenue Brief
+          </p>
+          <p className="mt-2 line-clamp-3 text-lg font-black leading-tight text-ink">
+            {title}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ArticleCard({
   article,
   featured = false,
@@ -48,7 +78,10 @@ export function ArticleCard({
               className="object-cover transition duration-300 group-hover:scale-[1.02]"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-stone-100 via-stone-200 to-stone-300" />
+            <GeneratedArticleThumbnail
+              title={article.title}
+              category={article.category}
+            />
           )}
         </Link>
 

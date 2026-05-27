@@ -34,7 +34,7 @@ export function newsArticleJsonLd(article: Article) {
       name: siteConfig.name,
       logo: {
         "@type": "ImageObject",
-        url: absoluteUrl("/logo.png")
+        url: absoluteUrl("/logo.svg")
       }
     }
   };
