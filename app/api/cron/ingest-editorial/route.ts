@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 
   try {
     const result = await runEditorialIngestion({
-      maxNewArticles: Number(process.env.EDITORIAL_MAX_NEW_ARTICLES ?? 1)
+      maxNewArticles: Number(process.env.EDITORIAL_MAX_NEW_ARTICLES ?? 3)
     });
 
     if (result.inserted > 0) {

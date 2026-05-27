@@ -212,6 +212,350 @@ export const EDITORIAL_TOPICS: EditorialTopic[] = [
     angle:
       "Hub pages, tools, comparisons, and contextual links between briefings—operator playbook.",
     referenceUrls: []
+  },
+  {
+    id: "how-to-use-cursor-ai-for-beginners",
+    title: "How to Use Cursor AI for Beginners: Setup, Prompts, and Workflow",
+    category: "ai-tools",
+    angle:
+      "Beginner-friendly guide for installing Cursor, opening an existing project, asking safe questions, and making small changes with review habits.",
+    referenceUrls: ["https://cursor.com/docs"]
+  },
+  {
+    id: "best-cursor-prompts-for-coding",
+    title: "Best Cursor Prompts for Coding: Examples That Actually Help",
+    category: "ai-tools",
+    angle:
+      "Practical prompt patterns for debugging, refactoring, writing tests, explaining unfamiliar code, and planning changes before editing.",
+    referenceUrls: ["https://cursor.com/docs"]
+  },
+  {
+    id: "cursor-composer-vs-chat",
+    title: "Cursor Composer vs Chat: Which One Should You Use?",
+    category: "ai-tools",
+    angle:
+      "Explain the difference between project-wide editing and conversational code help, with examples for common development tasks.",
+    referenceUrls: ["https://cursor.com/docs"]
+  },
+  {
+    id: "how-to-use-cursor-with-github",
+    title: "How to Use Cursor With GitHub Without Breaking Your Repo",
+    category: "ai-tools",
+    angle:
+      "Branching, reviewing diffs, committing, avoiding secret leaks, and using Cursor safely on real repositories.",
+    referenceUrls: ["https://cursor.com/docs", "https://docs.github.com"]
+  },
+  {
+    id: "chatgpt-prompts-for-seo",
+    title: "ChatGPT Prompts for SEO: Titles, Outlines, Meta Descriptions, and FAQs",
+    category: "seo",
+    angle:
+      "Search-intent workflow for using ChatGPT to produce better SEO briefs without publishing thin or generic content.",
+    referenceUrls: ["https://openai.com/chatgpt"]
+  },
+  {
+    id: "chatgpt-prompts-for-small-business",
+    title: "Best ChatGPT Prompts for Small Business Owners",
+    category: "digital-marketing",
+    angle:
+      "Prompt examples for marketing, customer support, product descriptions, email campaigns, and operations.",
+    referenceUrls: ["https://openai.com/chatgpt"]
+  },
+  {
+    id: "how-to-use-chatgpt-for-market-research",
+    title: "How to Use ChatGPT for Market Research Without Making Things Up",
+    category: "startups",
+    angle:
+      "Use AI for competitor mapping, customer questions, positioning hypotheses, and research plans while verifying facts externally.",
+    referenceUrls: ["https://openai.com/chatgpt"]
+  },
+  {
+    id: "how-to-use-claude-for-coding",
+    title: "How to Use Claude for Coding: Best Use Cases and Limits",
+    category: "ai-tools",
+    angle:
+      "When Claude helps with planning, explaining code, writing tests, and long-context review, plus where an IDE agent is better.",
+    referenceUrls: ["https://www.anthropic.com/claude"]
+  },
+  {
+    id: "claude-vs-chatgpt-for-business",
+    title: "Claude vs ChatGPT for Business: Which AI Assistant Fits Your Workflow?",
+    category: "ai-tools",
+    angle:
+      "Compare writing, research, analysis, coding support, team workflows, and verification habits for operators.",
+    referenceUrls: ["https://www.anthropic.com/claude", "https://openai.com/chatgpt"]
+  },
+  {
+    id: "gemini-vs-chatgpt-for-marketing",
+    title: "Gemini vs ChatGPT for Marketing: What Each Tool Is Best At",
+    category: "digital-marketing",
+    angle:
+      "Compare campaign planning, content drafting, research, Google ecosystem use cases, and practical limits.",
+    referenceUrls: ["https://gemini.google.com", "https://openai.com/chatgpt"]
+  },
+  {
+    id: "ai-tools-for-content-creators",
+    title: "Best AI Tools for Content Creators: A Practical Stack",
+    category: "creator-business",
+    angle:
+      "Stack AI tools by job: ideation, scripts, thumbnails, editing, repurposing, newsletters, analytics, and monetization.",
+    referenceUrls: []
+  },
+  {
+    id: "ai-tools-for-youtube-creators",
+    title: "Best AI Tools for YouTube Creators: Titles, Thumbnails, Scripts, and Analytics",
+    category: "creator-business",
+    angle:
+      "Workflow for YouTube creators from idea to upload, including title formulas, thumbnail concepts, and video research.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-write-youtube-titles-that-get-clicks",
+    title: "How to Write YouTube Titles That Get Clicks Without Clickbait",
+    category: "creator-business",
+    angle:
+      "Use curiosity, clarity, audience promise, and thumbnail alignment to improve title quality.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-make-youtube-thumbnails-with-ai",
+    title: "How to Make YouTube Thumbnails With AI and Simple Design Rules",
+    category: "creator-business",
+    angle:
+      "Thumbnail workflow: concept, face/object focus, contrast, text, export size, and testing.",
+    referenceUrls: []
+  },
+  {
+    id: "blog-title-formulas",
+    title: "Blog Title Formulas That Work for SEO and Social Sharing",
+    category: "seo",
+    angle:
+      "Explain title formats for how-to, comparison, best tools, calculators, mistakes, and templates.",
+    referenceUrls: []
+  },
+  {
+    id: "meta-description-examples",
+    title: "Meta Description Examples: How to Write Snippets That Earn Clicks",
+    category: "seo",
+    angle:
+      "Examples and templates for SaaS, ecommerce, blogs, tools, comparisons, and local-style pages.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-do-keyword-research-with-ai",
+    title: "How to Do Keyword Research With AI Without Chasing Bad Keywords",
+    category: "seo",
+    angle:
+      "Use AI for clustering and intent analysis, then validate with real SERPs, trends, and Search Console.",
+    referenceUrls: []
+  },
+  {
+    id: "seo-content-brief-template",
+    title: "SEO Content Brief Template: What to Include Before You Write",
+    category: "seo",
+    angle:
+      "Brief structure for intent, audience, headings, internal links, tools, FAQs, and quality checks.",
+    referenceUrls: []
+  },
+  {
+    id: "internal-linking-best-practices",
+    title: "Internal Linking Best Practices for Blogs, Tools, and Comparison Pages",
+    category: "seo",
+    angle:
+      "Practical internal linking framework for topical authority, crawl paths, and conversion pages.",
+    referenceUrls: []
+  },
+  {
+    id: "programmatic-seo-for-small-sites",
+    title: "Programmatic SEO for Small Sites: When It Works and When It Fails",
+    category: "seo",
+    angle:
+      "Explain templates, data quality, thin-content risk, and where calculators or comparison pages fit.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-start-a-niche-newsletter",
+    title: "How to Start a Niche Newsletter That Can Actually Make Money",
+    category: "creator-business",
+    angle:
+      "Audience selection, publishing cadence, offer design, sponsorships, affiliate links, and quality bar.",
+    referenceUrls: []
+  },
+  {
+    id: "newsletter-subject-line-formulas",
+    title: "Newsletter Subject Line Formulas for Higher Opens",
+    category: "creator-business",
+    angle:
+      "Useful subject line patterns with examples for news, creator, ecommerce, and B2B newsletters.",
+    referenceUrls: []
+  },
+  {
+    id: "beehiiv-vs-substack-for-monetization",
+    title: "Beehiiv vs Substack for Monetization: Which Is Better for Creators?",
+    category: "creator-business",
+    angle:
+      "Compare ads, paid subscriptions, referral loops, discovery, ownership, and workflow fit.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-calculate-newsletter-revenue",
+    title: "How to Calculate Newsletter Revenue Before You Grow the List",
+    category: "creator-business",
+    angle:
+      "Model revenue from sponsorships, paid subscriptions, affiliate links, list size, open rate, and conversion.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-calculate-adsense-earnings",
+    title: "How to Calculate AdSense Earnings From Pageviews, CTR, and RPM",
+    category: "creator-business",
+    angle:
+      "Explain AdSense earnings with formulas, examples, and common forecasting mistakes.",
+    referenceUrls: []
+  },
+  {
+    id: "rpm-vs-cpm-explained",
+    title: "RPM vs CPM Explained: What Publishers and Creators Need to Know",
+    category: "creator-business",
+    angle:
+      "Clear definitions, examples, formulas, and how each metric affects ad revenue planning.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-use-utm-parameters",
+    title: "How to Use UTM Parameters Correctly: A Simple Tracking Guide",
+    category: "digital-marketing",
+    angle:
+      "UTM naming conventions, source/medium/campaign examples, and mistakes that break attribution.",
+    referenceUrls: []
+  },
+  {
+    id: "google-analytics-utm-best-practices",
+    title: "Google Analytics UTM Best Practices for Campaign Tracking",
+    category: "digital-marketing",
+    angle:
+      "Explain how to structure UTM tags for GA4 reporting across email, paid social, organic, and partners.",
+    referenceUrls: []
+  },
+  {
+    id: "best-ai-tools-for-digital-marketing",
+    title: "Best AI Tools for Digital Marketing Teams: A Practical Workflow",
+    category: "digital-marketing",
+    angle:
+      "Break down AI tools for campaign planning, copywriting, creative, SEO, analytics, and reporting.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-use-ai-for-facebook-ads",
+    title: "How to Use AI for Facebook Ads: Copy, Creative Angles, and Testing",
+    category: "digital-marketing",
+    angle:
+      "Use AI to generate ad angles, variations, hooks, and creative briefs while keeping human testing discipline.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-use-ai-for-google-ads",
+    title: "How to Use AI for Google Ads Without Wasting Budget",
+    category: "digital-marketing",
+    angle:
+      "Keyword grouping, ad copy drafts, landing page alignment, and negatives with human review.",
+    referenceUrls: []
+  },
+  {
+    id: "ai-for-shopify-product-descriptions",
+    title: "How to Use AI for Shopify Product Descriptions That Convert",
+    category: "ecommerce",
+    angle:
+      "Product page structure, benefits, FAQs, SEO terms, brand voice, and review-based copy improvements.",
+    referenceUrls: []
+  },
+  {
+    id: "shopify-seo-checklist",
+    title: "Shopify SEO Checklist: Product Pages, Collections, and Technical Basics",
+    category: "ecommerce",
+    angle:
+      "Practical SEO checklist for ecommerce stores with product copy, metadata, images, schema, and internal links.",
+    referenceUrls: []
+  },
+  {
+    id: "woocommerce-vs-shopify-seo",
+    title: "WooCommerce vs Shopify SEO: Which Platform Gives You More Control?",
+    category: "ecommerce",
+    angle:
+      "Compare technical SEO flexibility, apps/plugins, site speed, content management, and operator complexity.",
+    referenceUrls: []
+  },
+  {
+    id: "saas-pricing-page-best-practices",
+    title: "SaaS Pricing Page Best Practices: How to Structure Plans That Convert",
+    category: "startups",
+    angle:
+      "Pricing page layout, plan naming, feature gating, anchors, FAQs, and simple pricing math.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-price-a-saas-product",
+    title: "How to Price a SaaS Product: A Practical Formula for Founders",
+    category: "startups",
+    angle:
+      "Explain value metric, customer segments, margin, willingness to pay, and packaging experiments.",
+    referenceUrls: []
+  },
+  {
+    id: "startup-name-ideas-with-ai",
+    title: "How to Use AI to Generate Startup Name Ideas Without Sounding Generic",
+    category: "startups",
+    angle:
+      "Naming constraints, domain checks, positioning, memorability, and filtering generated names.",
+    referenceUrls: []
+  },
+  {
+    id: "ai-tools-for-startup-founders",
+    title: "AI Tools for Startup Founders: What to Use at Each Stage",
+    category: "startups",
+    angle:
+      "Map tools to idea validation, landing pages, coding, customer interviews, support, and fundraising prep.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-use-ai-for-fintech-content",
+    title: "How to Use AI for Fintech Content Without Losing Trust",
+    category: "fintech",
+    angle:
+      "Trust, compliance review, disclaimers, fact-checking, and workflows for regulated or financial topics.",
+    referenceUrls: []
+  },
+  {
+    id: "stripe-vs-paddle-for-saas",
+    title: "Stripe vs Paddle for SaaS: Payments, Tax, and Founder Tradeoffs",
+    category: "fintech",
+    angle:
+      "Compare payments infrastructure, merchant of record, tax handling, checkout control, and operational fit.",
+    referenceUrls: ["https://stripe.com", "https://www.paddle.com"]
+  },
+  {
+    id: "how-to-compress-images-for-web",
+    title: "How to Compress Images for the Web Without Losing Quality",
+    category: "seo",
+    angle:
+      "Image formats, dimensions, compression, Core Web Vitals, and publishing checklist for non-designers.",
+    referenceUrls: []
+  },
+  {
+    id: "robots-txt-for-beginners",
+    title: "Robots.txt for Beginners: What It Does and What Not to Block",
+    category: "seo",
+    angle:
+      "Simple explanation of crawl rules, common mistakes, sitemap links, and when not to use robots.txt.",
+    referenceUrls: []
+  },
+  {
+    id: "how-to-create-twitter-card-images",
+    title: "How to Create Twitter/X Card Images That Make Links Look Better",
+    category: "digital-marketing",
+    angle:
+      "Social preview basics, dimensions, headline design, brand consistency, and publishing workflow.",
+    referenceUrls: []
   }
 ];
 

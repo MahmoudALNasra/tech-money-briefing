@@ -10,12 +10,14 @@ import {
   createUniqueShareId,
   createUniqueSlug
 } from "./article-publish";
+import { CORE_CATEGORIES, isCoreCategory } from "./categories";
 import {
   formatInternalLinksMarkdown,
   getStaticInternalLinksForText
 } from "./internal-links";
 import { getOpenAIClient } from "./openai";
 import { siteConfig } from "./site";
+import { slugify } from "./slug";
 import { supabase } from "./supabase";
 import {
   formatToolRecommendationsMarkdown,
@@ -23,6 +25,7 @@ import {
 } from "./tool-recommendations";
 
 export const EDITORIAL_SOURCE_NAME = "Tech Revenue Brief Editorial";
+const AUTO_TOPIC_ID_PREFIX = "auto-";
 
 type EditorialArticle = {
   title: string;
@@ -174,7 +177,151 @@ async function selectPendingTopics(limit: number, topicId?: string) {
     }
   }
 
+  if (
+    pending.length < limit &&
+    process.env.EDITORIAL_AUTO_TOPIC_GENERATION !== "false"
+  ) {
+    const generatedTopics = await generateAutomatedTopics({
+      count: limit - pending.length,
+      avoidTitles: [
+        ...EDITORIAL_TOPICS.map((topic) => topic.title),
+        ...(await loadRecentEditorialTitles())
+      ]
+    });
+
+    for (const topic of generatedTopics) {
+      if (pending.length >= limit) {
+        break;
+      }
+
+      const exists = await articleExistsBySourceUrl(editorialSourceUrl(topic.id));
+
+      if (!exists) {
+        pending.push(topic);
+      }
+    }
+  }
+
   return pending;
+}
+
+async function loadRecentEditorialTitles() {
+  const { data, error } = await supabase
+    .from("articles")
+    .select("title")
+    .eq("source_name", EDITORIAL_SOURCE_NAME)
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .limit(80);
+
+  if (error) {
+    throw new Error(`Failed to load recent editorial titles: ${error.message}`);
+  }
+
+  return (data ?? [])
+    .map((row) => String((row as Record<string, unknown>).title ?? "").trim())
+    .filter(Boolean);
+}
+
+async function generateAutomatedTopics(input: {
+  count: number;
+  avoidTitles: string[];
+}): Promise<EditorialTopic[]> {
+  const completion = await getOpenAIClient().chat.completions.create({
+    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+    temperature: 0.35,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "editorial_topic_queue",
+        strict: true,
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            topics: {
+              type: "array",
+              minItems: input.count,
+              maxItems: input.count,
+              items: {
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  title: { type: "string" },
+                  category: { type: "string", enum: [...CORE_CATEGORIES] },
+                  angle: { type: "string" },
+                  referenceUrls: {
+                    type: "array",
+                    items: { type: "string" }
+                  }
+                },
+                required: ["title", "category", "angle", "referenceUrls"]
+              }
+            }
+          },
+          required: ["topics"]
+        }
+      }
+    },
+    messages: [
+      {
+        role: "system",
+        content:
+          "You generate practical, search-intent editorial topics for Tech Revenue Brief. Return only valid JSON."
+      },
+      {
+        role: "user",
+        content: JSON.stringify({
+          count: input.count,
+          allowedCategories: CORE_CATEGORIES,
+          avoidTitles: input.avoidTitles.slice(0, 120),
+          instructions: [
+            "Generate topics that real people might search for in Google.",
+            "Prefer how-to, vs, best tools, calculator, checklist, template, mistakes, and beginner-guide formats.",
+            "Focus on AI tools, Cursor, ChatGPT, Claude, SEO, creator monetization, digital marketing, ecommerce, startups, and fintech operations.",
+            "Each topic should be specific enough to become a useful 900-1300 word guide.",
+            "Do not repeat or lightly rephrase any avoidTitles item.",
+            "Avoid celebrity/news/trend topics; this queue is evergreen."
+          ]
+        })
+      }
+    ]
+  });
+
+  const raw = completion.choices[0]?.message.content;
+
+  if (!raw) {
+    throw new Error("OpenAI returned an empty editorial topic response");
+  }
+
+  const parsed = JSON.parse(raw) as Record<string, unknown>;
+  const topicRows = Array.isArray(parsed.topics) ? parsed.topics : [];
+  const generatedTopics: EditorialTopic[] = [];
+
+  for (const row of topicRows) {
+    const topic = row as Record<string, unknown>;
+    const title = String(topic.title ?? "").trim();
+    const category = String(topic.category ?? "").trim();
+    const angle = String(topic.angle ?? "").trim();
+    const referenceUrls = Array.isArray(topic.referenceUrls)
+      ? topic.referenceUrls
+          .map((url) => String(url).trim())
+          .filter((url) => url.startsWith("https://"))
+      : [];
+
+    if (!title || !angle || !isCoreCategory(category)) {
+      continue;
+    }
+
+    generatedTopics.push({
+      id: `${AUTO_TOPIC_ID_PREFIX}${slugify(title)}`,
+      title,
+      category,
+      angle,
+      referenceUrls
+    });
+  }
+
+  return generatedTopics;
 }
 
 async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialArticle> {
@@ -216,10 +363,14 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
           instructions: [
             "Write an original practical guide (not a news rewrite).",
             "Target readers: founders, creators, publishers, and operators.",
+            "Treat the working title as the primary search query. Keep the final title close to that query unless clarity requires a small rewrite.",
+            "Satisfy search intent before adding commentary: answer what the reader probably typed into Google in the first paragraph and again in ## Quick Answer.",
+            "Use the primary query naturally in the title, opening paragraph, one H2 or H3, meta_description, and one FAQ question.",
+            "Include concrete examples, decision rules, setup steps, and failure modes. Avoid vague advice like 'be strategic' unless it is followed by a specific action.",
             "Use markdown with ## and ### headings only (no H1 in body).",
             "Open with a 40-60 word direct answer to the main question.",
-            "Include sections: ## Quick Answer, step-by-step workflow (numbered steps in prose or lists), common mistakes, and ## FAQ with 3-4 questions.",
-            "Aim for 750-1100 words. Be specific and actionable.",
+            "Include sections: ## Quick Answer, step-by-step workflow (numbered steps in prose or lists), common mistakes, a short checklist or decision framework, and ## FAQ with 3-4 questions.",
+            "Aim for 900-1300 words. Be specific and actionable.",
             "Include 2-4 natural internal markdown links to on-site tools or comparisons when relevant (paths like /ai-headline-generator, /compare/beehiiv-vs-substack).",
             "Do not cite fake statistics or fabricated quotes.",
             "End content with: Source: Tech Revenue Brief Editorial.",
