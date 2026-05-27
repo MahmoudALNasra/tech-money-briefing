@@ -4,7 +4,8 @@ import { InfoPage } from "@/components/layout/InfoPage";
 
 export const metadata: Metadata = {
   title: "Editorial Policy",
-  description: "Editorial policy for Tech Revenue Brief."
+  description:
+    "Learn how Tech Revenue Brief sources articles, uses AI assistance, preserves attribution, handles corrections, and separates advertising."
 };
 
 export default function EditorialPolicyPage() {

@@ -4,7 +4,8 @@ import { InfoPage } from "@/components/layout/InfoPage";
 
 export const metadata: Metadata = {
   title: "Terms",
-  description: "Terms of use for Tech Revenue Brief."
+  description:
+    "Review the Tech Revenue Brief terms for informational content, third-party links, acceptable use, no guaranteed results, and site changes."
 };
 
 export default function TermsPage() {

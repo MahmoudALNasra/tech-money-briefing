@@ -5,7 +5,7 @@ export const siteConfig = {
     ""
   ),
   description:
-    "An automated, AI-assisted news and blog aggregator built for fast discovery, objective summaries, and clean reading."
+    "Tech Revenue Brief publishes practical briefings, referral guides, free tools, and software comparisons for AI builders, creators, marketers, and founders."
 };
 
 export function absoluteUrl(path = "") {

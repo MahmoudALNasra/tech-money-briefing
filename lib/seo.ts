@@ -6,7 +6,7 @@ export function articleUrl(article: Pick<Article, "category" | "slug">) {
 }
 
 export function articleImage(article: Pick<Article, "image_url">) {
-  return article.image_url ?? absoluteUrl("/opengraph-default.jpg");
+  return article.image_url ?? absoluteUrl("/logo.svg");
 }
 
 export function newsArticleJsonLd(article: Article) {

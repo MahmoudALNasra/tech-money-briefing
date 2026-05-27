@@ -4,7 +4,8 @@ import { InfoPage } from "@/components/layout/InfoPage";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "Privacy policy for Tech Revenue Brief."
+  description:
+    "Read how Tech Revenue Brief handles newsletter signups, analytics, advertising data, campaign tracking, and basic site privacy choices."
 };
 
 export default function PrivacyPage() {

@@ -4,7 +4,8 @@ import { InfoPage } from "@/components/layout/InfoPage";
 
 export const metadata: Metadata = {
   title: "Advertise",
-  description: "Advertise with Tech Revenue Brief."
+  description:
+    "Advertise with Tech Revenue Brief to reach founders, creators, marketers, ecommerce operators, and AI tool buyers reading high-intent guides."
 };
 
 export default function AdvertisePage() {

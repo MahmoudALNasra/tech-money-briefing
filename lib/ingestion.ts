@@ -407,7 +407,7 @@ async function rewriteArticle(input: {
             "Add original analysis, operational implications, buyer or operator context, and concrete risks or opportunities without inventing facts.",
             "Generate exactly 3 actionable key_takeaways as short bullet-ready strings.",
             "When relevant, include 1-2 natural internal markdown links to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator or /compare/beehiiv-vs-substack. Do not force links.",
-            "Generate a 2-sentence meta_description.",
+            "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
             `Cite the original source clearly at the bottom of content with this exact format: Source: ${input.sourceName}.`,
             "For relevant articles, set is_relevant true and return complete title, content, meta_description, and key_takeaways fields."
           ],

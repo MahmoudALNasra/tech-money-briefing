@@ -16,6 +16,8 @@
     "articles:generate-editorial": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/generate-editorial-articles.ts",
     "articles:generate-editorial:batch": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/generate-editorial-articles.ts --limit=3",
     "articles:clean-editorial-links": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/clean-editorial-link-sections.ts",
+    "articles:publish-referrals": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/publish-referral-articles.ts",
+    "articles:shorten-meta": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/shorten-meta-descriptions.ts",
     "articles:backfill-media": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-media.ts",
     "articles:backfill-hero-images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-hero-images.ts",
     "articles:backfill-media:slow": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-media.ts --limit=1000 --delay-ms=65000 --stop-on-quota",

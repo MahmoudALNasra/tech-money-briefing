@@ -6,6 +6,7 @@ import "@/app/globals.css";
 import { DeferredAdSense } from "@/components/analytics/DeferredAdSense";
 import { GoogleTagManager } from "@/components/analytics/GoogleTagManager";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { ReferralNudge } from "@/components/referrals/ReferralNudge";
 import { siteConfig } from "@/lib/site";
 
 const geistSans = Geist({
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {shouldLoadAds ? <DeferredAdSense client={adClient} /> : null}
         <GoogleTagManager />
         {children}
+        <ReferralNudge />
         <SiteFooter />
       </body>
     </html>

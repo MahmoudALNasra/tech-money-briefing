@@ -639,6 +639,7 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
             "Do not include a title line inside content; the article title is stored separately.",
             "When relevant, include 1-2 natural internal markdown links to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator or /compare/beehiiv-vs-substack. Do not force links.",
             "Generate exactly 3 actionable key_takeaways.",
+            "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
             `End content with this exact source note: Source: ${GOOGLE_TRENDS_SOURCE}.`
           ],
           searchIntent,

@@ -4,7 +4,8 @@ import { InfoPage } from "@/components/layout/InfoPage";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Contact Tech Revenue Brief for feedback, corrections, and partnership questions."
+  description:
+    "Contact Tech Revenue Brief for corrections, source suggestions, sponsorship questions, referral guide feedback, and editorial partnerships."
 };
 
 export default function ContactPage() {
