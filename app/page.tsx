@@ -5,7 +5,7 @@ import { ArticleFeed } from "@/components/articles/ArticleFeed";
 import { PaginationControls } from "@/components/articles/PaginationControls";
 import { FeedWithSidebar } from "@/components/layout/FeedWithSidebar";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { getPaginatedPublishedArticles } from "@/lib/articles";
+import { getPaginatedHomepageArticles } from "@/lib/articles";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
 import { paginatedCanonicalPath, parsePageParam } from "@/lib/pagination";
@@ -59,7 +59,7 @@ export async function generateMetadata({
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const page = parsePageParam((await searchParams)?.page);
-  const paginatedArticles = await getPaginatedPublishedArticles(page);
+  const paginatedArticles = await getPaginatedHomepageArticles(page);
 
   if (paginatedArticles.totalCount > 0 && page > paginatedArticles.totalPages) {
     redirect(

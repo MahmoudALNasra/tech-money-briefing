@@ -134,6 +134,37 @@ export const getPaginatedPublishedArticles = cache(
   )
 );
 
+export const getPaginatedHomepageArticles = cache(
+  unstable_cache(
+    async (page = 1, pageSize = ARTICLES_PER_PAGE) => {
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await supabase
+        .from("articles")
+        .select(articleSummaryColumns, { count: "exact" })
+        .eq("status", "published")
+        .neq("category", "others")
+        .order("published_at", { ascending: false })
+        .range(from, to);
+
+      if (error) {
+        throw new Error(
+          formatSupabaseError("Failed to load homepage articles", error)
+        );
+      }
+
+      const articles = (data ?? []).map((row) =>
+        mapArticleSummary(row as Record<string, unknown>)
+      );
+
+      return buildPaginatedArticles(articles, page, pageSize, count ?? 0);
+    },
+    ["paginated-homepage-articles"],
+    articleCacheOptions
+  )
+);
+
 export const getArticlesByCategory = cache(
   unstable_cache(
     async (category: string, limit = 48) => {
