@@ -7,7 +7,7 @@ import { DeferredAdSense } from "@/components/analytics/DeferredAdSense";
 import { GoogleTagManager } from "@/components/analytics/GoogleTagManager";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ReferralNudge } from "@/components/referrals/ReferralNudge";
-import { siteConfig } from "@/lib/site";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -27,7 +27,21 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     url: siteConfig.url,
     title: siteConfig.name,
-    description: siteConfig.description
+    description: siteConfig.description,
+    images: [
+      {
+        url: absoluteUrl("/og-default.png"),
+        width: 1200,
+        height: 630,
+        alt: siteConfig.name
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [absoluteUrl("/og-default.png")]
   },
   robots: {
     index: true,

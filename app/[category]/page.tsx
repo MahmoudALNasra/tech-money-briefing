@@ -43,6 +43,7 @@ export async function generateMetadata({
     : `Latest ${label} analysis from ${siteConfig.name}.`;
   const canonicalPath = paginatedCanonicalPath(`/${normalizedCategory}`, page);
   const url = absoluteUrl(canonicalPath);
+  const image = absoluteUrl("/og-default.png");
 
   return {
     title,
@@ -54,7 +55,21 @@ export async function generateMetadata({
       title,
       description,
       url,
-      type: "website"
+      type: "website",
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: title
+        }
+      ]
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image]
     }
   };
 }

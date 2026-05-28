@@ -240,7 +240,7 @@ async function dataForSeoAutocomplete(
   );
 
   const response = await fetch(
-    "https://api.dataforseo.com/v3/serp/google/autocomplete/live",
+    "https://api.dataforseo.com/v3/serp/google/autocomplete/live/advanced",
     {
       method: "POST",
       headers: {
@@ -251,27 +251,45 @@ async function dataForSeoAutocomplete(
         {
           keyword: input.query,
           language_code: input.languageCode,
-          location_code: input.locationCode
+          location_code: input.locationCode,
+          client: "gws-wiz-serp"
         }
       ]),
       signal: AbortSignal.timeout(15000)
     }
   );
 
+  const text = await response.text();
   if (!response.ok) {
-    const text = await response.text();
     throw new Error(`DataForSEO autocomplete failed (${response.status}): ${text}`);
   }
 
-  const json = (await response.json()) as Record<string, unknown>;
+  const json = JSON.parse(text) as Record<string, unknown>;
+  const topStatus = Number(json.status_code ?? 0);
+  if (topStatus !== 20000) {
+    throw new Error(
+      `DataForSEO autocomplete failed (${topStatus}): ${String(json.status_message ?? text)}`
+    );
+  }
+
   const tasks = Array.isArray(json.tasks) ? (json.tasks as unknown[]) : [];
   const firstTask = tasks[0] as Record<string, unknown> | undefined;
+  const taskStatus = Number(firstTask?.status_code ?? 0);
+  if (taskStatus !== 20000) {
+    throw new Error(
+      `DataForSEO autocomplete task failed (${taskStatus}): ${String(firstTask?.status_message ?? "unknown")}`
+    );
+  }
+
   const result = Array.isArray(firstTask?.result) ? firstTask?.result : [];
   const firstResult = (result?.[0] ?? {}) as Record<string, unknown>;
   const items = Array.isArray(firstResult.items) ? firstResult.items : [];
 
   const suggestions = items
-    .map((item) => (item as Record<string, unknown>).keyword)
+    .map((item) => {
+      const row = item as Record<string, unknown>;
+      return row.suggestion ?? row.keyword;
+    })
     .filter((value): value is string => typeof value === "string")
     .map((value) => value.trim())
     .filter(Boolean);
