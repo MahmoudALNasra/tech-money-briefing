@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     images: [
       {
-        url: absoluteUrl("/og-default-v2.png"),
+        url: absoluteUrl("/og-default-v3.png"),
         width: 1200,
         height: 630,
         alt: siteConfig.name
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
-    images: [absoluteUrl("/og-default-v2.png")]
+    images: [absoluteUrl("/og-default-v3.png")]
   },
   robots: {
     index: true,

@@ -26,7 +26,7 @@ export async function generateMetadata({
   const canonicalPath = paginatedCanonicalPath("/", page);
   const title =
     page > 1 ? `${siteConfig.name} Briefings - Page ${page}` : siteConfig.name;
-  const image = absoluteUrl("/og-default-v2.png");
+  const image = absoluteUrl("/og-default-v3.png");
 
   return {
     title,

@@ -203,18 +203,21 @@ async function dataForSeoKeywordResearch(
   auth: { login: string; password: string },
   input: KeywordResearchInput
 ): Promise<KeywordResearchResult> {
+  const fallback = await openAiKeywordResearch(input);
   const locale = {
     languageCode: input.locale?.languageCode ?? "en",
     locationCode: input.locale?.locationCode ?? 2840
   };
 
   const autocomplete = await dataForSeoAutocomplete(auth, {
-    query: input.seed,
+    query: fallback.primary,
     languageCode: locale.languageCode,
     locationCode: locale.locationCode
   });
 
-  const fallback = await openAiKeywordResearch(input);
+  if (autocomplete.length === 0) {
+    return fallback;
+  }
 
   const mergedVariants = uniq([
     fallback.primary,
