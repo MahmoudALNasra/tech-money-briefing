@@ -160,8 +160,7 @@ async function ingestSource(
         const shareId = await createUniqueShareId();
         const imageUrl =
           extractImageUrl(item) ?? (await fetchOpenGraphImage(sourceUrl));
-        const publishedAt =
-          item.isoDate ?? item.pubDate ?? new Date().toISOString();
+        const publishedAt = new Date().toISOString();
 
         const { data: insertedArticle, error: insertError } = await supabase
           .from("articles")
