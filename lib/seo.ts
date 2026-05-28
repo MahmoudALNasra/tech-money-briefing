@@ -6,7 +6,7 @@ export function articleUrl(article: Pick<Article, "category" | "slug">) {
 }
 
 export function articleImage(article: Pick<Article, "image_url">) {
-  return article.image_url ?? absoluteUrl("/og-default.png");
+  return article.image_url ?? absoluteUrl("/og-default-v2.png");
 }
 
 export function newsArticleJsonLd(article: Article) {
