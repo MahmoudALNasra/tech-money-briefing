@@ -10,6 +10,7 @@ import {
   formatToolRecommendationsMarkdown,
   getRecommendedToolsForTrend
 } from "./tool-recommendations";
+import { runKeywordResearch } from "./keyword-research";
 
 type TrendArticle = {
   title: string;
@@ -593,6 +594,10 @@ function intentInstructions(intent: string) {
 
 async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
   const searchIntent = classifyTrendIntent(seed);
+  const keywordPlan = await runKeywordResearch({
+    seed: seed.title,
+    category: TREND_CATEGORY
+  });
   const completion = await getOpenAIClient().chat.completions.create({
     model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     temperature: 0.4,
@@ -641,6 +646,8 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
             "When relevant, include 2-4 natural internal markdown links between paragraphs to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator, /ai-headline-generator, /tools, or /compare/beehiiv-vs-substack. The links should help the reader take the next step and should not feel forced.",
             "Generate exactly 3 actionable key_takeaways.",
             "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
+            "Use this keyword research plan to cover variants and common misspellings naturally (misspellings only in FAQ or a short note):",
+            JSON.stringify(keywordPlan),
             `End content with this exact source note: Source: ${GOOGLE_TRENDS_SOURCE}.`
           ],
           searchIntent,

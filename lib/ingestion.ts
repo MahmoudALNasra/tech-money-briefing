@@ -6,6 +6,7 @@ import { generateShareId } from "./share-id";
 import { slugify, normalizeCategory } from "./slug";
 import { supabase } from "./supabase";
 import type { Source } from "./types";
+import { runKeywordResearch } from "./keyword-research";
 
 type RewrittenArticle = {
   title: string;
@@ -356,6 +357,11 @@ async function rewriteArticle(input: {
   sourceName: string;
   category: string;
 }): Promise<RewrittenArticle> {
+  const keywordPlan = await runKeywordResearch({
+    seed: input.title,
+    category: input.category
+  });
+
   const completion = await getOpenAIClient().chat.completions.create({
     model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     temperature: 0.45,
@@ -410,6 +416,8 @@ async function rewriteArticle(input: {
             "Generate exactly 3 actionable key_takeaways as short bullet-ready strings.",
             "When relevant, include 2-4 natural internal markdown links between paragraphs to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator, /ai-headline-generator, /tools, or /compare/beehiiv-vs-substack. The links should help the reader take the next step and should not feel forced.",
             "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
+            "Use this keyword research plan to cover variants and common misspellings naturally (misspellings only in FAQ or a short note):",
+            JSON.stringify(keywordPlan),
             `Cite the original source clearly at the bottom of content with this exact format: Source: ${input.sourceName}.`,
             "For relevant articles, set is_relevant true and return complete title, content, meta_description, and key_takeaways fields."
           ],

@@ -23,6 +23,7 @@ import {
   formatToolRecommendationsMarkdown,
   getRecommendedToolsForText
 } from "./tool-recommendations";
+import { runKeywordResearch } from "./keyword-research";
 
 export const EDITORIAL_SOURCE_NAME = "Tech Revenue Brief Editorial";
 const AUTO_TOPIC_ID_PREFIX = "auto-";
@@ -325,6 +326,15 @@ async function generateAutomatedTopics(input: {
 }
 
 async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialArticle> {
+  const keywordPlan = await runKeywordResearch({
+    seed: topic.title,
+    category: topic.category,
+    hints: {
+      brand: topic.title.split(" ")[0],
+      isReferral: false
+    }
+  });
+
   const completion = await getOpenAIClient().chat.completions.create({
     model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
     temperature: 0.45,
@@ -366,6 +376,8 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
             "Treat the working title as the primary search query. Keep the final title close to that query unless clarity requires a small rewrite.",
             "Satisfy search intent before adding commentary: answer what the reader probably typed into Google in the first paragraph and again in ## Quick Answer.",
             "Use the primary query naturally in the title, opening paragraph, one H2 or H3, meta_description, and one FAQ question.",
+            "Use this keyword research plan to cover variants and common misspellings naturally (misspellings only in FAQ or a short note):",
+            JSON.stringify(keywordPlan),
             "Include concrete examples, decision rules, setup steps, and failure modes. Avoid vague advice like 'be strategic' unless it is followed by a specific action.",
             "Use markdown with ## and ### headings only (no H1 in body).",
             "Open with a 40-60 word direct answer to the main question.",

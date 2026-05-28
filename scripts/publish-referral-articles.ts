@@ -1,5 +1,7 @@
 import { REFERRAL_OFFERS } from "../lib/referral-offers";
 import { loadLocalEnv } from "../lib/load-env";
+import { runKeywordResearch } from "../lib/keyword-research";
+import { getOpenAIClient } from "../lib/openai";
 import {
   articleExistsBySourceUrl,
   createUniqueShareId,
@@ -18,6 +20,8 @@ type ReferralArticle = {
   key_takeaways: string[];
   content: string;
 };
+
+type KeywordPlan = Awaited<ReturnType<typeof runKeywordResearch>>;
 
 const referralArticles: ReferralArticle[] = [
   {
@@ -524,16 +528,32 @@ async function upsertReferralArticle(article: ReferralArticle) {
     throw new Error(`Missing referral offer for ${article.offerId}`);
   }
 
+  const keywordPlan = await runKeywordResearch({
+    seed: `${offer.name} referral link`,
+    category: article.category,
+    hints: {
+      brand: offer.name,
+      isReferral: true,
+      referralUrl: offer.referralUrl
+    }
+  });
+
+  const rewritten = await rewriteReferralArticleWithKeywords({
+    article,
+    offer,
+    keywordPlan
+  });
+
   const exists = await articleExistsBySourceUrl(offer.referralUrl);
 
   if (exists) {
     const { data, error } = await supabase
       .from("articles")
       .update({
-        title: article.title,
-        content: article.content,
-        meta_description: article.meta_description,
-        key_takeaways: article.key_takeaways,
+        title: rewritten.title,
+        content: rewritten.content,
+        meta_description: rewritten.meta_description,
+        key_takeaways: rewritten.key_takeaways,
         category: article.category,
         source_name: `${offer.name} Referral`,
         status: "published"
@@ -554,11 +574,11 @@ async function upsertReferralArticle(article: ReferralArticle) {
   const { data, error } = await supabase
     .from("articles")
     .insert({
-      title: article.title,
+      title: rewritten.title,
       slug,
-      content: article.content,
-      meta_description: article.meta_description,
-      key_takeaways: article.key_takeaways,
+      content: rewritten.content,
+      meta_description: rewritten.meta_description,
+      key_takeaways: rewritten.key_takeaways,
       category: article.category,
       source_name: `${offer.name} Referral`,
       source_url: offer.referralUrl,
@@ -575,6 +595,93 @@ async function upsertReferralArticle(article: ReferralArticle) {
   }
 
   return { action: "inserted", id: String(data.id), slug: String(data.slug) };
+}
+
+async function rewriteReferralArticleWithKeywords(input: {
+  article: ReferralArticle;
+  offer: (typeof REFERRAL_OFFERS)[number];
+  keywordPlan: KeywordPlan;
+}) {
+  const completion = await getOpenAIClient().chat.completions.create({
+    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+    temperature: 0.35,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "referral_article",
+        strict: true,
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            title: { type: "string" },
+            content: { type: "string" },
+            meta_description: { type: "string" },
+            key_takeaways: {
+              type: "array",
+              minItems: 3,
+              maxItems: 3,
+              items: { type: "string" }
+            }
+          },
+          required: ["title", "content", "meta_description", "key_takeaways"]
+        }
+      }
+    },
+    messages: [
+      {
+        role: "system",
+        content:
+          "You write high-intent referral guides that are useful and transparent. Return only valid JSON. Do not stuff keywords or make income claims."
+      },
+      {
+        role: "user",
+        content: JSON.stringify({
+          offer: {
+            name: input.offer.name,
+            referralUrl: input.offer.referralUrl
+          },
+          keywordPlan: input.keywordPlan,
+          instructions: [
+            "Write a practical referral guide that helps a real reader decide whether to sign up.",
+            "Open with a 40-60 word direct answer, then include a ## Quick Answer section.",
+            "Include 2-4 natural references to the primary keyword and several variants across headings and FAQ without looking spammy.",
+            "Use the misspelling variants only in FAQ or a short sentence that acknowledges common typos.",
+            "Include the referral link at least 4 times, but spread them across the article naturally (do not create a spam wall of links).",
+            "Use markdown with ## and ### headings only.",
+            "Include: who it is for, how the offer works at a high level, common mistakes, and ## FAQ with 4-6 questions.",
+            "Add a clear disclosure near the top: the link is a referral link.",
+            "meta_description must be between 120 and 155 characters and must include the primary keyword.",
+            "Generate exactly 3 actionable key_takeaways.",
+            "End content with: Source: Tech Revenue Brief Referral Guide."
+          ],
+          currentDraft: {
+            title: input.article.title,
+            meta_description: input.article.meta_description,
+            key_takeaways: input.article.key_takeaways,
+            content: input.article.content
+          }
+        })
+      }
+    ]
+  });
+
+  const raw = completion.choices[0]?.message.content;
+  if (!raw) {
+    throw new Error("OpenAI returned an empty referral rewrite response");
+  }
+
+  const parsed = JSON.parse(raw) as Record<string, unknown>;
+
+  return {
+    title: String(parsed.title ?? "").trim() || input.article.title,
+    content: String(parsed.content ?? "").trim() || input.article.content,
+    meta_description:
+      String(parsed.meta_description ?? "").trim() || input.article.meta_description,
+    key_takeaways: Array.isArray(parsed.key_takeaways)
+      ? parsed.key_takeaways.map((v) => String(v).trim()).filter(Boolean).slice(0, 3)
+      : input.article.key_takeaways
+  };
 }
 
 async function run() {
