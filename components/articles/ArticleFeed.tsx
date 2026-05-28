@@ -16,8 +16,8 @@ type ArticleFeedProps = {
 export function ArticleFeed({
   articles,
   newsletterInterval = 3,
-  adInterval = 5,
-  promotionInterval = 4
+  adInterval = 0,
+  promotionInterval = 0
 }: ArticleFeedProps) {
   return (
     <div className="w-full">

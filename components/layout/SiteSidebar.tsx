@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { NewsletterCapture } from "@/components/newsletter/NewsletterCapture";
-import { getPublishedArticles } from "@/lib/articles";
+import { getPaginatedHomepageArticles } from "@/lib/articles";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
 import { siteConfig } from "@/lib/site";
@@ -23,7 +23,7 @@ function formatBriefDate(value: string | null) {
 }
 
 export async function SiteSidebar({ activeCategory }: SiteSidebarProps) {
-  const latestArticles = await getPublishedArticles(3);
+  const latestArticles = (await getPaginatedHomepageArticles(1, 3)).articles;
 
   return (
     <div className="space-y-4">

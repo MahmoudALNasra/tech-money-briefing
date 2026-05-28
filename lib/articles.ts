@@ -145,6 +145,7 @@ export const getPaginatedHomepageArticles = cache(
         .select(articleSummaryColumns, { count: "exact" })
         .eq("status", "published")
         .neq("category", "others")
+        .not("source_name", "ilike", "%Referral%")
         .order("published_at", { ascending: false })
         .range(from, to);
 

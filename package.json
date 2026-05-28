@@ -25,6 +25,7 @@
     "articles:backfill-media:slow": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-media.ts --limit=1000 --delay-ms=65000 --stop-on-quota",
     "articles:publish-no-image-drafts": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/publish-no-image-drafts.ts",
     "articles:fix-rss-dates": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/fix-rss-publish-dates.ts",
+    "articles:adsense-cleanup": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/adsense-cleanup-draft-weak-articles.ts",
     "ingest:watch": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --max-new=5 --scan=25",
     "add-source": "node --env-file=.env.local scripts/add-source.js",
     "normalize:categories": "node --env-file=.env.local scripts/normalize-categories.js",
