@@ -2,6 +2,7 @@ import Parser from "rss-parser";
 
 import { enrichArticleMedia } from "./article-media";
 import { getOpenAIClient } from "./openai";
+import { revalidateSiteCache } from "./revalidate-site";
 import { generateShareId } from "./share-id";
 import { slugify, normalizeCategory } from "./slug";
 import { supabase } from "./supabase";
@@ -55,7 +56,8 @@ export async function runIngestion(options: IngestionOptions = {}) {
   const maxNewArticles = options.maxNewArticles ?? defaultMaxNewArticles;
   const maxItemsPerSource = options.maxItemsPerSource ?? defaultMaxItemsPerSource;
   const budget = {
-    remaining: maxNewArticles
+    remaining: maxNewArticles,
+    insertedPaths: [] as string[]
   };
 
   const { data, error } = await supabase
@@ -84,6 +86,17 @@ export async function runIngestion(options: IngestionOptions = {}) {
     );
   }
 
+  if (budget.insertedPaths.length > 0) {
+    try {
+      await revalidateSiteCache({
+        paths: ["/", ...budget.insertedPaths],
+        tags: ["articles"]
+      });
+    } catch (error) {
+      console.warn("[ingest] Revalidate failed", error);
+    }
+  }
+
   return {
     ok: true,
     sourceCount: sources.length,
@@ -97,7 +110,7 @@ async function ingestSource(
   source: Source,
   options: {
     maxItemsPerSource: number;
-    budget: { remaining: number };
+    budget: { remaining: number; insertedPaths: string[] };
   }
 ): Promise<IngestionResult> {
   const result: IngestionResult = {
@@ -149,7 +162,6 @@ async function ingestSource(
           extractImageUrl(item) ?? (await fetchOpenGraphImage(sourceUrl));
         const publishedAt =
           item.isoDate ?? item.pubDate ?? new Date().toISOString();
-        const status = imageUrl ? "published" : "draft";
 
         const { data: insertedArticle, error: insertError } = await supabase
           .from("articles")
@@ -164,7 +176,7 @@ async function ingestSource(
             source_url: sourceUrl,
             image_url: imageUrl,
             share_id: shareId,
-            status,
+            status: "published",
             published_at: publishedAt
           })
           .select("id")
@@ -181,6 +193,7 @@ async function ingestSource(
 
         result.inserted += 1;
         options.budget.remaining -= 1;
+        options.budget.insertedPaths.push(`/${normalizeCategory(source.category)}/${slug}`);
 
         if (insertedArticle?.id) {
           await enrichArticleMedia({
