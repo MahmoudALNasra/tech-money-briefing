@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import type { MouseEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { SearchForm } from "@/components/search/SearchForm";
 import { CORE_CATEGORIES } from "@/lib/categories";
@@ -71,18 +73,92 @@ export function SiteHeader({
   categories = CORE_CATEGORIES,
   activeCategory
 }: SiteHeaderProps) {
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isTopicsOpen, setIsTopicsOpen] = useState(false);
+  const [clickedHref, setClickedHref] = useState("");
+  const closeTopicsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navCategories = categories.length > 0 ? categories : CORE_CATEGORIES;
+
+  useEffect(() => {
+    return () => {
+      if (closeTopicsTimer.current) {
+        clearTimeout(closeTopicsTimer.current);
+      }
+    };
+  }, []);
+
+  const openTopics = () => {
+    if (closeTopicsTimer.current) {
+      clearTimeout(closeTopicsTimer.current);
+    }
+
+    setIsTopicsOpen(true);
+  };
+
+  const closeTopics = (delay = 160) => {
+    if (closeTopicsTimer.current) {
+      clearTimeout(closeTopicsTimer.current);
+    }
+
+    closeTopicsTimer.current = setTimeout(() => {
+      setIsTopicsOpen(false);
+    }, delay);
+  };
+
+  const closeTopicsNow = () => {
+    if (closeTopicsTimer.current) {
+      clearTimeout(closeTopicsTimer.current);
+    }
+
+    setIsTopicsOpen(false);
+  };
+
+  const handleAnimatedNavigation = (
+    event: MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    setClickedHref(href);
+    setIsMenuOpen(false);
+    closeTopicsNow();
+
+    window.setTimeout(() => {
+      router.push(href);
+    }, 180);
+
+    window.setTimeout(() => {
+      setClickedHref("");
+    }, 700);
+  };
 
   return (
     <>
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none fixed inset-0 z-[60] bg-[radial-gradient(circle_at_50%_12%,rgba(16,185,129,0.18),transparent_34%),linear-gradient(to_bottom,rgba(255,255,255,0.3),transparent)] transition duration-500 ${
+          clickedHref ? "opacity-100" : "opacity-0"
+        }`}
+      />
       <header className="fixed inset-x-0 top-0 z-50 border-b border-stone-200/80 bg-white/90 shadow-sm shadow-stone-950/5 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 py-3.5 sm:px-8">
           <Link
             href="/"
-            onClick={() => setIsMenuOpen(false)}
-            className="group flex shrink-0 items-center gap-3 text-base font-black tracking-tight text-ink sm:text-lg"
+            onClick={(event) => handleAnimatedNavigation(event, "/")}
+            className={`group flex shrink-0 items-center gap-3 text-base font-black tracking-tight text-ink transition duration-200 sm:text-lg ${
+              clickedHref === "/" ? "scale-95 opacity-80" : "hover:scale-[1.02]"
+            }`}
           >
             <Image
               src="/logo.svg"
@@ -108,11 +184,18 @@ export function SiteHeader({
                     <Link
                       key={link.href}
                       href={link.href}
-                      className="group relative rounded-full px-3.5 py-2 text-sm font-bold text-stone-600 transition hover:bg-white hover:text-ink hover:shadow-sm"
+                      onClick={(event) =>
+                        handleAnimatedNavigation(event, link.href)
+                      }
+                      className={`group relative overflow-hidden rounded-full px-3.5 py-2 text-sm font-bold text-stone-600 transition duration-200 before:absolute before:inset-0 before:scale-x-0 before:rounded-full before:bg-white before:transition before:duration-300 hover:-translate-y-0.5 hover:text-ink hover:shadow-sm hover:before:scale-x-100 ${
+                        clickedHref === link.href
+                          ? "scale-95 bg-ink text-white shadow-inner before:scale-x-0"
+                          : ""
+                      }`}
                     >
-                      {link.label}
+                      <span className="relative z-10">{link.label}</span>
                       {link.badge ? (
-                        <span className="ml-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-800">
+                        <span className="relative z-10 ml-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-800">
                           {link.badge}
                         </span>
                       ) : null}
@@ -122,12 +205,12 @@ export function SiteHeader({
 
                 <div
                   className="relative"
-                  onMouseEnter={() => setIsTopicsOpen(true)}
-                  onMouseLeave={() => setIsTopicsOpen(false)}
-                  onFocus={() => setIsTopicsOpen(true)}
+                  onMouseEnter={openTopics}
+                  onMouseLeave={() => closeTopics()}
+                  onFocus={openTopics}
                   onBlur={(event) => {
                     if (!event.currentTarget.contains(event.relatedTarget)) {
-                      setIsTopicsOpen(false);
+                      closeTopicsNow();
                     }
                   }}
                 >
@@ -151,69 +234,78 @@ export function SiteHeader({
                     </span>
                   </button>
                   <nav
-                    className={`absolute right-0 top-[calc(100%+0.8rem)] z-50 w-[31rem] origin-top-right rounded-[2rem] border border-stone-200 bg-white/95 p-3 shadow-2xl shadow-stone-950/15 backdrop-blur-xl transition duration-200 ${
+                    className={`absolute right-0 top-full z-50 w-[31rem] origin-top-right pt-3 transition duration-200 ${
                       isTopicsOpen
                         ? "translate-y-0 scale-100 opacity-100"
                         : "pointer-events-none -translate-y-2 scale-95 opacity-0"
                     }`}
                     aria-label="Topics"
                   >
-                    <div className="mb-2 rounded-3xl bg-gradient-to-br from-ink via-stone-900 to-emerald-900 p-5 text-white">
-                      <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-200">
-                        Explore briefs
-                      </p>
-                      <p className="mt-2 text-lg font-black tracking-tight">
-                        Pick a revenue signal, then turn it into action.
-                      </p>
-                    </div>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {navCategories.map((category) => {
-                        const meta = topicMeta[category] ?? topicMeta.others;
+                    <div className="rounded-[2rem] border border-stone-200 bg-white/95 p-3 shadow-2xl shadow-stone-950/15 backdrop-blur-xl">
+                      <div className="mb-2 overflow-hidden rounded-3xl bg-gradient-to-br from-ink via-stone-900 to-emerald-900 p-5 text-white">
+                        <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-200">
+                          Explore briefs
+                        </p>
+                        <p className="mt-2 text-lg font-black tracking-tight">
+                          Pick a revenue signal, then turn it into action.
+                        </p>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {navCategories.map((category) => {
+                          const href = `/${category}`;
+                          const meta = topicMeta[category] ?? topicMeta.others;
 
-                        return (
-                          <Link
-                            key={category}
-                            href={`/${category}`}
-                            onClick={() => setIsTopicsOpen(false)}
-                            className={`group/topic rounded-2xl border p-3 transition hover:-translate-y-0.5 ${
-                              category === activeCategory
-                                ? "border-ink bg-ink text-white shadow-md"
-                                : `border-stone-100 bg-gradient-to-br ${meta.accent} text-stone-800 hover:shadow-sm`
-                            }`}
-                          >
-                            <span className="flex items-center gap-2">
+                          return (
+                            <Link
+                              key={category}
+                              href={href}
+                              onClick={(event) =>
+                                handleAnimatedNavigation(event, href)
+                              }
+                              className={`group/topic relative overflow-hidden rounded-2xl border p-3 transition duration-200 before:absolute before:inset-0 before:translate-x-[-120%] before:bg-gradient-to-r before:from-white/0 before:via-white/60 before:to-white/0 before:transition before:duration-500 hover:-translate-y-1 hover:scale-[1.015] hover:shadow-lg hover:shadow-stone-950/10 hover:before:translate-x-[120%] ${
+                                clickedHref === href
+                                  ? "scale-95 ring-4 ring-emerald-200"
+                                  : ""
+                              } ${
+                                category === activeCategory
+                                  ? "border-ink bg-ink text-white shadow-md"
+                                  : `border-stone-100 bg-gradient-to-br ${meta.accent} text-stone-800`
+                              }`}
+                            >
+                              <span className="relative z-10 flex items-center gap-2">
+                                <span
+                                  className={`h-2.5 w-2.5 rounded-full transition group-hover/topic:scale-150 ${
+                                    category === activeCategory
+                                      ? "bg-lime-300"
+                                      : meta.dot
+                                  }`}
+                                />
+                                <span
+                                  className={`text-[10px] font-black uppercase tracking-[0.18em] ${
+                                    category === activeCategory
+                                      ? "text-stone-300"
+                                      : "text-stone-500"
+                                  }`}
+                                >
+                                  {meta.eyebrow}
+                                </span>
+                              </span>
+                              <span className="relative z-10 mt-2 block text-sm font-black transition group-hover/topic:translate-x-1">
+                                {formatCategory(category)}
+                              </span>
                               <span
-                                className={`h-2.5 w-2.5 rounded-full ${
-                                  category === activeCategory
-                                    ? "bg-lime-300"
-                                    : meta.dot
-                                }`}
-                              />
-                              <span
-                                className={`text-[10px] font-black uppercase tracking-[0.18em] ${
+                                className={`relative z-10 mt-1 block text-xs leading-5 ${
                                   category === activeCategory
                                     ? "text-stone-300"
                                     : "text-stone-500"
                                 }`}
                               >
-                                {meta.eyebrow}
+                                Latest tools, trends, and operator notes.
                               </span>
-                            </span>
-                            <span className="mt-2 block text-sm font-black">
-                              {formatCategory(category)}
-                            </span>
-                            <span
-                              className={`mt-1 block text-xs leading-5 ${
-                                category === activeCategory
-                                  ? "text-stone-300"
-                                  : "text-stone-500"
-                              }`}
-                            >
-                              Latest tools, trends, and operator notes.
-                            </span>
-                          </Link>
-                        );
-                      })}
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </div>
                   </nav>
                 </div>
@@ -226,13 +318,23 @@ export function SiteHeader({
               <div className="hidden items-center gap-2 md:flex lg:hidden">
                 <Link
                   href="/tools"
-                  className="rounded-full bg-ink px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-stone-700"
+                  onClick={(event) => handleAnimatedNavigation(event, "/tools")}
+                  className={`rounded-full bg-ink px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-stone-700 ${
+                    clickedHref === "/tools" ? "scale-95 ring-4 ring-emerald-200" : ""
+                  }`}
                 >
                   Tools
                 </Link>
                 <Link
                   href="/compare"
-                  className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-700 transition hover:border-ink hover:text-ink"
+                  onClick={(event) =>
+                    handleAnimatedNavigation(event, "/compare")
+                  }
+                  className={`rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-700 transition hover:-translate-y-0.5 hover:border-ink hover:text-ink ${
+                    clickedHref === "/compare"
+                      ? "scale-95 ring-4 ring-emerald-200"
+                      : ""
+                  }`}
                 >
                   Compare
                 </Link>
@@ -280,8 +382,14 @@ export function SiteHeader({
                     <Link
                       key={link.href}
                       href={link.href}
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-black text-stone-800 transition hover:bg-stone-100 hover:text-ink"
+                      onClick={(event) =>
+                        handleAnimatedNavigation(event, link.href)
+                      }
+                      className={`flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-black text-stone-800 transition hover:-translate-y-0.5 hover:bg-stone-100 hover:text-ink ${
+                        clickedHref === link.href
+                          ? "scale-95 bg-emerald-50 ring-4 ring-emerald-100"
+                          : ""
+                      }`}
                     >
                       {link.label}
                       {link.badge ? (
@@ -302,8 +410,14 @@ export function SiteHeader({
                     <Link
                       key={category}
                       href={`/${category}`}
-                      onClick={() => setIsMenuOpen(false)}
-                      className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${
+                      onClick={(event) =>
+                        handleAnimatedNavigation(event, `/${category}`)
+                      }
+                      className={`rounded-2xl px-4 py-3 text-sm font-bold transition hover:-translate-y-0.5 ${
+                        clickedHref === `/${category}`
+                          ? "scale-95 ring-4 ring-emerald-100"
+                          : ""
+                      } ${
                         category === activeCategory
                           ? "bg-ink text-white"
                           : "text-stone-700 hover:bg-stone-100 hover:text-ink"
