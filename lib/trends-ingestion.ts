@@ -1,5 +1,6 @@
 import Parser from "rss-parser";
 
+import { syncArticleHeroImage } from "./article-images";
 import { enrichArticleMedia } from "./article-media";
 import { fetchOpenGraphImage } from "./ingestion";
 import { getOpenAIClient } from "./openai";
@@ -192,6 +193,11 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
           title: article.title,
           category: TREND_CATEGORY,
           metaDescription: article.meta_description
+        });
+
+        await syncArticleHeroImage({
+          articleId: String(insertedArticle.id),
+          currentImageUrl: imageUrl
         });
       }
     } catch (error) {
@@ -640,6 +646,7 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
             "Do not claim exact ranking positions unless provided. Treat traffic numbers as approximate demand signals.",
             "Include why people are searching, what readers should know now, how to verify key facts, what to watch next, and risks of overreacting to a spike.",
             "Use short paragraphs and include 5-8 markdown-style section headings inside content. Do not escape markdown characters.",
+            "Use **bold** for key terms, ==highlighted phrases== for the most important takeaways, one tasteful emoji per major ## heading when natural, and >> callout lines for standout tips.",
             "Keep the same reader-friendly structure as Tech Revenue Brief guides: direct answer first, ## Quick Answer, practical context, what to watch next, and ## FAQ when the query supports it.",
             "Do not include a separate Key Takeaways section inside content because key_takeaways is stored separately.",
             "Do not include a title line inside content; the article title is stored separately.",

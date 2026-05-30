@@ -1,5 +1,6 @@
 import Parser from "rss-parser";
 
+import { syncArticleHeroImage } from "./article-images";
 import { enrichArticleMedia } from "./article-media";
 import { getOpenAIClient } from "./openai";
 import { revalidateSiteCache } from "./revalidate-site";
@@ -200,6 +201,11 @@ async function ingestSource(
             title: rewritten.title,
             category: normalizeCategory(source.category),
             metaDescription: rewritten.meta_description
+          });
+
+          await syncArticleHeroImage({
+            articleId: String(insertedArticle.id),
+            currentImageUrl: imageUrl
           });
         }
       } catch (error) {
@@ -424,6 +430,9 @@ async function rewriteArticle(input: {
             "Summarize the original article quickly, then dedicate at least 50% of the output to explaining why this matters for professionals in this industry.",
             "Add original analysis, operational implications, buyer or operator context, and concrete risks or opportunities without inventing facts.",
             "Use markdown with ## and ### headings only. Start with a short direct-answer opening paragraph, then include a ## Quick Answer section, practical implications, what to watch next, and a ## FAQ section when the topic supports it.",
+            "Use **bold** for key terms and metrics, ==highlighted phrases== for the most important takeaways, and one tasteful emoji in each major ## heading when it fits naturally.",
+            "Use >> callout lines for one standout operator tip per article.",
+            "Never escape markdown with backslashes.",
             "Use short paragraphs, clear subheadings, and concrete examples so the article renders with the same readable structure as other Tech Revenue Brief guides.",
             "Generate exactly 3 actionable key_takeaways as short bullet-ready strings.",
             "When relevant, include 2-4 natural internal markdown links between paragraphs to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator, /ai-headline-generator, /tools, or /compare/beehiiv-vs-substack. The links should help the reader take the next step and should not feel forced.",

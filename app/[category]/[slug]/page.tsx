@@ -14,6 +14,12 @@ import { RelatedArticles } from "@/components/articles/RelatedArticles";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { ScrollNewsletter } from "@/components/newsletter/ScrollNewsletter";
 import { getArticleMedia } from "@/lib/article-media";
+import { resolveArticleHeroImage } from "@/lib/article-images";
+import {
+  getContentHeadings,
+  normalizeArticleContent,
+  renderArticleBlock
+} from "@/lib/article-markdown";
 import { getArticleBySlug } from "@/lib/articles";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
@@ -31,118 +37,6 @@ type ArticlePageProps = {
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-function normalizeArticleContent(content: string) {
-  return content.replace(/\\([#*_`])/g, "$1");
-}
-
-function renderInlineContent(text: string) {
-  const cleaned = text.replace(/\*\*/g, "");
-  const parts = cleaned.split(/(\[[^\]]+\]\((?:https?:\/\/|\/)[^)]+\))/g);
-
-  return parts.map((part, index) => {
-    const match = part.match(/^\[([^\]]+)\]\(((?:https?:\/\/|\/)[^)]+)\)$/);
-
-    if (!match) {
-      return part;
-    }
-
-    if (match[2].startsWith("/")) {
-      return (
-        <Link key={`${match[2]}-${index}`} href={match[2]}>
-          {match[1]}
-        </Link>
-      );
-    }
-
-    return (
-      <a
-        key={`${match[2]}-${index}`}
-        href={match[2]}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {match[1]}
-      </a>
-    );
-  });
-}
-
-function headingId(text: string) {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
-
-function getContentHeadings(blocks: string[]) {
-  return blocks
-    .map((block) => {
-      const match = block.match(/^(#{2,4})\s+(.+)$/);
-
-      if (!match) {
-        return null;
-      }
-
-      const label = match[2].replace(/\*\*/g, "").trim();
-
-      return {
-        id: headingId(label),
-        label,
-        level: match[1].length
-      };
-    })
-    .filter((heading): heading is { id: string; label: string; level: number } =>
-      Boolean(heading?.id && heading.label)
-    )
-    .slice(0, 8);
-}
-
-function renderArticleBlock(block: string) {
-  const headingMatch = block.match(/^(#{2,4})\s+(.+)$/);
-
-  if (headingMatch) {
-    const label = headingMatch[2];
-    const id = headingId(label);
-
-    if (headingMatch[1].length >= 3) {
-      return (
-        <h3 key={block} id={id}>
-          {renderInlineContent(label)}
-        </h3>
-      );
-    }
-
-    return (
-      <h2 key={block} id={id}>
-        {renderInlineContent(label)}
-      </h2>
-    );
-  }
-
-  const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
-  const isUnorderedList =
-    lines.length > 1 && lines.every((line) => /^[-*]\s+/.test(line));
-  const isOrderedList =
-    lines.length > 1 && lines.every((line) => /^\d+\.\s+/.test(line));
-
-  if (isUnorderedList || isOrderedList) {
-    const ListTag = isOrderedList ? "ol" : "ul";
-
-    return (
-      <ListTag key={block}>
-        {lines.map((line) => (
-          <li key={line}>
-            {renderInlineContent(line.replace(/^([-*]|\d+\.)\s+/, ""))}
-          </li>
-        ))}
-      </ListTag>
-    );
-  }
-
-  return <p key={block}>{renderInlineContent(block)}</p>;
-}
 
 function ArticleVisualBreak({
   label,
@@ -189,8 +83,13 @@ export async function generateMetadata({
     return {};
   }
 
+  const articleMedia = await getArticleMedia(article.id);
+  const resolvedHero = await resolveArticleHeroImage({
+    image_url: article.image_url,
+    media: articleMedia
+  });
   const url = articleUrl(article);
-  const image = articleImage(article);
+  const image = articleImage(article, resolvedHero);
 
   return {
     title: article.title,
@@ -235,7 +134,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     .filter((item) => item.provider === "youtube")
     .slice(0, 2);
   const prefersVideoMedia = inlineVideos.length > 0;
-  const heroImageUrl = article.image_url;
+  const heroImageUrl = await resolveArticleHeroImage({
+    image_url: article.image_url,
+    media: articleMedia
+  });
   const jsonLd = newsArticleJsonLd(article);
   const faqLd = faqJsonLd(article);
   const contentBlocks = normalizeArticleContent(article.content)
@@ -422,7 +324,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             )}
           </div>
 
-          <div className="article-content prose prose-lg mt-10 max-w-none scroll-mt-24 prose-headings:scroll-mt-24 prose-headings:text-ink prose-a:text-ink">
+          <div className="article-content prose prose-lg mt-10 max-w-none scroll-mt-24 prose-headings:scroll-mt-24 prose-headings:text-ink prose-a:text-ink prose-strong:text-ink prose-li:marker:text-emerald-600">
             {contentBlocks.map((block, index) => (
               <Fragment key={`${block}-${index}`}>
                 {renderArticleBlock(block)}

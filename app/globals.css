@@ -30,6 +30,23 @@
 
   .article-content h2,
   .article-content h3 {
-    @apply scroll-mt-24;
+    @apply scroll-mt-24 border-l-4 border-emerald-400 pl-4 text-ink;
+  }
+
+  .article-content h2 {
+    @apply mt-10 text-2xl font-black tracking-tight sm:text-3xl;
+  }
+
+  .article-content h3 {
+    @apply mt-8 text-xl font-extrabold tracking-tight sm:text-2xl;
+  }
+
+  .article-content ul,
+  .article-content ol {
+    @apply my-5 space-y-2 pl-6;
+  }
+
+  .article-content a {
+    @apply font-semibold text-emerald-800 underline decoration-emerald-300 underline-offset-4;
   }
 }

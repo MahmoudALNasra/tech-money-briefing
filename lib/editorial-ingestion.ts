@@ -4,6 +4,7 @@ import {
   type EditorialTopic
 } from "@/data/editorial-topics";
 
+import { syncArticleHeroImage } from "./article-images";
 import { enrichArticleMedia } from "./article-media";
 import {
   articleExistsBySourceUrl,
@@ -38,6 +39,8 @@ type EditorialArticle = {
 export type EditorialIngestionOptions = {
   maxNewArticles?: number;
   topicId?: string;
+  /** When set, ingests these topics (e.g. from Google Search Console) instead of the static queue. */
+  topics?: EditorialTopic[];
 };
 
 export type EditorialIngestionResult = {
@@ -58,7 +61,9 @@ export async function runEditorialIngestion(
   options: EditorialIngestionOptions = {}
 ): Promise<EditorialIngestionResult> {
   const maxNewArticles = options.maxNewArticles ?? 1;
-  const topics = await selectPendingTopics(maxNewArticles, options.topicId);
+  const topics = options.topics?.length
+    ? await selectPendingCustomTopics(maxNewArticles, options.topics)
+    : await selectPendingTopics(maxNewArticles, options.topicId);
 
   const result: EditorialIngestionResult = {
     ok: true,
@@ -137,6 +142,11 @@ export async function runEditorialIngestion(
           category: topic.category,
           metaDescription: article.meta_description
         });
+
+        await syncArticleHeroImage({
+          articleId: String(insertedArticle.id),
+          currentImageUrl: null
+        });
       }
     } catch (error) {
       result.errors.push(
@@ -151,6 +161,27 @@ export async function runEditorialIngestion(
   }
 
   return result;
+}
+
+async function selectPendingCustomTopics(
+  limit: number,
+  candidates: EditorialTopic[]
+) {
+  const pending: EditorialTopic[] = [];
+
+  for (const topic of candidates) {
+    if (pending.length >= limit) {
+      break;
+    }
+
+    const exists = await articleExistsBySourceUrl(editorialSourceUrl(topic.id));
+
+    if (!exists) {
+      pending.push(topic);
+    }
+  }
+
+  return pending;
 }
 
 async function selectPendingTopics(limit: number, topicId?: string) {
@@ -380,6 +411,8 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
             JSON.stringify(keywordPlan),
             "Include concrete examples, decision rules, setup steps, and failure modes. Avoid vague advice like 'be strategic' unless it is followed by a specific action.",
             "Use markdown with ## and ### headings only (no H1 in body).",
+            "Use **bold** for key terms, ==highlighted phrases== for critical takeaways, one tasteful emoji per major ## heading when natural, and >> callout lines for standout tips.",
+            "Never escape markdown with backslashes.",
             "Open with a 40-60 word direct answer to the main question.",
             "Include sections: ## Quick Answer, step-by-step workflow (numbered steps in prose or lists), common mistakes, a short checklist or decision framework, and ## FAQ with 3-4 questions.",
             "Aim for 900-1300 words. Be specific and actionable.",

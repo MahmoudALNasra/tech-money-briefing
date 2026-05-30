@@ -5,8 +5,11 @@ export function articleUrl(article: Pick<Article, "category" | "slug">) {
   return absoluteUrl(`/${article.category}/${article.slug}`);
 }
 
-export function articleImage(article: Pick<Article, "image_url">) {
-  return article.image_url ?? absoluteUrl("/og-default-v3.png");
+export function articleImage(
+  article: Pick<Article, "image_url">,
+  resolvedImageUrl?: string | null
+) {
+  return resolvedImageUrl ?? article.image_url ?? absoluteUrl("/og-default-v3.png");
 }
 
 export function newsArticleJsonLd(article: Article) {
