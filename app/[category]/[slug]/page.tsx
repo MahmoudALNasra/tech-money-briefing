@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Fragment } from "react";
 
 import { ArticleReadTracker } from "@/components/analytics/ArticleReadTracker";
+import { ArticleHumanLayer } from "@/components/articles/ArticleHumanLayer";
 import { ArticleShareToolbar } from "@/components/articles/ArticleShareToolbar";
 import { ArticleInlineMedia } from "@/components/articles/ArticleInlineMedia";
 import { ArticleInternalLinks } from "@/components/articles/ArticleInternalLinks";
@@ -253,6 +254,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </div>
           </section>
 
+          <ArticleHumanLayer article={article} variant="intro" />
+
           <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-500">
             <li>
               Source:{" "}
@@ -363,6 +366,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
 
           <ArticleVideoSection media={articleMedia} />
+
+          <ArticleHumanLayer article={article} variant="full" />
 
           <ArticleToolRecommendations article={article} />
 

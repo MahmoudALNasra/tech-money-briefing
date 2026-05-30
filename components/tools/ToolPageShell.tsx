@@ -5,6 +5,7 @@ import { MonetizationRail } from "@/components/monetization/MonetizationRail";
 import { ToolAssistant } from "@/components/tools/ToolAssistant";
 import { ToolPageNav } from "@/components/tools/ToolPageNav";
 import { ToolRelatedTools } from "@/components/tools/ToolRelatedTools";
+import { ToolHumanLayer } from "@/components/tools/ToolHumanLayer";
 import { ToolSeoSections } from "@/components/tools/ToolSeoSections";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { faqJsonLdFromItems, webApplicationJsonLd } from "@/lib/seo";
@@ -87,9 +88,21 @@ export function ToolPageShell({
         </section>
         <section className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
           {toolHref ? <ToolPageNav toolHref={toolHref} /> : null}
+          {toolHref ? (
+            <ToolHumanLayer
+              toolHref={toolHref}
+              toolTitle={title}
+              variant="before"
+            />
+          ) : null}
           {children}
           {toolHref ? (
             <>
+              <ToolHumanLayer
+                toolHref={toolHref}
+                toolTitle={title}
+                variant="after"
+              />
               <ToolRelatedTools currentHref={toolHref} />
               <ToolSeoSections toolHref={toolHref} />
             </>

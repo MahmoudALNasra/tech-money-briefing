@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { AdvancedSeoResultGuide } from "@/components/tools/AdvancedSeoResultGuide";
 import { useDataLayer } from "@/hooks/useDataLayer";
 
 type KeywordClusterResult = {
@@ -377,6 +378,7 @@ export function KeywordClusterResults({
         </SectionCard>
       ) : null}
 
+      <AdvancedSeoResultGuide tool="keyword-cluster" />
       <NextActions tool="keyword-cluster" keyword={keyword} />
     </div>
   );
@@ -406,6 +408,7 @@ export function SerpIntentResults({
             </p>
           ) : null}
         </SectionCard>
+        <AdvancedSeoResultGuide tool="serp-intent" />
         <NextActions tool="serp-intent" keyword={keyword} />
       </div>
     );
@@ -475,6 +478,7 @@ export function SerpIntentResults({
         </SectionCard>
       ) : null}
 
+      <AdvancedSeoResultGuide tool="serp-intent" />
       <NextActions tool="serp-intent" keyword={keyword} />
     </div>
   );
@@ -538,6 +542,7 @@ export function ContentGapResults({
         </SectionCard>
       ) : null}
 
+      <AdvancedSeoResultGuide tool="content-gap" />
       <NextActions tool="content-gap" keyword={keyword} />
     </div>
   );

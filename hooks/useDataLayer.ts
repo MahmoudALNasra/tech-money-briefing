@@ -17,6 +17,7 @@ type PublisherEventName =
   | "contact_form_submit"
   | "advanced_tool_download"
   | "advanced_tool_next_action_click"
+  | "human_layer_action_click"
   | "meme_download"
   | "share_caption_copy"
   | "social_image_download";
