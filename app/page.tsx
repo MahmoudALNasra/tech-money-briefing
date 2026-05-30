@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { ArticleFeed } from "@/components/articles/ArticleFeed";
 import { PaginationControls } from "@/components/articles/PaginationControls";
+import { StartHerePathfinder } from "@/components/engagement/StartHerePathfinder";
 import { FeedWithSidebar } from "@/components/layout/FeedWithSidebar";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getPaginatedHomepageArticles } from "@/lib/articles";
@@ -101,6 +102,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                 ))}
               </div>
             ) : null}
+            <StartHerePathfinder />
           </div>
         </section>
 

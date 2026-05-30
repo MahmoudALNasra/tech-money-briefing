@@ -162,19 +162,22 @@ export function ToolAssistant({
             assistant_open: nextOpen
           });
         }}
-        className={`fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-emerald-500 text-2xl text-white shadow-xl shadow-indigo-900/25 transition hover:scale-105 hover:shadow-2xl ${
+        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+6rem)] right-4 z-[80] flex h-14 items-center justify-center gap-2 rounded-full bg-gradient-to-br from-indigo-600 to-emerald-500 px-4 text-white shadow-2xl shadow-indigo-900/25 ring-1 ring-white/40 transition hover:scale-105 hover:shadow-indigo-900/35 sm:right-6 sm:px-5 md:bottom-[calc(env(safe-area-inset-bottom)+7rem)] ${
           isOpen ? "scale-95" : "motion-safe:animate-bounce"
         }`}
         aria-label={isOpen ? "Close tool assistant" : "Open tool assistant"}
         aria-expanded={isOpen}
       >
-        {isOpen ? "×" : "✦"}
+        <span className="text-2xl leading-none">{isOpen ? "×" : "✦"}</span>
+        <span className="hidden text-sm font-black sm:inline">
+          {isOpen ? "Close" : "Ask AI"}
+        </span>
       </button>
 
       {isOpen ? (
         <div
           ref={panelRef}
-          className="fixed bottom-24 right-6 z-40 flex w-[min(100vw-2rem,400px)] flex-col overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-2xl shadow-stone-950/20"
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+10.75rem)] right-3 z-[80] flex max-h-[min(72vh,34rem)] w-[min(100vw-1.5rem,420px)] flex-col overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-2xl shadow-stone-950/25 sm:right-6 md:bottom-[calc(env(safe-area-inset-bottom)+11.75rem)]"
           role="dialog"
           aria-label="Tool assistant"
         >
