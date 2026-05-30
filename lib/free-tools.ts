@@ -178,5 +178,85 @@ export const FREE_TOOLS = [
       accent: "from-violet-700 to-purple-500",
       pattern: "money"
     }
+  },
+  {
+    href: "/roas-calculator",
+    title: "ROAS Calculator",
+    description: "Calculate return on ad spend, CPA, revenue per click, and profit after ad spend.",
+    thumbnail: {
+      label: "ROAS",
+      accent: "from-green-600 to-emerald-400",
+      pattern: "chart"
+    }
+  },
+  {
+    href: "/cac-payback-calculator",
+    title: "CAC Payback Calculator",
+    description: "Estimate CAC payback period, gross LTV, and LTV:CAC for subscription businesses.",
+    thumbnail: {
+      label: "CAC",
+      accent: "from-slate-800 to-violet-500",
+      pattern: "money"
+    }
+  },
+  {
+    href: "/content-brief-generator",
+    title: "Content Brief Generator",
+    description: "Generate a practical SEO content brief with headings, FAQ ideas, and search intent.",
+    thumbnail: {
+      label: "BRIEF",
+      accent: "from-blue-600 to-indigo-500",
+      pattern: "lines"
+    }
+  },
+  {
+    href: "/faq-generator",
+    title: "FAQ Generator",
+    description: "Create FAQ question ideas for articles, landing pages, product pages, and tools.",
+    thumbnail: {
+      label: "FAQ",
+      accent: "from-teal-600 to-cyan-500",
+      pattern: "card"
+    }
+  },
+  {
+    href: "/linkedin-post-generator",
+    title: "LinkedIn Post Generator",
+    description: "Generate LinkedIn post drafts for founders, marketers, creators, and operators.",
+    thumbnail: {
+      label: "POST",
+      accent: "from-blue-700 to-sky-500",
+      pattern: "spark"
+    }
+  },
+  {
+    href: "/keyword-cluster-tool",
+    title: "Keyword Cluster Tool",
+    description: "Cluster SEO keywords by intent using OpenAI and Google autocomplete suggestions.",
+    thumbnail: {
+      label: "KW",
+      accent: "from-emerald-700 to-teal-400",
+      pattern: "chart"
+    }
+  },
+  {
+    href: "/serp-intent-analyzer",
+    title: "SERP Intent Analyzer",
+    description: "Analyze live Google results for search intent, page types, gaps, and outline ideas.",
+    thumbnail: {
+      label: "SERP",
+      accent: "from-indigo-700 to-blue-500",
+      pattern: "lines"
+    }
+  },
+  {
+    href: "/content-gap-finder",
+    title: "Content Gap Finder",
+    description: "Compare your page with competitors and find missing sections, FAQ gaps, and priority edits.",
+    thumbnail: {
+      label: "GAP",
+      accent: "from-orange-600 to-amber-400",
+      pattern: "card"
+    }
   }
 ];

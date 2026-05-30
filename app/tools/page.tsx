@@ -30,13 +30,25 @@ const featuredToolHrefs = [
 
 const toolSections = [
   {
+    title: "Advanced SEO tools",
+    description: "Use API-powered analysis to plan keywords, inspect search intent, and compare content gaps.",
+    hrefs: [
+      "/keyword-cluster-tool",
+      "/serp-intent-analyzer",
+      "/content-gap-finder"
+    ]
+  },
+  {
     title: "Content and social generators",
     description: "Turn a trend into headlines, hooks, subject lines, social images, and shareable posts.",
     hrefs: [
       "/ai-headline-generator",
       "/blog-title-generator",
+      "/content-brief-generator",
+      "/faq-generator",
       "/youtube-title-generator",
       "/tiktok-hook-generator",
+      "/linkedin-post-generator",
       "/newsletter-subject-line-generator",
       "/meme-generator",
       "/youtube-thumbnail-maker",
@@ -49,9 +61,11 @@ const toolSections = [
     hrefs: [
       "/adsense-revenue-calculator",
       "/adsense-ctr-calculator",
+      "/roas-calculator",
       "/cpm-rpm-calculator",
       "/newsletter-revenue-calculator",
-      "/saas-pricing-calculator"
+      "/saas-pricing-calculator",
+      "/cac-payback-calculator"
     ]
   },
   {

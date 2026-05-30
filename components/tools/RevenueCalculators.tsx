@@ -211,6 +211,80 @@ export function AdsenseCtrCalculator() {
   );
 }
 
+export function RoasCalculator() {
+  const [adSpend, setAdSpend] = useState(2500);
+  const [revenue, setRevenue] = useState(9000);
+  const [orders, setOrders] = useState(120);
+  const [clicks, setClicks] = useState(5000);
+
+  const results = useMemo(() => {
+    const roas = adSpend > 0 ? revenue / adSpend : 0;
+    const profit = revenue - adSpend;
+    const cpa = orders > 0 ? adSpend / orders : 0;
+    const revenuePerClick = clicks > 0 ? revenue / clicks : 0;
+
+    return { roas, profit, cpa, revenuePerClick };
+  }, [adSpend, clicks, orders, revenue]);
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <NumberInput label="Ad spend ($)" value={adSpend} onChange={setAdSpend} step={100} />
+          <NumberInput label="Revenue from ads ($)" value={revenue} onChange={setRevenue} step={100} />
+          <NumberInput label="Orders or conversions" value={orders} onChange={setOrders} step={1} />
+          <NumberInput label="Clicks" value={clicks} onChange={setClicks} step={100} />
+        </div>
+      </div>
+      <ResultCard
+        rows={[
+          ["ROAS", `${results.roas.toFixed(2)}x`],
+          ["Revenue after ad spend", currencyFormat(results.profit)],
+          ["Cost per acquisition", currencyFormat(results.cpa)],
+          ["Revenue per click", currencyFormat(results.revenuePerClick)]
+        ]}
+      />
+    </div>
+  );
+}
+
+export function CacPaybackCalculator() {
+  const [cac, setCac] = useState(250);
+  const [monthlyRevenue, setMonthlyRevenue] = useState(49);
+  const [grossMargin, setGrossMargin] = useState(80);
+  const [churn, setChurn] = useState(4);
+
+  const results = useMemo(() => {
+    const monthlyGrossProfit = monthlyRevenue * (grossMargin / 100);
+    const paybackMonths = monthlyGrossProfit > 0 ? cac / monthlyGrossProfit : 0;
+    const ltv = churn > 0 ? monthlyGrossProfit / (churn / 100) : 0;
+    const ltvCac = cac > 0 ? ltv / cac : 0;
+
+    return { monthlyGrossProfit, paybackMonths, ltv, ltvCac };
+  }, [cac, churn, grossMargin, monthlyRevenue]);
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <NumberInput label="CAC ($)" value={cac} onChange={setCac} step={10} />
+          <NumberInput label="Monthly revenue per customer ($)" value={monthlyRevenue} onChange={setMonthlyRevenue} step={1} />
+          <NumberInput label="Gross margin (%)" value={grossMargin} onChange={setGrossMargin} step={1} />
+          <NumberInput label="Monthly churn (%)" value={churn} onChange={setChurn} step={0.5} />
+        </div>
+      </div>
+      <ResultCard
+        rows={[
+          ["Monthly gross profit/customer", currencyFormat(results.monthlyGrossProfit)],
+          ["CAC payback period", `${results.paybackMonths.toFixed(1)} months`],
+          ["Estimated gross LTV", currencyFormat(results.ltv)],
+          ["Gross LTV:CAC", `${results.ltvCac.toFixed(2)}x`]
+        ]}
+      />
+    </div>
+  );
+}
+
 export function SaasPricingCalculator() {
   const [customers, setCustomers] = useState(250);
   const [price, setPrice] = useState(29);

@@ -50,6 +50,35 @@ const headlineFrames = [
   "The next wave of {topic} is already here"
 ];
 
+const contentBriefFrames = [
+  "Primary search intent: explain what {topic} means, who it is for, and the first decision the reader should make.",
+  "Suggested H2: Quick Answer: {topic}",
+  "Suggested H2: When {topic} matters most",
+  "Suggested H2: Step-by-step workflow",
+  "Suggested H2: Common mistakes to avoid",
+  "Suggested FAQ: What is {topic}?",
+  "Suggested FAQ: How do beginners use {topic}?",
+  "Suggested CTA: Compare tools, calculate costs, or download a checklist."
+];
+
+const faqFrames = [
+  "What is {topic}?",
+  "How does {topic} work?",
+  "Who should use {topic}?",
+  "What are the biggest mistakes with {topic}?",
+  "How much does {topic} cost?",
+  "What is the fastest way to start with {topic}?",
+  "What should you compare before choosing {topic}?",
+  "Is {topic} worth it for small businesses?"
+];
+
+const linkedinFrames = [
+  "Most people talk about {topic} like it is a tactic. It is really a decision system.\n\nThe useful question is not \"should we try it?\" It is: what would make this worth the time, budget, and focus?\n\nHere is the simple filter I use:",
+  "If you are working on {topic}, do not start with tools.\n\nStart with the bottleneck:\n- Is the problem traffic?\n- Is it conversion?\n- Is it retention?\n- Is it positioning?\n\nThe right tool depends on the bottleneck.",
+  "{topic} gets easier when you stop chasing every tactic and build one repeatable workflow.\n\nOne input.\nOne clear output.\nOne metric that tells you whether it worked.\n\nThat is usually enough to make progress.",
+  "A practical way to evaluate {topic}:\n\n1. Write down the promise.\n2. Define the user or buyer.\n3. Estimate the upside.\n4. List the risk.\n5. Run the smallest useful test.\n\nSimple beats vague."
+];
+
 export function StartupNameGenerator() {
   const [keyword, setKeyword] = useState("AI media");
   const [seed, setSeed] = useState(0);
@@ -138,6 +167,81 @@ export function AiHeadlineGenerator() {
   );
 }
 
+export function ContentBriefGenerator() {
+  const [topic, setTopic] = useState("AI tools for market research");
+  const [seed, setSeed] = useState(0);
+
+  const brief = useMemo(() => {
+    const rotated = contentBriefFrames
+      .map(
+        (_frame, index) =>
+          contentBriefFrames[(index + seed) % contentBriefFrames.length]
+      )
+      .map((frame) => frame.replaceAll("{topic}", topic));
+
+    return rotated.slice(0, 8);
+  }, [seed, topic]);
+
+  return (
+    <GeneratorShell
+      inputLabel="Keyword or article topic"
+      inputValue={topic}
+      onInputChange={setTopic}
+      buttonLabel="Generate content brief"
+      onGenerate={() => setSeed((value) => value + 1)}
+      items={brief}
+    />
+  );
+}
+
+export function FaqGenerator() {
+  const [topic, setTopic] = useState("newsletter monetization");
+  const [seed, setSeed] = useState(0);
+
+  const questions = useMemo(() => {
+    return faqFrames
+      .map((_frame, index) => faqFrames[(index + seed) % faqFrames.length])
+      .map((frame) => frame.replaceAll("{topic}", topic))
+      .slice(0, 8);
+  }, [seed, topic]);
+
+  return (
+    <GeneratorShell
+      inputLabel="Topic, keyword, or product"
+      inputValue={topic}
+      onInputChange={setTopic}
+      buttonLabel="Generate FAQ questions"
+      onGenerate={() => setSeed((value) => value + 1)}
+      items={questions}
+    />
+  );
+}
+
+export function LinkedinPostGenerator() {
+  const [topic, setTopic] = useState("AI search traffic");
+  const [seed, setSeed] = useState(0);
+
+  const posts = useMemo(() => {
+    return linkedinFrames
+      .map(
+        (_frame, index) => linkedinFrames[(index + seed) % linkedinFrames.length]
+      )
+      .map((frame) => frame.replaceAll("{topic}", topic))
+      .slice(0, 4);
+  }, [seed, topic]);
+
+  return (
+    <GeneratorShell
+      inputLabel="Post topic"
+      inputValue={topic}
+      onInputChange={setTopic}
+      buttonLabel="Generate LinkedIn posts"
+      onGenerate={() => setSeed((value) => value + 1)}
+      items={posts}
+    />
+  );
+}
+
 export function GeneratorShell({
   inputLabel,
   inputValue,
@@ -186,7 +290,7 @@ export function GeneratorShell({
             key={item}
             type="button"
             onClick={() => copyItem(item)}
-            className="rounded-2xl border border-stone-200 bg-white p-5 text-left text-sm font-semibold leading-6 text-stone-800 shadow-sm transition hover:border-stone-400"
+            className="whitespace-pre-line rounded-2xl border border-stone-200 bg-white p-5 text-left text-sm font-semibold leading-6 text-stone-800 shadow-sm transition hover:border-stone-400"
           >
             {item}
             <span className="mt-3 block text-xs font-medium text-stone-500">
