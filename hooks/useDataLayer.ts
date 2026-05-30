@@ -12,7 +12,11 @@ type PublisherEventName =
   | "monetization_audit_submit"
   | "tool_assistant_open"
   | "tool_assistant_message"
+  | "tool_assistant_prompt_click"
+  | "tool_assistant_suggested_tool_click"
   | "contact_form_submit"
+  | "advanced_tool_download"
+  | "advanced_tool_next_action_click"
   | "meme_download"
   | "share_caption_copy"
   | "social_image_download";

@@ -145,13 +145,22 @@ export function AdvancedSeoTool({
         {result ? (
           <div className="transition-opacity duration-500">
             {tool === "keyword-cluster" ? (
-              <KeywordClusterResults result={result as Parameters<typeof KeywordClusterResults>[0]["result"]} />
+              <KeywordClusterResults
+                result={result as Parameters<typeof KeywordClusterResults>[0]["result"]}
+                keyword={keyword}
+              />
             ) : null}
             {tool === "serp-intent" ? (
-              <SerpIntentResults result={result as Parameters<typeof SerpIntentResults>[0]["result"]} />
+              <SerpIntentResults
+                result={result as Parameters<typeof SerpIntentResults>[0]["result"]}
+                keyword={keyword}
+              />
             ) : null}
             {tool === "content-gap" ? (
-              <ContentGapResults result={result as Parameters<typeof ContentGapResults>[0]["result"]} />
+              <ContentGapResults
+                result={result as Parameters<typeof ContentGapResults>[0]["result"]}
+                keyword={keyword}
+              />
             ) : null}
           </div>
         ) : (

@@ -153,11 +153,13 @@ export function ToolAssistant({
       <button
         type="button"
         onClick={() => {
-          setIsOpen((open) => !open);
+          const nextOpen = !isOpen;
+          setIsOpen(nextOpen);
           pushToDataLayer({
             event: "tool_assistant_open",
             tool_href: resolvedHref,
-            assistant_context: context
+            assistant_context: context,
+            assistant_open: nextOpen
           });
         }}
         className={`fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-emerald-500 text-2xl text-white shadow-xl shadow-indigo-900/25 transition hover:scale-105 hover:shadow-2xl ${
@@ -208,7 +210,16 @@ export function ToolAssistant({
                   key={tool.href}
                   href={tool.href}
                   className="rounded-full border border-stone-200 px-3 py-1 text-xs font-bold text-ink transition hover:border-ink"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    pushToDataLayer({
+                      event: "tool_assistant_suggested_tool_click",
+                      tool_href: resolvedHref,
+                      assistant_context: context,
+                      suggested_tool_href: tool.href,
+                      suggested_tool_title: tool.title
+                    });
+                    setIsOpen(false);
+                  }}
                 >
                   {tool.title}
                 </Link>
@@ -221,7 +232,15 @@ export function ToolAssistant({
               <button
                 key={prompt}
                 type="button"
-                onClick={() => sendMessage(prompt)}
+                onClick={() => {
+                  pushToDataLayer({
+                    event: "tool_assistant_prompt_click",
+                    tool_href: resolvedHref,
+                    assistant_context: context,
+                    prompt
+                  });
+                  void sendMessage(prompt);
+                }}
                 className="rounded-full bg-stone-50 px-3 py-1 text-xs font-semibold text-stone-600 transition hover:bg-stone-100"
               >
                 {prompt}

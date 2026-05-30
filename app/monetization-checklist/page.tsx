@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { NewsletterCapture } from "@/components/newsletter/NewsletterCapture";
 import { SponsoredPlacement } from "@/components/monetization/SponsoredPlacement";
-import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { siteConfig } from "@/lib/site";
@@ -150,7 +149,6 @@ export default function MonetizationChecklistPage() {
           </p>
         </section>
       </main>
-      <SiteFooter />
     </>
   );
 }

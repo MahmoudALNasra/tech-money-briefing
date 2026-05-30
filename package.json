@@ -52,7 +52,8 @@
     "react": "latest",
     "react-dom": "latest",
     "rss-parser": "latest",
-    "trendsearch": "^0.1.0"
+    "trendsearch": "^0.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "latest",

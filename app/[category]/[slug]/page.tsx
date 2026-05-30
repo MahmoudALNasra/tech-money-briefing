@@ -390,13 +390,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </aside>
         </article>
 
-        <MonetizationRail
-          context="article"
-          placementIndex={7}
-          newsletterSource={`article_${article.slug}`}
-          newsletterTitle="Weekly AI, SEO, and revenue tools in your inbox."
-          newsletterDescription="Short signals on tools, monetization tests, and publishable assets—built for founders and operators."
-        />
+        <section className="mx-auto max-w-3xl px-5 sm:px-8">
+          <MonetizationRail
+            context="article"
+            placementIndex={7}
+            newsletterSource={`article_${article.slug}`}
+            newsletterTitle="Weekly AI, SEO, and revenue tools in your inbox."
+            newsletterDescription="Short signals on tools, monetization tests, and publishable assets—built for founders and operators."
+          />
+        </section>
 
         <RelatedArticles
           currentArticleId={article.id}

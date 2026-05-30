@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { MonetizationRail } from "@/components/monetization/MonetizationRail";
 import { ToolAssistant } from "@/components/tools/ToolAssistant";
@@ -106,7 +105,6 @@ export function ToolPageShell({
           ) : null}
         </section>
       </main>
-      <SiteFooter />
       {showAssistant && toolHref ? (
         <ToolAssistant toolHref={toolHref} toolTitle={title} />
       ) : null}

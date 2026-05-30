@@ -33,6 +33,8 @@ export function normalizeArticleContent(content: string) {
     .split("\n")
     .map((line) => normalizeInlineHeadingLists(line.trim()))
     .join("\n")
+    .replace(/(^|\n)(#{2,4}\s+[^\n]+)\n(?!\n)/g, "$1$2\n\n")
+    .replace(/^\*\*Meta Description:\*\*.*$/gim, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
@@ -177,6 +179,23 @@ export function renderArticleBlock(block: string) {
       <h2 key={block} id={id} className="text-ink">
         {renderInlineContent(label)}
       </h2>
+    );
+  }
+
+  const headingWithBodyMatch = block.match(/^(#{2,4})\s+([^\n]+)\n+([\s\S]+)$/);
+
+  if (headingWithBodyMatch) {
+    const headingBlock = `${headingWithBodyMatch[1]} ${headingWithBodyMatch[2]}`;
+    const bodyBlocks = headingWithBodyMatch[3]
+      .split(/\n{2,}/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    return (
+      <div key={block} className="contents">
+        {renderArticleBlock(headingBlock)}
+        {bodyBlocks.map((bodyBlock) => renderArticleBlock(bodyBlock))}
+      </div>
     );
   }
 

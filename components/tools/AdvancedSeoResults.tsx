@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 
+import { useDataLayer } from "@/hooks/useDataLayer";
+
 type KeywordClusterResult = {
   provider?: string;
   plan?: {
@@ -62,6 +64,161 @@ type ContentGapResult = {
   };
 };
 
+type ExportRow = {
+  section: string;
+  field: string;
+  value: string;
+};
+
+type ExportToolbarProps = {
+  result: unknown;
+  tool: "keyword-cluster" | "serp-intent" | "content-gap";
+  keyword: string;
+};
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 80);
+}
+
+function stringifyCell(value: unknown) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) =>
+        typeof item === "object" && item !== null
+          ? JSON.stringify(item)
+          : String(item)
+      )
+      .join("; ");
+  }
+
+  if (typeof value === "object") {
+    return JSON.stringify(value);
+  }
+
+  return String(value);
+}
+
+function rowsFromValue(value: unknown, section = "result", field = ""): ExportRow[] {
+  if (value === null || value === undefined) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) =>
+      rowsFromValue(item, section, field ? `${field}.${index + 1}` : String(index + 1))
+    );
+  }
+
+  if (typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => {
+      const nextSection = field ? section : key;
+      const nextField = field ? `${field}.${key}` : key;
+      return rowsFromValue(child, nextSection, nextField);
+    });
+  }
+
+  return [
+    {
+      section,
+      field,
+      value: stringifyCell(value)
+    }
+  ];
+}
+
+function toCsv(rows: ExportRow[]) {
+  const headers = ["section", "field", "value"];
+  const escapeCell = (value: string) => `"${value.replace(/"/g, '""')}"`;
+
+  return [
+    headers.join(","),
+    ...rows.map((row) =>
+      headers.map((header) => escapeCell(row[header as keyof ExportRow])).join(",")
+    )
+  ].join("\r\n");
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+function ExportToolbar({ result, tool, keyword }: ExportToolbarProps) {
+  const pushToDataLayer = useDataLayer();
+  const rows = rowsFromValue(result);
+  const filenameBase = `${tool}-${slugify(keyword || "analysis")}`;
+
+  function trackDownload(format: "csv" | "xlsx") {
+    pushToDataLayer({
+      event: "advanced_tool_download",
+      advanced_tool: tool,
+      download_format: format,
+      keyword,
+      rows: rows.length
+    });
+  }
+
+  function downloadCsv() {
+    trackDownload("csv");
+    downloadBlob(
+      new Blob([toCsv(rows)], { type: "text/csv;charset=utf-8" }),
+      `${filenameBase}.csv`
+    );
+  }
+
+  async function downloadXlsx() {
+    trackDownload("xlsx");
+    const XLSX = await import("xlsx");
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Analysis");
+    XLSX.writeFile(workbook, `${filenameBase}.xlsx`, { compression: true });
+  }
+
+  return (
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-stone-400">
+          Export analysis
+        </p>
+        <p className="mt-1 text-sm text-stone-600">
+          Download the generated result for planning, sharing, or a client brief.
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={downloadCsv}
+          className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-ink transition hover:border-ink"
+        >
+          Download CSV
+        </button>
+        <button
+          type="button"
+          onClick={() => void downloadXlsx()}
+          className="rounded-full bg-ink px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:bg-stone-700"
+        >
+          Download XLSX
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SectionCard({
   title,
   children,
@@ -94,41 +251,59 @@ function ListItems({ items }: { items: string[] }) {
   );
 }
 
-function NextActions() {
+function NextActions({ tool, keyword }: { tool: string; keyword: string }) {
+  const pushToDataLayer = useDataLayer();
+  const links = [
+    { href: "/content-brief-generator", label: "Content brief" },
+    { href: "/blog-title-generator", label: "Titles" },
+    { href: "/meta-description-generator", label: "Meta descriptions" }
+  ];
+
   return (
     <div className="rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-white p-5">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-700">
         Next actions
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Link
-          href="/content-brief-generator"
-          className="rounded-full bg-ink px-4 py-2 text-xs font-bold text-white transition hover:bg-stone-700"
-        >
-          Content brief
-        </Link>
-        <Link
-          href="/blog-title-generator"
-          className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-bold text-ink transition hover:border-ink"
-        >
-          Titles
-        </Link>
-        <Link
-          href="/meta-description-generator"
-          className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-bold text-ink transition hover:border-ink"
-        >
-          Meta descriptions
-        </Link>
+        {links.map((link, index) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={
+              index === 0
+                ? "rounded-full bg-ink px-4 py-2 text-xs font-bold text-white transition hover:bg-stone-700"
+                : "rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-bold text-ink transition hover:border-ink"
+            }
+            onClick={() =>
+              pushToDataLayer({
+                event: "advanced_tool_next_action_click",
+                advanced_tool: tool,
+                keyword,
+                destination_href: link.href,
+                destination_label: link.label
+              })
+            }
+          >
+            {link.label}
+          </Link>
+        ))}
       </div>
     </div>
   );
 }
 
-export function KeywordClusterResults({ result }: { result: KeywordClusterResult }) {
+export function KeywordClusterResults({
+  result,
+  keyword
+}: {
+  result: KeywordClusterResult;
+  keyword: string;
+}) {
   const analysis = result.analysis ?? {};
 
   return (
     <div className="space-y-5">
+      <ExportToolbar result={result} tool="keyword-cluster" keyword={keyword} />
       {analysis.summary ? (
         <SectionCard title="Summary" accent="border-emerald-200 bg-emerald-50/30">
           <p className="text-sm leading-7 text-stone-700">{analysis.summary}</p>
@@ -202,17 +377,24 @@ export function KeywordClusterResults({ result }: { result: KeywordClusterResult
         </SectionCard>
       ) : null}
 
-      <NextActions />
+      <NextActions tool="keyword-cluster" keyword={keyword} />
     </div>
   );
 }
 
-export function SerpIntentResults({ result }: { result: SerpIntentResult }) {
+export function SerpIntentResults({
+  result,
+  keyword
+}: {
+  result: SerpIntentResult;
+  keyword: string;
+}) {
   const analysis = result.analysis ?? {};
 
   if (result.needsSerper) {
     return (
       <div className="space-y-5">
+        <ExportToolbar result={result} tool="serp-intent" keyword={keyword} />
         <SectionCard title="Serper required" accent="border-amber-200 bg-amber-50/50">
           <p className="text-sm leading-7 text-stone-700">
             {analysis.summary ??
@@ -224,13 +406,14 @@ export function SerpIntentResults({ result }: { result: SerpIntentResult }) {
             </p>
           ) : null}
         </SectionCard>
-        <NextActions />
+        <NextActions tool="serp-intent" keyword={keyword} />
       </div>
     );
   }
 
   return (
     <div className="space-y-5">
+      <ExportToolbar result={result} tool="serp-intent" keyword={keyword} />
       {analysis.intent ? (
         <SectionCard title="Search intent" accent="border-indigo-200 bg-indigo-50/30">
           <p className="text-lg font-black text-ink">{analysis.intent}</p>
@@ -292,16 +475,24 @@ export function SerpIntentResults({ result }: { result: SerpIntentResult }) {
         </SectionCard>
       ) : null}
 
-      <NextActions />
+      <NextActions tool="serp-intent" keyword={keyword} />
     </div>
   );
 }
 
-export function ContentGapResults({ result }: { result: ContentGapResult }) {
+export function ContentGapResults({
+  result,
+  keyword
+}: {
+  result: ContentGapResult;
+  keyword: string;
+}) {
   const analysis = result.analysis ?? {};
+  const pushToDataLayer = useDataLayer();
 
   return (
     <div className="space-y-5">
+      <ExportToolbar result={result} tool="content-gap" keyword={keyword} />
       {analysis.summary ? (
         <SectionCard title="Summary" accent="border-orange-200 bg-orange-50/30">
           <p className="text-sm leading-7 text-stone-700">{analysis.summary}</p>
@@ -326,6 +517,15 @@ export function ContentGapResults({ result }: { result: ContentGapResult }) {
           <Link
             href="/faq-generator"
             className="mt-4 inline-flex text-sm font-bold text-ink underline"
+            onClick={() =>
+              pushToDataLayer({
+                event: "advanced_tool_next_action_click",
+                advanced_tool: "content-gap",
+                keyword,
+                destination_href: "/faq-generator",
+                destination_label: "Generate FAQ ideas"
+              })
+            }
           >
             Generate FAQ ideas
           </Link>
@@ -338,7 +538,7 @@ export function ContentGapResults({ result }: { result: ContentGapResult }) {
         </SectionCard>
       ) : null}
 
-      <NextActions />
+      <NextActions tool="content-gap" keyword={keyword} />
     </div>
   );
 }
