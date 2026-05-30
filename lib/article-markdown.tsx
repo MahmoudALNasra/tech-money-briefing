@@ -3,11 +3,36 @@ import type { ReactNode } from "react";
 
 const CALLOUT_PREFIX = /^>>\s+/;
 
+function normalizeInlineHeadingLists(line: string) {
+  const headingListMatch = line.match(/^(#{2,4}\s+.+?)\s+(-\s+.+)$/);
+
+  if (!headingListMatch) {
+    return line;
+  }
+
+  const heading = headingListMatch[1].trim();
+  const listText = headingListMatch[2].trim();
+  const items = listText
+    .replace(/^-\s+/, "")
+    .split(/\s+-\s+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (items.length === 0) {
+    return line;
+  }
+
+  return `${heading}\n\n${items.map((item) => `- ${item}`).join("\n")}`;
+}
+
 export function normalizeArticleContent(content: string) {
   return content
     .replace(/\r\n/g, "\n")
     .replace(/\\(#{2,4})\s+/g, "\n\n$1 ")
     .replace(/\\([#*_`=])/g, "$1")
+    .split("\n")
+    .map((line) => normalizeInlineHeadingLists(line.trim()))
+    .join("\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }

@@ -28,6 +28,7 @@
     "articles:fix-broken-images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/fix-broken-article-images.ts",
     "articles:format-rich": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/format-articles-rich-text.ts",
     "articles:format-rich:dry": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/format-articles-rich-text.ts --dry-run --limit=3",
+    "articles:audit-markdown": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/audit-article-markdown.ts",
     "articles:adsense-cleanup": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/adsense-cleanup-draft-weak-articles.ts",
     "seo:gsc-opportunities": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/seo-gsc-opportunities.ts",
     "seo:gsc-opportunities:dry": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/seo-gsc-opportunities.ts --with-topics --limit=10",

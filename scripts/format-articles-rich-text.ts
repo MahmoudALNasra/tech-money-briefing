@@ -134,6 +134,8 @@ async function formatArticle(article: ArticleRow) {
             "Do not add new statistics, names, products, quotes, citations, or external links.",
             "Keep all existing markdown links exactly valid.",
             "Keep ## and ### headings only; do not add a title/H1 inside content.",
+            "Always put a blank line after every ## or ### heading.",
+            "Every bullet, numbered item, and checklist item must be on its own line. Never write a heading and bullets on the same line.",
             "Add tasteful emoji to some major ## headings only when it fits naturally. Do not overuse emoji.",
             "Add **bold** emphasis to important terms, tools, risks, decision rules, and metrics.",
             "Add ==highlighted phrases== to 2-5 critical takeaways or warnings.",
