@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 export default function UtmBuilderPage() {
   return (
     <ToolPageShell
+      toolHref="/utm-builder"
       eyebrow="Free marketing tool"
       title="Free UTM link builder"
       description="Build tracking URLs with utm_source, utm_medium, and utm_campaign for campaigns and social posts."

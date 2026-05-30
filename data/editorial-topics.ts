@@ -358,6 +358,38 @@ export const EDITORIAL_TOPICS: EditorialTopic[] = [
     referenceUrls: []
   },
   {
+    id: "keyword-cluster-tool-guide",
+    title: "How to Use a Keyword Cluster Tool for Content Planning",
+    category: "seo",
+    angle:
+      "Walk through clustering by intent, picking hub pages, and linking to the free keyword cluster tool, content brief generator, and title tools.",
+    referenceUrls: []
+  },
+  {
+    id: "serp-intent-analyzer-guide",
+    title: "How to Analyze SERP Intent Before You Write a Page",
+    category: "seo",
+    angle:
+      "Explain dominant page types, People Also Ask, content gaps, and when to build tools vs guides vs comparisons. Link to the SERP intent analyzer and related SEO tools.",
+    referenceUrls: []
+  },
+  {
+    id: "content-gap-finder-guide",
+    title: "How to Find Content Gaps on Pages That Won't Rank",
+    category: "seo",
+    angle:
+      "Compare your URL to competitors, prioritize missing sections and FAQs, and ship edits without fluff. Link to the content gap finder and FAQ generator.",
+    referenceUrls: []
+  },
+  {
+    id: "utm-tracking-for-affiliates",
+    title: "How to Use UTM Parameters for Affiliate and Referral Links",
+    category: "digital-marketing",
+    angle:
+      "Naming conventions, campaign structure, and pairing UTMs with ROAS and revenue calculators.",
+    referenceUrls: []
+  },
+  {
     id: "internal-linking-best-practices",
     title: "Internal Linking Best Practices for Blogs, Tools, and Comparison Pages",
     category: "seo",

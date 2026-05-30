@@ -118,12 +118,16 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
           Explore more side-by-side guides on the{" "}
           <Link href="/compare" className="font-semibold text-ink underline">
             comparisons hub
-          </Link>{" "}
-          or browse{" "}
+          </Link>
+          , browse{" "}
           <Link href="/tools" className="font-semibold text-ink underline">
             free tools
+          </Link>
+          , or request a{" "}
+          <Link href="/monetization-audit" className="font-semibold text-ink underline">
+            free monetization audit
           </Link>{" "}
-          for calculators and generators.
+          for your site.
         </p>
       </section>
     </div>

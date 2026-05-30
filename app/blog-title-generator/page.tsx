@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 export default function BlogTitleGeneratorPage() {
   return (
     <ToolPageShell
+      toolHref="/blog-title-generator"
       eyebrow="Free blog tool"
       title="Free blog title generator"
       description="Enter a topic and generate blog title ideas optimized for search intent and publisher traffic."

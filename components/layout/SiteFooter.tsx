@@ -5,6 +5,8 @@ import { siteConfig } from "@/lib/site";
 const footerLinks = [
   { href: "/tools", label: "Free Tools" },
   { href: "/compare", label: "Comparisons" },
+  { href: "/monetization-checklist", label: "Monetization Checklist" },
+  { href: "/monetization-audit", label: "Free Audit" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
   { href: "/advertise", label: "Advertise" },

@@ -12,7 +12,9 @@ import { ArticleToolRecommendations } from "@/components/articles/ArticleToolRec
 import { ArticleVideoSection } from "@/components/articles/ArticleVideoSection";
 import { RelatedArticles } from "@/components/articles/RelatedArticles";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { MonetizationRail } from "@/components/monetization/MonetizationRail";
 import { ScrollNewsletter } from "@/components/newsletter/ScrollNewsletter";
+import { ToolAssistant } from "@/components/tools/ToolAssistant";
 import { getArticleMedia } from "@/lib/article-media";
 import { resolveArticleHeroImage } from "@/lib/article-images";
 import {
@@ -388,11 +390,26 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </aside>
         </article>
 
+        <MonetizationRail
+          context="article"
+          placementIndex={7}
+          newsletterSource={`article_${article.slug}`}
+          newsletterTitle="Weekly AI, SEO, and revenue tools in your inbox."
+          newsletterDescription="Short signals on tools, monetization tests, and publishable assets—built for founders and operators."
+        />
+
         <RelatedArticles
           currentArticleId={article.id}
           category={article.category}
         />
       </main>
+      <ToolAssistant
+        context="article"
+        pageHref={`/${article.category}/${article.slug}`}
+        pageTitle={article.title}
+        pageSummary={article.meta_description}
+        category={article.category}
+      />
     </>
   );
 }

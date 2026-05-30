@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 export default function SerpIntentAnalyzerPage() {
   return (
     <ToolPageShell
+      toolHref="/serp-intent-analyzer"
       eyebrow="Advanced SEO tool"
       title="SERP intent analyzer"
       description="Analyze live Google results for a keyword and get the dominant search intent, page types, content gaps, and outline ideas."

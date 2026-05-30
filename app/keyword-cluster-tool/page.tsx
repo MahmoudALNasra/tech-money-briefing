@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 export default function KeywordClusterToolPage() {
   return (
     <ToolPageShell
+      toolHref="/keyword-cluster-tool"
       eyebrow="Advanced SEO tool"
       title="Keyword cluster tool"
       description="Enter a topic and generate intent-based keyword clusters, quick wins, and page recommendations using AI and Google autocomplete suggestions."

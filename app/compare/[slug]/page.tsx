@@ -44,6 +44,8 @@ export default async function ComparisonPage({ params }: PageProps) {
       title={comparison.title}
       description={comparison.description}
       secondaryCopy={`${comparison.productA} vs ${comparison.productB} for operators who care about revenue, workflow, and distribution.`}
+      monetizationContext="compare"
+      newsletterSource={`compare_${comparison.slug}`}
     >
       <ComparisonView comparison={comparison} />
     </ToolPageShell>

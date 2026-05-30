@@ -377,6 +377,99 @@ export const COMPARISONS: ComparisonPage[] = [
       "/robots-txt-generator"
     ],
     keywords: ["ahrefs vs moz", "SEO software comparison"]
+  },
+  {
+    slug: "cursor-vs-github-copilot",
+    title: "Cursor vs GitHub Copilot",
+    description:
+      "Compare Cursor and GitHub Copilot for AI-assisted coding, team workflows, and shipping speed.",
+    productA: "Cursor",
+    productB: "GitHub Copilot",
+    summary:
+      "Cursor is an AI-native editor built around chat, agents, and codebase context. GitHub Copilot fits developers who want inline suggestions inside VS Code, JetBrains, and the wider GitHub ecosystem.",
+    bestForA: ["Greenfield projects", "Agent-style edits", "Teams wanting an AI-first IDE"],
+    bestForB: ["Existing IDE workflows", "GitHub-centric teams", "Inline autocomplete at scale"],
+    decisionRows: [
+      { label: "IDE model", left: "AI-native editor", right: "Plugin across IDEs" },
+      { label: "Codebase context", left: "Strong", right: "Good" },
+      { label: "Team adoption", left: "Growing", right: "Mature" },
+      { label: "Best fit", left: "Builders shipping fast", right: "Enterprise dev shops" }
+    ],
+    monetizationAngle:
+      "Faster shipping supports more landing pages, tools, and comparisons. Pair AI coding with headline and brief generators so output stays publishable.",
+    relatedToolHrefs: ["/ai-headline-generator", "/content-brief-generator", "/blog-title-generator"],
+    keywords: ["cursor vs github copilot", "AI coding tools comparison"]
+  },
+  {
+    slug: "digitalocean-vs-render",
+    title: "DigitalOcean vs Render",
+    description:
+      "Compare DigitalOcean and Render for app hosting, databases, pricing predictability, and startup deployments.",
+    productA: "DigitalOcean",
+    productB: "Render",
+    summary:
+      "DigitalOcean offers flexible VPS, managed databases, and predictable droplet pricing. Render simplifies deploy-from-Git workflows with less infrastructure thinking for small teams.",
+    bestForA: ["Droplets and Kubernetes", "Predictable infra control", "Referral-friendly cloud credits"],
+    bestForB: ["Git-based deploys", "Small web apps", "Teams avoiding server admin"],
+    decisionRows: [
+      { label: "Deploy model", left: "You configure", right: "Git push deploy" },
+      { label: "Control", left: "Higher", right: "More abstracted" },
+      { label: "Pricing", left: "Droplet-based", right: "Service-based" },
+      { label: "Best fit", left: "Infra-aware teams", right: "Fast app launches" }
+    ],
+    monetizationAngle:
+      "Hosting choice affects margin on SaaS and content sites. Model traffic and conversion before scaling instances or adding managed services.",
+    relatedToolHrefs: ["/saas-pricing-calculator", "/utm-builder", "/robots-txt-generator"],
+    keywords: ["digitalocean vs render", "cloud hosting comparison"]
+  },
+  {
+    slug: "google-workspace-vs-zoho",
+    title: "Google Workspace vs Zoho",
+    description:
+      "Compare Google Workspace and Zoho for email, docs, CRM overlap, and small-business software stacks.",
+    productA: "Google Workspace",
+    productB: "Zoho",
+    summary:
+      "Google Workspace is the default for Gmail, Docs, Drive, and Meet in one familiar bundle. Zoho bundles CRM, books, support, and ops tools for teams that want more business software in one vendor.",
+    bestForA: ["Gmail-first teams", "Collaboration defaults", "Google ecosystem users"],
+    bestForB: ["CRM-led SMBs", "All-in-one ops", "Cost-sensitive stacks"],
+    decisionRows: [
+      { label: "Email and docs", left: "Excellent", right: "Solid" },
+      { label: "CRM depth", left: "Add-ons", right: "Native suite" },
+      { label: "Pricing", left: "Per user", right: "Often competitive bundles" },
+      { label: "Best fit", left: "Collaboration-first", right: "Operations-first SMBs" }
+    ],
+    monetizationAngle:
+      "Stack decisions affect workflow speed and vendor spend. Pick the suite that matches how you sell, support customers, and publish content.",
+    relatedToolHrefs: ["/newsletter-subject-line-generator", "/utm-builder", "/startup-name-generator"],
+    keywords: ["google workspace vs zoho", "business software comparison"]
+  },
+  {
+    slug: "frase-vs-surfer",
+    title: "Frase vs Surfer",
+    description:
+      "Compare Frase and Surfer for AI SEO content, briefs, on-page optimization, and publisher workflows.",
+    productA: "Frase",
+    productB: "Surfer",
+    summary:
+      "Frase emphasizes research, briefs, and AI drafting around search intent. Surfer is known for content scoring, SERP-driven structure, and on-page optimization workflows.",
+    bestForA: ["Briefs and outlines", "FAQ-heavy pages", "Research-to-draft speed"],
+    bestForB: ["On-page scoring", "Content optimization", "SERP structure alignment"],
+    decisionRows: [
+      { label: "Briefs", left: "Strong", right: "Available" },
+      { label: "On-page scoring", left: "Good", right: "Core strength" },
+      { label: "AI drafting", left: "Strong", right: "Strong" },
+      { label: "Best fit", left: "Editorial planning", right: "Optimization-led SEO" }
+    ],
+    monetizationAngle:
+      "AI SEO tools pay off when they produce indexable pages. Pair them with free brief, title, and meta generators to ship assets faster.",
+    relatedToolHrefs: [
+      "/content-brief-generator",
+      "/blog-title-generator",
+      "/meta-description-generator",
+      "/keyword-cluster-tool"
+    ],
+    keywords: ["frase vs surfer", "AI SEO tools comparison", "best AI SEO tools"]
   }
 ];
 

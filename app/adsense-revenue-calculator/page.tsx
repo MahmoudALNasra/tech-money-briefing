@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 export default function AdsenseRevenueCalculatorPage() {
   return (
     <ToolPageShell
+      toolHref="/adsense-revenue-calculator"
       eyebrow="Free AdSense tool"
       title="Free AdSense revenue calculator"
       description="Estimate monthly AdSense revenue from pageviews, ad slots, viewability, click-through rate, and cost per click."

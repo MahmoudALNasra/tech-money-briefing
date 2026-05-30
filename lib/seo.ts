@@ -45,7 +45,12 @@ export function newsArticleJsonLd(article: Article) {
 
 export function faqJsonLd(article: Article) {
   const faqItems = extractFaqItems(article.content);
+  return faqJsonLdFromItems(faqItems);
+}
 
+export function faqJsonLdFromItems(
+  faqItems: Array<{ question: string; answer: string }>
+) {
   if (faqItems.length === 0) {
     return null;
   }
@@ -61,6 +66,32 @@ export function faqJsonLd(article: Article) {
         text: item.answer
       }
     }))
+  };
+}
+
+export function webApplicationJsonLd(input: {
+  name: string;
+  description: string;
+  url: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: input.name,
+    description: input.description,
+    url: input.url,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD"
+    },
+    provider: {
+      "@type": "Organization",
+      name: siteConfig.name,
+      url: siteConfig.url
+    }
   };
 }
 

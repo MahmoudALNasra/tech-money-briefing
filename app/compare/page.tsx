@@ -27,6 +27,8 @@ export default function CompareHubPage() {
       title="Software comparisons for publishers and operators"
       description="Decision guides for newsletter platforms, SEO stacks, ecommerce tools, AI apps, and monetization products."
       secondaryCopy="Each comparison includes a decision table, best-for guidance, and links to relevant free tools."
+      monetizationContext="compare"
+      newsletterSource="compare_hub"
     >
       <div className="grid gap-5 md:grid-cols-3">
         {featuredComparisons.map((comparison, index) => (

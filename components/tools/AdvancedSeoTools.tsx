@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 
+import {
+  ContentGapResults,
+  KeywordClusterResults,
+  SerpIntentResults
+} from "@/components/tools/AdvancedSeoResults";
+
 type SeoTool = "keyword-cluster" | "serp-intent" | "content-gap";
 
 type AdvancedSeoToolProps = {
@@ -31,23 +37,6 @@ function toolCopy(tool: SeoTool) {
     helper:
       "Fetches your page and competitor pages, then uses AI to find missing sections, FAQs, and improvements."
   };
-}
-
-function ResultSection({ result }: { result: unknown }) {
-  if (!result) {
-    return null;
-  }
-
-  return (
-    <div className="rounded-2xl border border-stone-200 bg-ink p-6 text-white shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-300">
-        Result
-      </p>
-      <pre className="mt-4 max-h-[620px] overflow-auto whitespace-pre-wrap rounded-xl bg-white/10 p-4 text-xs leading-6 text-stone-100">
-        {JSON.stringify(result, null, 2)}
-      </pre>
-    </div>
-  );
 }
 
 export function AdvancedSeoTool({
@@ -102,14 +91,14 @@ export function AdvancedSeoTool({
 
   return (
     <div className="grid gap-8 lg:grid-cols-[340px_minmax(0,1fr)]">
-      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm lg:sticky lg:top-24 lg:self-start">
         <p className="text-sm leading-6 text-stone-600">{copy.helper}</p>
         <label className="mt-5 block text-sm font-semibold text-stone-700">
           Keyword or topic
           <input
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
-            className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-2.5 text-stone-900"
+            className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-2.5 text-stone-900 outline-none ring-stone-200 transition focus:ring-4"
           />
         </label>
 
@@ -120,7 +109,7 @@ export function AdvancedSeoTool({
               <input
                 value={yourUrl}
                 onChange={(event) => setYourUrl(event.target.value)}
-                className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-2.5 text-stone-900"
+                className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-2.5 text-stone-900 outline-none ring-stone-200 transition focus:ring-4"
               />
             </label>
             <label className="mt-4 block text-sm font-semibold text-stone-700">
@@ -130,7 +119,7 @@ export function AdvancedSeoTool({
                 onChange={(event) => setCompetitorUrls(event.target.value)}
                 rows={5}
                 placeholder="One URL per line"
-                className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-2.5 text-stone-900"
+                className="mt-1 w-full rounded-xl border border-stone-200 px-4 py-2.5 text-stone-900 outline-none ring-stone-200 transition focus:ring-4"
               />
             </label>
           </>
@@ -152,14 +141,29 @@ export function AdvancedSeoTool({
         ) : null}
       </div>
 
-      {result ? (
-        <ResultSection result={result} />
-      ) : (
-        <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-sm leading-7 text-stone-600">
-          Run the tool to generate an SEO analysis. API keys stay server-side and
-          are never sent to the browser.
-        </div>
-      )}
+      <div className="min-h-[320px]">
+        {result ? (
+          <div className="transition-opacity duration-500">
+            {tool === "keyword-cluster" ? (
+              <KeywordClusterResults result={result as Parameters<typeof KeywordClusterResults>[0]["result"]} />
+            ) : null}
+            {tool === "serp-intent" ? (
+              <SerpIntentResults result={result as Parameters<typeof SerpIntentResults>[0]["result"]} />
+            ) : null}
+            {tool === "content-gap" ? (
+              <ContentGapResults result={result as Parameters<typeof ContentGapResults>[0]["result"]} />
+            ) : null}
+          </div>
+        ) : (
+          <div className="flex h-full min-h-[320px] flex-col items-center justify-center rounded-2xl border border-dashed border-stone-300 bg-white p-8 text-center">
+            <div className="h-12 w-12 animate-pulse rounded-full bg-gradient-to-br from-emerald-400 to-indigo-500 opacity-80" />
+            <p className="mt-4 max-w-md text-sm leading-7 text-stone-600">
+              Run the tool to generate an SEO analysis. Results appear as structured
+              cards with next-step links to related tools.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

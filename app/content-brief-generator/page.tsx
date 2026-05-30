@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 export default function ContentBriefGeneratorPage() {
   return (
     <ToolPageShell
+      toolHref="/content-brief-generator"
       eyebrow="Free SEO tool"
       title="Free content brief generator"
       description="Enter a keyword or topic and generate a simple content brief with search intent, H2 ideas, FAQ questions, and a call to action."

@@ -41,6 +41,24 @@ export function SiteHeader({
             <span>{siteConfig.name}</span>
           </Link>
 
+          <nav
+            className="hidden items-center gap-2 md:flex"
+            aria-label="Site sections"
+          >
+            <Link
+              href="/tools"
+              className="rounded-full px-3 py-1 text-sm font-semibold text-stone-600 transition hover:bg-stone-100 hover:text-ink"
+            >
+              Tools
+            </Link>
+            <Link
+              href="/compare"
+              className="rounded-full px-3 py-1 text-sm font-semibold text-stone-600 transition hover:bg-stone-100 hover:text-ink"
+            >
+              Compare
+            </Link>
+          </nav>
+
           {navCategories.length > 0 ? (
             <>
               <nav
@@ -102,6 +120,23 @@ export function SiteHeader({
                 <div className="mb-3 rounded-2xl bg-stone-50 p-3">
                   <SearchForm onSearch={() => setIsMenuOpen(false)} />
                 </div>
+
+                <nav className="mb-2 grid gap-1" aria-label="Mobile site sections">
+                  <Link
+                    href="/tools"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-2xl px-4 py-3 text-sm font-bold text-stone-700 transition hover:bg-stone-100 hover:text-ink"
+                  >
+                    Tools
+                  </Link>
+                  <Link
+                    href="/compare"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-2xl px-4 py-3 text-sm font-bold text-stone-700 transition hover:bg-stone-100 hover:text-ink"
+                  >
+                    Compare
+                  </Link>
+                </nav>
 
                 <nav className="grid gap-1" aria-label="Mobile categories">
                   {navCategories.map((category) => (

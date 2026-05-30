@@ -1,13 +1,28 @@
 import type { ReactNode } from "react";
 
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { MonetizationRail } from "@/components/monetization/MonetizationRail";
+import { ToolAssistant } from "@/components/tools/ToolAssistant";
+import { ToolPageNav } from "@/components/tools/ToolPageNav";
+import { ToolRelatedTools } from "@/components/tools/ToolRelatedTools";
+import { ToolSeoSections } from "@/components/tools/ToolSeoSections";
 import { CORE_CATEGORIES } from "@/lib/categories";
+import { faqJsonLdFromItems, webApplicationJsonLd } from "@/lib/seo";
+import { absoluteUrl } from "@/lib/site";
+import type { SponsorPlacementContext } from "@/lib/sponsor-config";
+import { getToolPageSeo } from "@/lib/tool-pages";
 
 type ToolPageShellProps = {
   eyebrow: string;
   title: string;
   description: string;
   secondaryCopy?: string;
+  toolHref?: string;
+  showMonetizationRail?: boolean;
+  showAssistant?: boolean;
+  monetizationContext?: SponsorPlacementContext;
+  newsletterSource?: string;
   children: ReactNode;
 };
 
@@ -16,14 +31,45 @@ export function ToolPageShell({
   title,
   description,
   secondaryCopy,
+  toolHref,
+  showMonetizationRail = true,
+  showAssistant = true,
+  monetizationContext = "tool",
+  newsletterSource = "tool_page",
   children
 }: ToolPageShellProps) {
+  const seo = toolHref ? getToolPageSeo(toolHref) : undefined;
+  const faqLd = seo?.faqs.length ? faqJsonLdFromItems(seo.faqs) : null;
+  const appLd = toolHref
+    ? webApplicationJsonLd({
+        name: title,
+        description,
+        url: absoluteUrl(toolHref)
+      })
+    : null;
+
   return (
     <>
+      {faqLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+        />
+      ) : null}
+      {appLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(appLd) }}
+        />
+      ) : null}
       <SiteHeader categories={[...CORE_CATEGORIES]} />
       <main className="bg-stone-50 pt-[73px]">
-        <section className="border-b border-stone-200 bg-white">
-          <div className="mx-auto max-w-5xl px-5 py-10 sm:px-8 sm:py-14">
+        <section className="relative overflow-hidden border-b border-stone-200 bg-white">
+          <div
+            className="pointer-events-none absolute -right-20 top-0 h-64 w-64 rounded-full bg-gradient-to-br from-emerald-200/60 to-sky-200/40 blur-3xl"
+            aria-hidden="true"
+          />
+          <div className="relative mx-auto max-w-5xl px-5 py-10 sm:px-8 sm:py-14">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-500">
               {eyebrow}
             </p>
@@ -41,9 +87,29 @@ export function ToolPageShell({
           </div>
         </section>
         <section className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
+          {toolHref ? <ToolPageNav toolHref={toolHref} /> : null}
           {children}
+          {toolHref ? (
+            <>
+              <ToolRelatedTools currentHref={toolHref} />
+              <ToolSeoSections toolHref={toolHref} />
+            </>
+          ) : null}
+          {showMonetizationRail ? (
+            <MonetizationRail
+              context={monetizationContext}
+              placementIndex={42}
+              newsletterSource={newsletterSource}
+              newsletterTitle="Weekly AI, SEO, and revenue tools in your inbox."
+              newsletterDescription="Short signals on tools, monetization tests, and publishable assets—built for founders and operators."
+            />
+          ) : null}
         </section>
       </main>
+      <SiteFooter />
+      {showAssistant && toolHref ? (
+        <ToolAssistant toolHref={toolHref} toolTitle={title} />
+      ) : null}
     </>
   );
 }

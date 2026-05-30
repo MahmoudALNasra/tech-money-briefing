@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 export default function ContentGapFinderPage() {
   return (
     <ToolPageShell
+      toolHref="/content-gap-finder"
       eyebrow="Advanced SEO tool"
       title="Content gap finder"
       description="Compare your page with competitor URLs and find missing sections, weak areas, FAQ gaps, and priority SEO edits."

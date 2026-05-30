@@ -8,6 +8,11 @@ type PublisherEventName =
   | "ad_click"
   | "newsletter_signup"
   | "promotion_click"
+  | "sponsor_click"
+  | "monetization_audit_submit"
+  | "tool_assistant_open"
+  | "tool_assistant_message"
+  | "contact_form_submit"
   | "meme_download"
   | "share_caption_copy"
   | "social_image_download";

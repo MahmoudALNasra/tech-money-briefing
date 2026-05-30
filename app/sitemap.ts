@@ -27,6 +27,18 @@ function staticSitemapEntries(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.6
     },
+    {
+      url: absoluteUrl("/monetization-checklist"),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.65
+    },
+    {
+      url: absoluteUrl("/monetization-audit"),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.65
+    },
     ...COMPARISONS.map((comparison) => ({
       url: absoluteUrl(`/compare/${comparison.slug}`),
       lastModified: new Date(),

@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 export default function MetaDescriptionGeneratorPage() {
   return (
     <ToolPageShell
+      toolHref="/meta-description-generator"
       eyebrow="Free SEO tool"
       title="Free meta description generator"
       description="Enter a page topic and generate meta description drafts for articles, tools, and landing pages."

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { ContactForm } from "@/components/contact/ContactForm";
 import { InfoPage } from "@/components/layout/InfoPage";
 
 export const metadata: Metadata = {
@@ -12,16 +13,15 @@ export default function ContactPage() {
   return (
     <InfoPage
       eyebrow="Contact"
-      title="Contact"
-      description="Reach out with corrections, source suggestions, partnership questions, or editorial feedback."
+      title="Contact Tech Revenue Brief"
+      description="Ask for help, send a correction, suggest a source, or talk sponsorships. Messages go to info@techrevenuebrief.com and are saved for follow-up."
     >
       <p>
-        For now, contact the team by email at{" "}
-        <a href="mailto:hello@techrevenuebrief.com">
-          hello@techrevenuebrief.com
-        </a>
-        .
+        Use the form below when you cannot find the right tool, article, or next
+        step. The assistant may send users here when a question needs human
+        context instead of another automated answer.
       </p>
+      <ContactForm />
       <p>
         If you are submitting a correction, please include the article URL and
         the specific passage you want reviewed.
@@ -40,9 +40,10 @@ export default function ContactPage() {
       </p>
       <h2>Advertising and Partnerships</h2>
       <p>
-        For sponsorships, partner placements, or media questions, contact{" "}
-        <a href="mailto:ads@techrevenuebrief.com">
-          ads@techrevenuebrief.com
+        For sponsorships, partner placements, media questions, or strategy help,
+        contact{" "}
+        <a href="mailto:info@techrevenuebrief.com">
+          info@techrevenuebrief.com
         </a>
         .
       </p>

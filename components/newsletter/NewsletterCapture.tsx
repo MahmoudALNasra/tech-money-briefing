@@ -9,12 +9,18 @@ type NewsletterCaptureProps = {
   placementIndex: number;
   source?: string;
   variant?: "default" | "compact";
+  title?: string;
+  description?: string;
+  eyebrow?: string;
 };
 
 export function NewsletterCapture({
   placementIndex,
   source = "homepage_grid",
-  variant = "default"
+  variant = "default",
+  title,
+  description,
+  eyebrow = "Executive Briefing"
 }: NewsletterCaptureProps) {
   const [message, setMessage] = useState<{
     ok: boolean;
@@ -53,21 +59,24 @@ export function NewsletterCapture({
       }`}
     >
       <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-300">
-        Executive Briefing
+        {eyebrow}
       </p>
       <h2
         className={`mt-3 font-black leading-tight tracking-tight ${
           isCompact ? "text-lg" : "mt-4 max-w-xl text-2xl"
         }`}
       >
-        {isCompact
-          ? "Get revenue signals in your inbox."
-          : "Get the industry signals your competitors will read next week."}
+        {title ??
+          (isCompact
+            ? "Get revenue signals in your inbox."
+            : "Get the industry signals your competitors will read next week.")}
       </h2>
-      {!isCompact ? (
+      {!isCompact || description ? (
         <p className="mt-3 max-w-xl text-sm leading-6 text-gray-300">
-          A concise B2B briefing with analyst context, operational implications,
-          and the highest-signal source links from this niche.
+          {description ??
+            (isCompact
+              ? "Weekly notes on AI tools, SEO moves, and monetization tests for builders."
+              : "A concise B2B briefing with analyst context, operational implications, and the highest-signal source links from this niche.")}
         </p>
       ) : null}
 
