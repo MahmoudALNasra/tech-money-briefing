@@ -21,11 +21,58 @@ const primaryLinks = [
   { href: "/contact", label: "Contact" }
 ];
 
+const topicMeta: Record<
+  string,
+  { eyebrow: string; accent: string; dot: string }
+> = {
+  "ai-tools": {
+    eyebrow: "Automation",
+    accent: "from-emerald-50 to-lime-50 hover:border-emerald-200",
+    dot: "bg-emerald-500"
+  },
+  "digital-marketing": {
+    eyebrow: "Growth",
+    accent: "from-sky-50 to-cyan-50 hover:border-sky-200",
+    dot: "bg-sky-500"
+  },
+  seo: {
+    eyebrow: "Organic",
+    accent: "from-indigo-50 to-violet-50 hover:border-indigo-200",
+    dot: "bg-indigo-500"
+  },
+  ecommerce: {
+    eyebrow: "Commerce",
+    accent: "from-amber-50 to-orange-50 hover:border-amber-200",
+    dot: "bg-amber-500"
+  },
+  startups: {
+    eyebrow: "Builders",
+    accent: "from-rose-50 to-pink-50 hover:border-rose-200",
+    dot: "bg-rose-500"
+  },
+  fintech: {
+    eyebrow: "Money",
+    accent: "from-teal-50 to-emerald-50 hover:border-teal-200",
+    dot: "bg-teal-500"
+  },
+  "creator-business": {
+    eyebrow: "Audience",
+    accent: "from-purple-50 to-fuchsia-50 hover:border-purple-200",
+    dot: "bg-purple-500"
+  },
+  others: {
+    eyebrow: "Signals",
+    accent: "from-stone-50 to-zinc-50 hover:border-stone-300",
+    dot: "bg-stone-500"
+  }
+};
+
 export function SiteHeader({
   categories = CORE_CATEGORIES,
   activeCategory
 }: SiteHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isTopicsOpen, setIsTopicsOpen] = useState(false);
   const navCategories = categories.length > 0 ? categories : CORE_CATEGORIES;
 
   return (
@@ -73,32 +120,103 @@ export function SiteHeader({
                   ))}
                 </nav>
 
-                <details className="group relative">
-                  <summary className="list-none rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-600 shadow-sm transition hover:border-stone-300 hover:text-ink [&::-webkit-details-marker]:hidden">
+                <div
+                  className="relative"
+                  onMouseEnter={() => setIsTopicsOpen(true)}
+                  onMouseLeave={() => setIsTopicsOpen(false)}
+                  onFocus={() => setIsTopicsOpen(true)}
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) {
+                      setIsTopicsOpen(false);
+                    }
+                  }}
+                >
+                  <button
+                    type="button"
+                    aria-expanded={isTopicsOpen}
+                    aria-haspopup="true"
+                    onClick={() => setIsTopicsOpen((current) => !current)}
+                    className="group inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-gradient-to-r from-white via-emerald-50 to-sky-50 px-4 py-2 text-sm font-black text-ink shadow-sm shadow-emerald-950/5 transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md"
+                  >
+                    <span className="grid h-6 w-6 place-items-center rounded-full bg-ink text-[11px] font-black text-white">
+                      #
+                    </span>
                     Topics
-                    <span className="ml-2 inline-block transition group-open:rotate-180">
+                    <span
+                      className={`text-stone-500 transition ${
+                        isTopicsOpen ? "rotate-180" : ""
+                      }`}
+                    >
                       v
                     </span>
-                  </summary>
+                  </button>
                   <nav
-                    className="absolute right-0 top-[calc(100%+0.75rem)] z-50 grid w-72 gap-1 rounded-3xl border border-stone-200 bg-white p-3 shadow-2xl shadow-stone-950/10"
+                    className={`absolute right-0 top-[calc(100%+0.8rem)] z-50 w-[31rem] origin-top-right rounded-[2rem] border border-stone-200 bg-white/95 p-3 shadow-2xl shadow-stone-950/15 backdrop-blur-xl transition duration-200 ${
+                      isTopicsOpen
+                        ? "translate-y-0 scale-100 opacity-100"
+                        : "pointer-events-none -translate-y-2 scale-95 opacity-0"
+                    }`}
                     aria-label="Topics"
                   >
-                    {navCategories.map((category) => (
-                      <Link
-                        key={category}
-                        href={`/${category}`}
-                        className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${
-                          category === activeCategory
-                            ? "bg-ink text-white"
-                            : "text-stone-700 hover:bg-stone-100 hover:text-ink"
-                        }`}
-                      >
-                        {formatCategory(category)}
-                      </Link>
-                    ))}
+                    <div className="mb-2 rounded-3xl bg-gradient-to-br from-ink via-stone-900 to-emerald-900 p-5 text-white">
+                      <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-200">
+                        Explore briefs
+                      </p>
+                      <p className="mt-2 text-lg font-black tracking-tight">
+                        Pick a revenue signal, then turn it into action.
+                      </p>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {navCategories.map((category) => {
+                        const meta = topicMeta[category] ?? topicMeta.others;
+
+                        return (
+                          <Link
+                            key={category}
+                            href={`/${category}`}
+                            onClick={() => setIsTopicsOpen(false)}
+                            className={`group/topic rounded-2xl border p-3 transition hover:-translate-y-0.5 ${
+                              category === activeCategory
+                                ? "border-ink bg-ink text-white shadow-md"
+                                : `border-stone-100 bg-gradient-to-br ${meta.accent} text-stone-800 hover:shadow-sm`
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span
+                                className={`h-2.5 w-2.5 rounded-full ${
+                                  category === activeCategory
+                                    ? "bg-lime-300"
+                                    : meta.dot
+                                }`}
+                              />
+                              <span
+                                className={`text-[10px] font-black uppercase tracking-[0.18em] ${
+                                  category === activeCategory
+                                    ? "text-stone-300"
+                                    : "text-stone-500"
+                                }`}
+                              >
+                                {meta.eyebrow}
+                              </span>
+                            </span>
+                            <span className="mt-2 block text-sm font-black">
+                              {formatCategory(category)}
+                            </span>
+                            <span
+                              className={`mt-1 block text-xs leading-5 ${
+                                category === activeCategory
+                                  ? "text-stone-300"
+                                  : "text-stone-500"
+                              }`}
+                            >
+                              Latest tools, trends, and operator notes.
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </nav>
-                </details>
+                </div>
               </div>
 
               <div className="ml-auto hidden md:block">
