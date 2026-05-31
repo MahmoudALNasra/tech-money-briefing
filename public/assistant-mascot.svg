@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Tech Revenue Brief cat assistant mascot</title>
+  <desc id="desc">A friendly AI cat guide with a small revenue signal collar.</desc>
+  <defs>
+    <linearGradient id="fur" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#14b8a6"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ecfeff"/>
+    </linearGradient>
+  </defs>
+  <circle cx="80" cy="80" r="72" fill="#111827"/>
+  <circle cx="80" cy="82" r="62" fill="url(#fur)"/>
+  <path d="M38 54 51 18l27 27M122 54l-13-36-27 27" fill="url(#fur)" stroke="#111827" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M49 51 56 32l15 18M111 51l-7-19-15 18" fill="#d9f99d" opacity=".85"/>
+  <ellipse cx="80" cy="84" rx="43" ry="38" fill="url(#face)" stroke="#ffffff" stroke-width="5"/>
+  <ellipse cx="63" cy="78" rx="7" ry="9" fill="#111827"/>
+  <ellipse cx="97" cy="78" rx="7" ry="9" fill="#111827"/>
+  <path d="M80 88l-7 7h14z" fill="#111827"/>
+  <path d="M80 95c-6 8-16 8-22 2M80 95c6 8 16 8 22 2" fill="none" stroke="#111827" stroke-width="5" stroke-linecap="round"/>
+  <path d="M34 85h24M32 99h27M126 85h-24M128 99h-27" stroke="#111827" stroke-width="4" stroke-linecap="round" opacity=".45"/>
+  <path d="M50 127c16 15 44 18 60 0" fill="none" stroke="#064e3b" stroke-width="9" stroke-linecap="round" opacity=".45"/>
+  <circle cx="80" cy="127" r="8" fill="#d9f99d"/>
+  <path d="M76 127h8" stroke="#064e3b" stroke-width="4" stroke-linecap="round"/>
+</svg>

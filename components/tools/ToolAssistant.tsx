@@ -1,11 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { useDataLayer } from "@/hooks/useDataLayer";
 
-type AssistantContext = "tool" | "article";
+type AssistantContext = "tool" | "article" | "home";
 
 type ToolAssistantProps = {
   toolHref?: string;
@@ -32,6 +33,11 @@ const starterPromptsByContext: Record<AssistantContext, string[]> = {
     "Summarize this into an action plan.",
     "Which tools should I use next?",
     "I need help with this. How do I contact you?"
+  ],
+  home: [
+    "I need more traffic. Where do I start?",
+    "Which free tool should I run first?",
+    "I want help choosing the right path."
   ]
 };
 
@@ -54,7 +60,9 @@ export function ToolAssistant({
       content:
         context === "article"
           ? `Hi. I can explain **${resolvedTitle}**, turn it into next steps, recommend tools, or help you contact us if you need hands-on help.`
-          : `Hi. I can help you use **${resolvedTitle}** and suggest next tools on Tech Revenue Brief. What are you trying to publish or monetize?`
+          : context === "home"
+            ? "Hi. Tell me if you need traffic, revenue, or a tool decision — I'll point you to the best next click on Tech Revenue Brief."
+            : `Hi. I can help you use **${resolvedTitle}** and suggest next tools on Tech Revenue Brief. What are you trying to publish or monetize?`
     }
   ]);
   const [input, setInput] = useState("");
@@ -108,7 +116,7 @@ export function ToolAssistant({
           message: trimmed,
           toolHref,
           toolTitle,
-          pageType: context,
+          pageType: context === "home" ? "home" : context,
           pageHref: resolvedHref,
           pageTitle: resolvedTitle,
           pageSummary,
@@ -162,15 +170,43 @@ export function ToolAssistant({
             assistant_open: nextOpen
           });
         }}
-        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+6rem)] right-4 z-[80] flex h-14 items-center justify-center gap-2 rounded-full bg-gradient-to-br from-indigo-600 to-emerald-500 px-4 text-white shadow-2xl shadow-indigo-900/25 ring-1 ring-white/40 transition hover:scale-105 hover:shadow-indigo-900/35 sm:right-6 sm:px-5 md:bottom-[calc(env(safe-area-inset-bottom)+7rem)] ${
+        className={`fixed bottom-[calc(env(safe-area-inset-bottom)+6rem)] right-4 z-[80] flex h-14 items-center justify-center gap-2 rounded-full bg-gradient-to-br from-indigo-600 to-emerald-500 px-4 text-white shadow-2xl shadow-indigo-900/25 ring-1 ring-white/40 transition hover:scale-105 hover:shadow-indigo-900/35 sm:right-6 md:bottom-[calc(env(safe-area-inset-bottom)+7rem)] ${
           isOpen ? "scale-95" : "motion-safe:animate-bounce"
         }`}
         aria-label={isOpen ? "Close tool assistant" : "Open tool assistant"}
         aria-expanded={isOpen}
       >
-        <span className="text-2xl leading-none">{isOpen ? "×" : "✦"}</span>
-        <span className="hidden text-sm font-black sm:inline">
+        <span
+          aria-hidden="true"
+          className={`absolute -top-[5.6rem] right-1 grid h-24 w-20 place-items-center transition duration-300 ${
+            isOpen
+              ? "-translate-y-1 rotate-3 scale-95"
+              : "motion-safe:animate-bounce"
+          }`}
+        >
+          <span className="absolute inset-x-2 bottom-1 h-10 rounded-full bg-emerald-300/30 blur-xl" />
+          <span className="absolute right-3 top-6 z-10 h-3 w-3 rounded-full bg-lime-300 ring-2 ring-white motion-safe:animate-pulse" />
+          <Image
+            src="/assistant-mascot-body.svg"
+            alt=""
+            width={90}
+            height={120}
+            className="relative h-24 w-20 object-contain"
+          />
+        </span>
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-xl leading-none text-white">
+          {isOpen ? "×" : "✦"}
+        </span>
+        <span className="text-sm font-black">
           {isOpen ? "Close" : "Ask AI"}
+        </span>
+        {!isOpen ? (
+          <span className="pointer-events-none absolute -top-[4.5rem] right-[5.5rem] hidden whitespace-nowrap rounded-full border border-stone-200 bg-white px-3 py-1 text-[11px] font-black text-ink shadow-lg shadow-stone-950/10 sm:block">
+            Need a next step?
+          </span>
+        ) : null}
+        <span className="sr-only">
+          {isOpen ? "Close assistant" : "Open assistant"}
         </span>
       </button>
 
@@ -181,11 +217,26 @@ export function ToolAssistant({
           role="dialog"
           aria-label="Tool assistant"
         >
-          <div className="border-b border-stone-200 bg-gradient-to-r from-indigo-600 to-emerald-600 px-5 py-4 text-white">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/80">
-              {context === "article" ? "Article guide" : "Site guide"}
-            </p>
-            <p className="mt-1 font-black">{resolvedTitle}</p>
+          <div className="flex items-center gap-3 border-b border-stone-200 bg-gradient-to-r from-indigo-600 to-emerald-600 px-5 py-4 text-white">
+            <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white shadow-lg shadow-indigo-950/20">
+              <Image
+                src="/assistant-mascot.svg"
+                alt=""
+                width={48}
+                height={48}
+                className="h-12 w-12"
+              />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/80">
+                {context === "article"
+                  ? "Article guide"
+                  : context === "home"
+                    ? "Home guide"
+                    : "Site guide"}
+              </p>
+              <p className="mt-1 font-black">{resolvedTitle}</p>
+            </div>
           </div>
 
           <div className="flex max-h-72 flex-col gap-3 overflow-y-auto p-4">

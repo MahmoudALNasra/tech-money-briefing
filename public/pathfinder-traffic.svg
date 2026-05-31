@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" role="img" aria-labelledby="title desc">
+  <title id="title">Keyword traffic map illustration</title>
+  <desc id="desc">A stylized search and keyword clustering dashboard.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ecfdf5"/>
+      <stop offset="1" stop-color="#d9f99d"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f0fdf4"/>
+    </linearGradient>
+  </defs>
+  <rect width="560" height="360" rx="42" fill="url(#bg)"/>
+  <circle cx="450" cy="72" r="88" fill="#10b981" opacity=".12"/>
+  <circle cx="110" cy="304" r="96" fill="#84cc16" opacity=".14"/>
+  <rect x="66" y="62" width="428" height="236" rx="30" fill="url(#card)" stroke="#a7f3d0" stroke-width="4"/>
+  <rect x="102" y="98" width="270" height="34" rx="17" fill="#064e3b"/>
+  <circle cx="392" cy="115" r="17" fill="#22c55e"/>
+  <path d="M402 126l25 25" stroke="#064e3b" stroke-width="9" stroke-linecap="round"/>
+  <g fill="none" stroke-linecap="round" stroke-width="8">
+    <path d="M130 178h126" stroke="#10b981"/>
+    <path d="M130 214h190" stroke="#84cc16"/>
+    <path d="M130 250h102" stroke="#14b8a6"/>
+  </g>
+  <g>
+    <circle cx="382" cy="184" r="31" fill="#10b981"/>
+    <circle cx="428" cy="232" r="24" fill="#84cc16"/>
+    <circle cx="350" cy="245" r="23" fill="#14b8a6"/>
+    <path d="M382 184l46 48M382 184l-32 61" stroke="#064e3b" stroke-width="5" stroke-linecap="round" opacity=".35"/>
+  </g>
+</svg>

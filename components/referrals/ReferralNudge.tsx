@@ -41,7 +41,7 @@ export function ReferralNudge() {
   }
 
   return (
-    <aside className="fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] max-w-sm rounded-3xl border border-emerald-200 bg-white p-5 shadow-2xl shadow-stone-950/15">
+    <aside className="fixed bottom-4 left-4 z-50 w-[calc(100vw-2rem)] max-w-sm rounded-3xl border border-emerald-200 bg-white p-5 shadow-2xl shadow-stone-950/15 sm:left-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">

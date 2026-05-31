@@ -19,14 +19,6 @@ export function ArticleReadTracker({
   const sentHalfRead = useRef(false);
 
   useEffect(() => {
-    pushToDataLayer({
-      event: "page_view",
-      article_id: articleId,
-      article_slug: slug,
-      category,
-      page_path: window.location.pathname
-    });
-
     const onScroll = () => {
       if (sentHalfRead.current) {
         return;

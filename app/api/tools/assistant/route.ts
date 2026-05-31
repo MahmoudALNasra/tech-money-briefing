@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       message?: string;
       toolHref?: string;
       toolTitle?: string;
-      pageType?: "tool" | "article";
+      pageType?: "tool" | "article" | "home";
       pageHref?: string;
       pageTitle?: string;
       pageSummary?: string;
@@ -33,7 +33,12 @@ export async function POST(request: Request) {
     };
 
     const message = String(body.message ?? "").trim().slice(0, 2000);
-    const pageType = body.pageType === "article" ? "article" : "tool";
+    const pageType =
+      body.pageType === "article"
+        ? "article"
+        : body.pageType === "home"
+          ? "home"
+          : "tool";
     const toolHref = String(body.toolHref ?? "").trim();
     const toolTitle = String(body.toolTitle ?? "").trim();
     const pageHref = String(body.pageHref ?? toolHref ?? "/tools").trim();
@@ -47,7 +52,7 @@ export async function POST(request: Request) {
 
     const seo = toolHref ? getToolPageSeo(toolHref) : undefined;
     const related =
-      pageType === "article"
+      pageType === "article" || pageType === "home"
         ? getRecommendedToolsForText(
             [pageTitle, pageSummary, category].join(" "),
             6,
@@ -75,6 +80,7 @@ Rules:
 - Recommend specific on-site tools with markdown links like [Blog title generator](/blog-title-generator).
 - If the user cannot find what they need, needs hands-on help, wants a custom strategy, asks about consulting, or asks how to reach us, send them to [Contact](/contact) and tell them the form goes to info@techrevenuebrief.com.
 - For article pages, explain the article in plain language, turn it into an action plan, and suggest relevant tools.
+- For the homepage, route visitors to traffic tools (/keyword-cluster-tool, /serp-intent-analyzer), revenue tools (/adsense-revenue-calculator, /monetization-audit), or comparisons (/compare) based on their goal.
 - Never promise revenue, rankings, or AdSense approval.
 - Never ask for or reveal API keys or secrets.
 - If unsure, suggest running a related tool or the monetization audit at /monetization-audit.

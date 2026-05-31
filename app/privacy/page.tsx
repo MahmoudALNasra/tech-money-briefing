@@ -27,10 +27,18 @@ export default function PrivacyPage() {
         communications.
       </p>
       <p>
-        We may also collect non-personal usage information such as pages viewed,
-        referral sources, device type, browser type, approximate location, and
-        engagement events. This helps us understand which topics are useful and
-        how the site performs.
+        We also collect first-party analytics events such as page views, tool
+        clicks, assistant usage, newsletter interactions, and session activity.
+        These events may include page paths, referrer URLs, campaign parameters,
+        device type, viewport size, timezone, language, and approximate location
+        derived from hosting headers. We store anonymous visitor and session
+        identifiers in browser local storage to understand returning usage
+        without requiring login cookies.
+      </p>
+      <p>
+        For analytics privacy, we store hashed versions of IP addresses and user
+        agents rather than raw IP addresses in our first-party analytics
+        database.
       </p>
       <p>
         When visitors use a campaign or custom tracking link, we may record the
@@ -69,7 +77,9 @@ export default function PrivacyPage() {
       <p>
         You can unsubscribe from newsletter communications at any time. You can
         also block cookies or tracking technologies in your browser, though some
-        site features may not work as intended.
+        site features may not work as intended. You can disable analytics on
+        this site by visiting any page with{" "}
+        <code>?analytics=off</code> appended to the URL.
       </p>
       <h2>Policy Updates</h2>
       <p>

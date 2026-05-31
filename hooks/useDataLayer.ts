@@ -2,6 +2,8 @@
 
 import { useCallback } from "react";
 
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
+
 type PublisherEventName =
   | "page_view"
   | "article_read_50_percent"
@@ -47,5 +49,35 @@ export function useDataLayer() {
 
     window.dataLayer = window.dataLayer ?? [];
     window.dataLayer.push(event);
+
+    if (event.event !== "page_view") {
+      trackAnalyticsEvent({
+        event: event.event,
+        page_path:
+          typeof event.page_path === "string"
+            ? event.page_path
+            : undefined,
+        article_id:
+          typeof event.article_id === "string" ? event.article_id : undefined,
+        article_slug:
+          typeof event.article_slug === "string"
+            ? event.article_slug
+            : undefined,
+        category:
+          typeof event.category === "string" ? event.category : undefined,
+        metadata: Object.fromEntries(
+          Object.entries(event).filter(
+            ([key]) =>
+              ![
+                "event",
+                "page_path",
+                "article_id",
+                "article_slug",
+                "category"
+              ].includes(key)
+          )
+        )
+      });
+    }
   }, []);
 }

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" role="img" aria-labelledby="title desc">
+  <title id="title">Revenue calculator illustration</title>
+  <desc id="desc">A stylized revenue dashboard with rising bars and earnings.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fffbeb"/>
+      <stop offset="1" stop-color="#fed7aa"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#fff7ed"/>
+    </linearGradient>
+  </defs>
+  <rect width="560" height="360" rx="42" fill="url(#bg)"/>
+  <circle cx="456" cy="90" r="96" fill="#f59e0b" opacity=".14"/>
+  <circle cx="110" cy="280" r="82" fill="#fb923c" opacity=".15"/>
+  <rect x="76" y="60" width="408" height="240" rx="32" fill="url(#screen)" stroke="#fed7aa" stroke-width="4"/>
+  <text x="116" y="124" fill="#7c2d12" font-family="Arial, sans-serif" font-size="42" font-weight="800">$4.8k</text>
+  <text x="118" y="154" fill="#9a3412" font-family="Arial, sans-serif" font-size="18" font-weight="700">estimated monthly upside</text>
+  <g transform="translate(116 190)">
+    <rect x="0" y="58" width="42" height="46" rx="10" fill="#fdba74"/>
+    <rect x="64" y="28" width="42" height="76" rx="10" fill="#fb923c"/>
+    <rect x="128" y="4" width="42" height="100" rx="10" fill="#f97316"/>
+    <rect x="192" y="-24" width="42" height="128" rx="10" fill="#ea580c"/>
+    <path d="M0 40c54 4 85-35 128-32 36 2 57-22 106-58" fill="none" stroke="#7c2d12" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(362 178)">
+    <circle cx="42" cy="42" r="42" fill="#111827"/>
+    <path d="M42 18v48M27 31c0-10 30-11 30 2 0 16-31 7-31 23 0 13 32 12 32-1" fill="none" stroke="#fef3c7" stroke-width="7" stroke-linecap="round"/>
+  </g>
+</svg>

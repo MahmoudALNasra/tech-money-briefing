@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 240" role="img" aria-labelledby="title desc">
+  <title id="title">Tech Revenue Brief cat assistant mascot with body</title>
+  <desc id="desc">A friendly AI cat guide floating above the assistant button.</desc>
+  <defs>
+    <linearGradient id="fur" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#14b8a6"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ecfeff"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-20%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#111827" flood-opacity=".22"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M37 74c-18 5-29 20-29 37 0 17 11 30 28 34" fill="none" stroke="#ecfeff" stroke-width="12" stroke-linecap="round"/>
+    <path d="M143 74c18 5 29 20 29 37 0 17-11 30-28 34" fill="none" stroke="#ecfeff" stroke-width="12" stroke-linecap="round"/>
+    <path d="M34 58 49 17l31 30M146 58l-15-41-31 30" fill="url(#fur)" stroke="#111827" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M47 55 55 33l17 20M133 55l-8-22-17 20" fill="#d9f99d" opacity=".86"/>
+    <rect x="28" y="38" width="124" height="106" rx="46" fill="url(#fur)"/>
+    <ellipse cx="90" cy="88" rx="45" ry="40" fill="url(#face)" stroke="#ffffff" stroke-width="5"/>
+    <ellipse cx="72" cy="81" rx="7.5" ry="9.5" fill="#111827"/>
+    <ellipse cx="108" cy="81" rx="7.5" ry="9.5" fill="#111827"/>
+    <path d="M90 92l-8 7h16z" fill="#111827"/>
+    <path d="M90 99c-6 8-17 8-23 2M90 99c6 8 17 8 23 2" fill="none" stroke="#111827" stroke-width="5" stroke-linecap="round"/>
+    <path d="M39 89h24M37 103h27M141 89h-24M143 103h-27" stroke="#111827" stroke-width="4" stroke-linecap="round" opacity=".45"/>
+    <path d="M55 136h70c18 0 33 15 33 33v20c0 15-12 27-27 27H49c-15 0-27-12-27-27v-20c0-18 15-33 33-33z" fill="url(#fur)"/>
+    <path d="M65 148c12 18 38 18 50 0" fill="none" stroke="#ecfeff" stroke-width="8" stroke-linecap="round" opacity=".85"/>
+    <rect x="58" y="158" width="64" height="39" rx="18" fill="#ffffff" opacity=".92"/>
+    <path d="M73 177h34" stroke="#064e3b" stroke-width="7" stroke-linecap="round"/>
+    <path d="M57 216c11 9 25 13 33 13s22-4 33-13" fill="none" stroke="#064e3b" stroke-width="10" stroke-linecap="round" opacity=".36"/>
+    <circle cx="90" cy="144" r="8" fill="#d9f99d"/>
+    <path d="M86 144h8" stroke="#064e3b" stroke-width="4" stroke-linecap="round"/>
+    <path d="M135 163c18 6 25 22 15 33-8 9-21 5-23-6" fill="none" stroke="#14b8a6" stroke-width="10" stroke-linecap="round"/>
+  </g>
+</svg>

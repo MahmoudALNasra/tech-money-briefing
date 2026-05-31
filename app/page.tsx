@@ -6,6 +6,7 @@ import { PaginationControls } from "@/components/articles/PaginationControls";
 import { StartHerePathfinder } from "@/components/engagement/StartHerePathfinder";
 import { FeedWithSidebar } from "@/components/layout/FeedWithSidebar";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { ToolAssistant } from "@/components/tools/ToolAssistant";
 import { getPaginatedHomepageArticles } from "@/lib/articles";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
@@ -132,6 +133,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           </section>
         )}
       </main>
+      <ToolAssistant
+        context="home"
+        pageHref="/"
+        pageTitle={siteConfig.name}
+        pageSummary={siteConfig.description}
+      />
     </>
   );
 }
