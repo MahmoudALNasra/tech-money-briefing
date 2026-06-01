@@ -15,6 +15,26 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
 
   return (
     <div className="space-y-10">
+      <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-[0.24em] text-stone-400">
+          Comparison guide
+        </p>
+        <h2 className="mt-3 text-2xl font-black text-ink">
+          {comparison.productA} vs {comparison.productB}: which one should you choose?
+        </h2>
+        <div className="mt-4 space-y-4 text-base leading-8 text-stone-700">
+          <p>
+            This {comparison.productA} vs {comparison.productB} comparison is
+            written for operators, publishers, founders, and small teams that
+            need a practical software decision, not a generic feature list.
+            The right choice depends on workflow, cost sensitivity, technical
+            control, growth goals, and how quickly the tool helps you publish,
+            sell, report, or monetize.
+          </p>
+          <p>{comparison.summary}</p>
+        </div>
+      </section>
+
       <section className="overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-sm">
         <div className="grid md:grid-cols-[1fr_auto_1fr]">
           <ProductPanel
@@ -38,6 +58,19 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
             {comparison.summary}
           </p>
         </div>
+      </section>
+
+      <section className="grid gap-5 md:grid-cols-2">
+        <TextDecisionPanel
+          title={`Choose ${comparison.productA} if...`}
+          product={comparison.productA}
+          items={comparison.bestForA}
+        />
+        <TextDecisionPanel
+          title={`Choose ${comparison.productB} if...`}
+          product={comparison.productB}
+          items={comparison.bestForB}
+        />
       </section>
 
       <section>
@@ -87,6 +120,30 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
         </div>
       </section>
 
+      <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-[0.24em] text-stone-400">
+          Buying guide
+        </p>
+        <h2 className="mt-2 text-2xl font-black text-ink">
+          How to evaluate {comparison.productA} and {comparison.productB}
+        </h2>
+        <div className="mt-5 space-y-5">
+          {comparison.decisionRows.map((row) => (
+            <div key={row.label}>
+              <h3 className="text-lg font-black text-ink">{row.label}</h3>
+              <p className="mt-2 text-sm leading-7 text-stone-700">
+                For {row.label.toLowerCase()}, {comparison.productA} is best
+                described as <strong>{row.left}</strong>, while{" "}
+                {comparison.productB} is best described as{" "}
+                <strong>{row.right}</strong>. Use this factor to decide which
+                product better matches your current budget, team size, content
+                workflow, and revenue goals.
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="relative overflow-hidden rounded-[2rem] border border-amber-200 bg-amber-50 p-6 shadow-sm">
         <div className="absolute right-6 top-6 h-24 w-24 rounded-full bg-amber-200/60 blur-2xl" />
         <div className="relative">
@@ -113,6 +170,52 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
         </section>
       ) : null}
 
+      <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-[0.24em] text-stone-400">
+          Search questions
+        </p>
+        <h2 className="mt-2 text-2xl font-black text-ink">
+          Common questions about {comparison.productA} vs {comparison.productB}
+        </h2>
+        <div className="mt-5 space-y-5">
+          <div>
+            <h3 className="text-lg font-black text-ink">
+              Is {comparison.productA} better than {comparison.productB}?
+            </h3>
+            <p className="mt-2 text-sm leading-7 text-stone-700">
+              {comparison.productA} is better for teams that match these needs:{" "}
+              {formatSentenceList(comparison.bestForA)}. {comparison.productB}
+              is better when your priorities are{" "}
+              {formatSentenceList(comparison.bestForB)}.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-lg font-black text-ink">
+              What is the main difference between {comparison.productA} and{" "}
+              {comparison.productB}?
+            </h3>
+            <p className="mt-2 text-sm leading-7 text-stone-700">
+              The main difference is how each product fits into the operating
+              model. {comparison.productA} tends to fit teams looking for{" "}
+              {comparison.bestForA[0]?.toLowerCase() ?? "one workflow"}, while{" "}
+              {comparison.productB} tends to fit teams looking for{" "}
+              {comparison.bestForB[0]?.toLowerCase() ?? "another workflow"}.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-lg font-black text-ink">
+              Which keywords does this comparison cover?
+            </h3>
+            <p className="mt-2 text-sm leading-7 text-stone-700">
+              This guide covers searches such as{" "}
+              {formatSentenceList(comparison.keywords)} and related software
+              comparison questions for publishers, creators, SaaS teams, and
+              operators.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="rounded-2xl border border-stone-200 bg-stone-50 p-6">
         <p className="text-sm leading-7 text-stone-700">
           Explore more side-by-side guides on the{" "}
@@ -131,6 +234,48 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
         </p>
       </section>
     </div>
+  );
+}
+
+function formatSentenceList(items: string[]) {
+  if (items.length === 0) {
+    return "a specific workflow fit";
+  }
+
+  if (items.length === 1) {
+    return items[0].toLowerCase();
+  }
+
+  const normalized = items.map((item) => item.toLowerCase());
+  const last = normalized.at(-1);
+  const firstItems = normalized.slice(0, -1);
+
+  return `${firstItems.join(", ")}, and ${last}`;
+}
+
+function TextDecisionPanel({
+  title,
+  product,
+  items
+}: {
+  title: string;
+  product: string;
+  items: string[];
+}) {
+  return (
+    <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+      <h2 className="text-2xl font-black text-ink">{title}</h2>
+      <div className="mt-4 space-y-4">
+        {items.map((item) => (
+          <p key={item} className="text-sm leading-7 text-stone-700">
+            <strong className="text-ink">{product}</strong> makes sense for{" "}
+            {item.toLowerCase()}. This matters because the best software choice
+            is usually the one that removes friction from your current workflow
+            before it adds more dashboards, setup, or monthly cost.
+          </p>
+        ))}
+      </div>
+    </section>
   );
 }
 

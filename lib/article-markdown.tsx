@@ -3,6 +3,24 @@ import type { ReactNode } from "react";
 
 const CALLOUT_PREFIX = /^>>\s+/;
 
+function normalizeArticleHref(href: string) {
+  if (href.startsWith("/")) {
+    return href;
+  }
+
+  try {
+    const url = new URL(href);
+
+    if (/^(www\.)?example\.com$/i.test(url.hostname)) {
+      return `${url.pathname}${url.search}${url.hash}` || "/";
+    }
+  } catch {
+    return href;
+  }
+
+  return href;
+}
+
 function normalizeInlineHeadingLists(line: string) {
   const headingListMatch = line.match(/^(#{2,4}\s+.+?)\s+(-\s+.+)$/);
 
@@ -76,9 +94,11 @@ function renderTextSegment(text: string, keyPrefix: string) {
       const linkMatch = token.match(/^\[([^\]]+)\]\(((?:https?:\/\/|\/)[^)]+)\)$/);
 
       if (linkMatch) {
-        if (linkMatch[2].startsWith("/")) {
+        const href = normalizeArticleHref(linkMatch[2]);
+
+        if (href.startsWith("/")) {
           nodes.push(
-            <Link key={key} href={linkMatch[2]} className="font-semibold underline">
+            <Link key={key} href={href} className="font-semibold underline">
               {linkMatch[1]}
             </Link>
           );
@@ -86,7 +106,7 @@ function renderTextSegment(text: string, keyPrefix: string) {
           nodes.push(
             <a
               key={key}
-              href={linkMatch[2]}
+              href={href}
               target="_blank"
               rel="noopener noreferrer"
               className="font-semibold underline"

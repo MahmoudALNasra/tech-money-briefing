@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ComparisonView } from "@/components/compare/ComparisonView";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { getAllComparisonSlugs, getComparisonBySlug } from "@/lib/comparisons";
-import { siteConfig } from "@/lib/site";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -22,11 +22,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: "Comparison not found" };
   }
 
+  const imageUrl = absoluteUrl(`/generated/compare-${comparison.slug}.svg`);
+
   return {
     title: `${comparison.title} Comparison`,
     description: `${comparison.description} - from ${siteConfig.name}.`,
     keywords: comparison.keywords,
-    robots: { index: true, follow: true }
+    robots: { index: true, follow: true },
+    openGraph: {
+      title: `${comparison.title} Comparison`,
+      description: comparison.description,
+      siteName: siteConfig.name,
+      images: [{ url: imageUrl, alt: comparison.title }]
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${comparison.title} Comparison`,
+      description: comparison.description,
+      images: [imageUrl]
+    }
   };
 }
 

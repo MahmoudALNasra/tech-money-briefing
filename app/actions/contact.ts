@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabase";
 
 type ContactActionState = {
   ok: boolean;
+  saved?: boolean;
+  emailSent?: boolean;
   message: string;
 };
 
@@ -55,10 +57,10 @@ export async function submitContactForm(
     return { ok: false, message: "Please choose a contact reason." };
   }
 
-  if (message.length < 20) {
+  if (message.length < 10) {
     return {
       ok: false,
-      message: "Please add a little more detail so we can help."
+      message: "Please add at least 10 characters so we can help."
     };
   }
 
@@ -108,20 +110,32 @@ export async function submitContactForm(
   ].join("\n");
 
   try {
-    await sendEmail({
+    const emailResult = await sendEmail({
       to,
       subject,
       html,
       text,
       replyTo: email
     });
+
+    if (!emailResult.sent) {
+      return {
+        ok: false,
+        saved: true,
+        emailSent: false,
+        message:
+          "Saved, but email delivery is not configured. Your message is stored and we will review it."
+      };
+    }
   } catch (emailError) {
     console.error(
       "[contact] email failed",
       emailError instanceof Error ? emailError.message : emailError
     );
     return {
-      ok: true,
+      ok: false,
+      saved: true,
+      emailSent: false,
       message:
         "Saved. Email delivery had an issue, but your message is stored and we will review it."
     };
@@ -129,6 +143,8 @@ export async function submitContactForm(
 
   return {
     ok: true,
+    saved: true,
+    emailSent: true,
     message: "Thanks. Your message was sent to info@techrevenuebrief.com."
   };
 }

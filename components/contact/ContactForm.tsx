@@ -36,8 +36,11 @@ export function ContactForm({ source = "contact_page" }: ContactFormProps) {
         text: result.message
       });
 
-      if (result.ok) {
+      if (result.ok && result.emailSent !== false) {
         formRef.current?.reset();
+      }
+
+      if (result.saved) {
         pushToDataLayer({
           event: "contact_form_submit",
           source
@@ -137,6 +140,7 @@ export function ContactForm({ source = "contact_page" }: ContactFormProps) {
           id="contact-message"
           name="message"
           required
+          minLength={10}
           rows={6}
           disabled={isPending}
           placeholder="Tell us what you are trying to solve, what page/tool you were looking at, and what outcome you want."
@@ -159,6 +163,8 @@ export function ContactForm({ source = "contact_page" }: ContactFormProps) {
           className={`rounded-2xl px-4 py-3 text-sm font-semibold ${
             message.ok
               ? "bg-emerald-50 text-emerald-950"
+              : message.text.startsWith("Saved")
+                ? "bg-amber-50 text-amber-950"
               : "bg-red-50 text-red-950"
           }`}
         >

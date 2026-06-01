@@ -1,0 +1,228 @@
+[
+  {
+    "slug": "supabase-vs-aws",
+    "title": "Supabase vs AWS",
+    "description": "Compare Supabase and AWS for backend apps, Postgres, auth, storage, pricing, and team complexity.",
+    "productA": "Supabase",
+    "productB": "AWS",
+    "summary": "Supabase packages Postgres, auth, storage, and edge functions into a fast developer experience. AWS offers maximum flexibility across hundreds of services at the cost of more architecture and ops decisions.",
+    "bestForA": [
+      "Indie hackers and small SaaS teams",
+      "Postgres-first apps with built-in auth",
+      "Faster MVP launches"
+    ],
+    "bestForB": [
+      "Enterprise scale and custom architectures",
+      "Multi-service cloud stacks",
+      "Teams with dedicated DevOps"
+    ],
+    "decisionRows": [
+      { "label": "Time to launch", "left": "Faster defaults", "right": "More assembly required" },
+      { "label": "Flexibility", "left": "Opinionated platform", "right": "Very high" },
+      { "label": "Postgres", "left": "Core product", "right": "RDS or self-managed" },
+      { "label": "Best fit", "left": "Product teams shipping fast", "right": "Custom infra at scale" }
+    ],
+    "monetizationAngle": "Backend choices affect margin and ship speed. Model user growth and infra cost before committing to a cloud stack.",
+    "relatedToolHrefs": ["/saas-pricing-calculator", "/utm-builder", "/robots-txt-generator"],
+    "keywords": ["supabase vs aws", "postgres backend comparison", "serverless database"]
+  },
+  {
+    "slug": "snowflake-vs-bigquery",
+    "title": "Snowflake vs BigQuery",
+    "description": "Compare Snowflake and Google BigQuery for analytics warehouses, pricing models, SQL workflows, and team fit.",
+    "productA": "Snowflake",
+    "productB": "BigQuery",
+    "summary": "Snowflake is a cross-cloud analytics warehouse popular with data teams that want separation of storage and compute. BigQuery is deeply integrated with Google Cloud and strong for teams already on GCP or GA4 exports.",
+    "bestForA": [
+      "Multi-cloud analytics teams",
+      "Enterprise BI workflows",
+      "Elastic compute scaling"
+    ],
+    "bestForB": [
+      "Google Cloud-native stacks",
+      "Large event and log analytics",
+      "Teams using GCP marketing data"
+    ],
+    "decisionRows": [
+      { "label": "Cloud tie-in", "left": "Multi-cloud", "right": "GCP-first" },
+      { "label": "Pricing model", "left": "Credit-based compute", "right": "On-demand + slots" },
+      { "label": "SQL ergonomics", "left": "Excellent", "right": "Excellent" },
+      { "label": "Best fit", "left": "Warehouse-first BI", "right": "GCP analytics pipelines" }
+    ],
+    "monetizationAngle": "Warehouse spend should tie to measurable reporting ROI. Start with the queries that improve revenue decisions, not vanity dashboards.",
+    "relatedToolHrefs": ["/utm-builder", "/saas-pricing-calculator", "/keyword-cluster-tool"],
+    "keywords": ["snowflake vs bigquery", "data warehouse comparison", "analytics stack"]
+  },
+  {
+    "slug": "ubersuggest-vs-moz",
+    "title": "Ubersuggest vs Moz",
+    "description": "Compare Ubersuggest and Moz for keyword research, rank tracking, and small-site SEO workflows.",
+    "productA": "Ubersuggest",
+    "productB": "Moz",
+    "summary": "Ubersuggest is a budget-friendly keyword and content research tool with a simpler interface. Moz is an established SEO suite known for domain authority metrics, link tools, and educational resources.",
+    "bestForA": [
+      "Solo bloggers on a budget",
+      "Quick keyword ideas",
+      "Light competitor snapshots"
+    ],
+    "bestForB": [
+      "Teams wanting DA/PA context",
+      "Link research habits",
+      "Structured SEO learning"
+    ],
+    "decisionRows": [
+      { "label": "Price", "left": "Lower entry", "right": "Mid-tier suite" },
+      { "label": "Keyword research", "left": "Good for starters", "right": "Solid research tools" },
+      { "label": "Authority metrics", "left": "Basic", "right": "Moz-branded metrics" },
+      { "label": "Best fit", "left": "Budget publishers", "right": "Growing SEO teams" }
+    ],
+    "monetizationAngle": "Paid SEO tools should feed publishable pages. Pair research with free title, meta, and brief generators to ship faster.",
+    "relatedToolHrefs": [
+      "/keyword-cluster-tool",
+      "/blog-title-generator",
+      "/meta-description-generator",
+      "/serp-intent-analyzer"
+    ],
+    "keywords": ["ubersuggest vs moz", "affordable SEO tools", "keyword research comparison"]
+  },
+  {
+    "slug": "screaming-frog-vs-sitebulb",
+    "title": "Screaming Frog vs Sitebulb",
+    "description": "Compare Screaming Frog and Sitebulb for technical SEO audits, crawl depth, and reporting for publishers.",
+    "productA": "Screaming Frog",
+    "productB": "Sitebulb",
+    "summary": "Screaming Frog is the classic desktop crawler trusted for deep technical audits. Sitebulb adds visual reports and guided insights that help operators prioritize fixes faster.",
+    "bestForA": [
+      "Deep crawl control",
+      "Technical SEO specialists",
+      "Large-site audits"
+    ],
+    "bestForB": [
+      "Visual audit reports",
+      "Prioritized recommendations",
+      "Agencies presenting to clients"
+    ],
+    "decisionRows": [
+      { "label": "Audit depth", "left": "Very deep", "right": "Deep with guidance" },
+      { "label": "Reporting", "left": "Export-heavy", "right": "Visual-first" },
+      { "label": "Learning curve", "left": "Steeper", "right": "More guided" },
+      { "label": "Best fit", "left": "Power users", "right": "Clarity-first teams" }
+    ],
+    "monetizationAngle": "Technical fixes should connect to indexation and revenue pages. Crawl templates, tools, and comparison hubs—not orphan URLs.",
+    "relatedToolHrefs": ["/robots-txt-generator", "/meta-description-generator", "/keyword-cluster-tool"],
+    "keywords": ["screaming frog vs sitebulb", "technical SEO crawler", "site audit tools"]
+  },
+  {
+    "slug": "google-analytics-vs-plausible",
+    "title": "Google Analytics vs Plausible",
+    "description": "Compare Google Analytics 4 and Plausible for privacy, simplicity, reporting delay, and publisher analytics needs.",
+    "productA": "Google Analytics 4",
+    "productB": "Plausible",
+    "summary": "GA4 is free, deeply integrated with Google marketing products, and powerful for event-based reporting. Plausible is lightweight, privacy-friendly, and easier to read for founders who want simple traffic trends without heavy setup.",
+    "bestForA": [
+      "Full-funnel marketing analytics",
+      "Google Ads and Search Console users",
+      "Event-heavy product analytics"
+    ],
+    "bestForB": [
+      "Privacy-conscious sites",
+      "Simple traffic dashboards",
+      "Teams avoiding complex GA4 UI"
+    ],
+    "decisionRows": [
+      { "label": "Complexity", "left": "Higher", "right": "Lower" },
+      { "label": "Privacy", "left": "Consent-heavy regions need care", "right": "Privacy-first positioning" },
+      { "label": "Cost", "left": "Free tier", "right": "Paid SaaS" },
+      { "label": "Best fit", "left": "Growth marketers", "right": "Simple publisher metrics" }
+    ],
+    "monetizationAngle": "Pick analytics that match decisions you will actually make. Pair traffic data with revenue calculators and UTM discipline.",
+    "relatedToolHrefs": ["/utm-builder", "/cpm-rpm-calculator", "/adsense-revenue-calculator"],
+    "keywords": ["google analytics vs plausible", "GA4 alternatives", "privacy analytics"]
+  },
+  {
+    "slug": "vercel-vs-netlify",
+    "title": "Vercel vs Netlify",
+    "description": "Compare Vercel and Netlify for Jamstack hosting, Next.js workflows, edge functions, and indie SaaS deploys.",
+    "productA": "Vercel",
+    "productB": "Netlify",
+    "summary": "Vercel is the default for many Next.js teams with tight framework integration. Netlify offers flexible static and serverless hosting with a mature plugin ecosystem and strong form handling.",
+    "bestForA": [
+      "Next.js and React apps",
+      "Preview deployments per PR",
+      "Frontend-heavy SaaS"
+    ],
+    "bestForB": [
+      "Static sites and Jamstack",
+      "Forms and edge functions",
+      "Multi-framework portfolios"
+    ],
+    "decisionRows": [
+      { "label": "Next.js fit", "left": "Excellent", "right": "Good" },
+      { "label": "DX", "left": "Very polished", "right": "Mature and flexible" },
+      { "label": "Pricing", "left": "Usage-based tiers", "right": "Usage-based tiers" },
+      { "label": "Best fit", "left": "Next.js publishers", "right": "Broader Jamstack sites" }
+    ],
+    "monetizationAngle": "Hosting should stay predictable as traffic grows. Model pageviews, build minutes, and addon costs before scaling content volume.",
+    "relatedToolHrefs": ["/saas-pricing-calculator", "/robots-txt-generator", "/utm-builder"],
+    "keywords": ["vercel vs netlify", "jamstack hosting", "nextjs deploy"]
+  },
+  {
+    "slug": "supabase-vs-firebase",
+    "title": "Supabase vs Firebase",
+    "description": "Compare Supabase and Firebase for auth, realtime data, mobile backends, and indie app launches.",
+    "productA": "Supabase",
+    "productB": "Firebase",
+    "summary": "Supabase centers on Postgres, SQL, and open-source-friendly workflows. Firebase offers Google's realtime NoSQL database, mobile SDKs, and deep integration with Google Cloud services.",
+    "bestForA": [
+      "SQL-first developers",
+      "Postgres relational models",
+      "Open-source leaning teams"
+    ],
+    "bestForB": [
+      "Mobile apps with Google stack",
+      "Realtime NoSQL patterns",
+      "Rapid prototype backends"
+    ],
+    "decisionRows": [
+      { "label": "Database model", "left": "Postgres SQL", "right": "Firestore NoSQL" },
+      { "label": "Mobile SDKs", "left": "Growing", "right": "Very mature" },
+      { "label": "Auth", "left": "Built-in", "right": "Built-in" },
+      { "label": "Best fit", "left": "Web SaaS on SQL", "right": "Mobile-first apps" }
+    ],
+    "monetizationAngle": "Backend lock-in affects migration cost. Choose the data model that matches how you will monetize and report on users.",
+    "relatedToolHrefs": ["/startup-name-generator", "/saas-pricing-calculator", "/utm-builder"],
+    "keywords": ["supabase vs firebase", "backend as a service", "postgres vs firestore"]
+  },
+  {
+    "slug": "spyfu-vs-ubersuggest",
+    "title": "SpyFu vs Ubersuggest",
+    "description": "Compare SpyFu and Ubersuggest for competitor keyword research, PPC insights, and budget SEO stacks.",
+    "productA": "SpyFu",
+    "productB": "Ubersuggest",
+    "summary": "SpyFu emphasizes competitor keyword and ad history for SEO and PPC research. Ubersuggest packages keyword ideas, content suggestions, and site audits at a lower price point for solo operators.",
+    "bestForA": [
+      "Competitor keyword spying",
+      "PPC ad history research",
+      "Agencies benchmarking rivals"
+    ],
+    "bestForB": [
+      "Affordable all-in-one SEO",
+      "Bloggers and small publishers",
+      "Quick content ideas"
+    ],
+    "decisionRows": [
+      { "label": "Competitor intel", "left": "Core strength", "right": "Lighter snapshots" },
+      { "label": "PPC overlap", "left": "Strong", "right": "Limited" },
+      { "label": "Price", "left": "Mid-tier", "right": "Lower entry" },
+      { "label": "Best fit", "left": "Competitive research", "right": "Budget content SEO" }
+    ],
+    "monetizationAngle": "Competitor research should become pages you can rank. Turn findings into briefs, tools, and comparison content—not spreadsheets alone.",
+    "relatedToolHrefs": [
+      "/keyword-cluster-tool",
+      "/serp-intent-analyzer",
+      "/content-gap-finder",
+      "/blog-title-generator"
+    ],
+    "keywords": ["spyfu vs ubersuggest", "competitor SEO tools", "affordable keyword research"]
+  }
+]

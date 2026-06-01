@@ -582,6 +582,54 @@ export const EDITORIAL_TOPICS: EditorialTopic[] = [
     referenceUrls: []
   },
   {
+    id: "google-search-console-indexing-guide",
+    title:
+      "Google Search Console Indexing: How Long It Takes and Whether Sitemaps Help",
+    category: "seo",
+    angle:
+      "Explain how Google discovers and indexes new sites and URLs, what URL Inspection and Coverage reports show, typical timelines for brand-new domains vs established sites, the difference between discovered/crawled/indexed, when submitting a sitemap speeds things up vs when it only helps monitoring, and practical checks for new publishers (canonicals, robots, noindex, thin pages). Link to robots.txt generator, sitemap hub, and on-site SEO tools.",
+    referenceUrls: [
+      "https://search.google.com/search-console",
+      "https://developers.google.com/search/docs/crawling-indexing/sitemaps/overview"
+    ]
+  },
+  {
+    id: "google-analytics-data-delay-and-bots",
+    title:
+      "Google Analytics Data Delay: Why Reports Lag and What GA4 Does Not Track",
+    category: "digital-marketing",
+    angle:
+      "Explain GA4 processing delay for standard vs realtime reports, intraday data freshness, why numbers change after 24-48 hours, bot and spam filtering behavior, what Google does not count (many crawlers, preview bots, ad blockers, offline events unless configured), sampling and thresholds on high-traffic properties, and how to pair GA4 with Search Console and first-party analytics. Link to UTM builder and site tools where relevant.",
+    referenceUrls: [
+      "https://support.google.com/analytics/answer/11198161",
+      "https://support.google.com/analytics/answer/9304153"
+    ]
+  },
+  {
+    id: "how-long-until-site-appears-in-google-search",
+    title:
+      "How Long Until Your Site Appears in Google Search Results?",
+    category: "seo",
+    angle:
+      "Set realistic expectations for new domains, new blog posts, and tool pages: discovery, crawl budget, indexing vs ranking, first impressions in Search Console, why sitemaps and internal links matter, common blockers (noindex, duplicate content, weak internal linking, manual actions), and a week-by-week checklist for publishers. Compare indexing time vs ranking time clearly.",
+    referenceUrls: [
+      "https://developers.google.com/search/docs/fundamentals/seo-starter-guide",
+      "https://search.google.com/search-console"
+    ]
+  },
+  {
+    id: "best-seo-tools-for-small-publishers",
+    title:
+      "Best SEO Tools for Small Publishers: Famous Suites vs Lightweight Options",
+    category: "seo",
+    angle:
+      "Compare the most useful and well-known SEO tools (Semrush, Ahrefs, Moz, Screaming Frog, GSC, GA4) with lighter options and free on-site tools for keyword clustering, SERP intent, content gaps, briefs, titles, and meta descriptions. Explain when to pay for enterprise suites vs when a stack of focused tools and Search Console is enough for solo operators and small media sites. Link to /tools, keyword cluster, SERP intent, content gap, and relevant /compare pages.",
+    referenceUrls: [
+      "https://search.google.com/search-console",
+      "https://analytics.google.com"
+    ]
+  },
+  {
     id: "how-to-create-twitter-card-images",
     title: "How to Create Twitter/X Card Images That Make Links Look Better",
     category: "digital-marketing",

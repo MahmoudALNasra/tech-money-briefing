@@ -105,7 +105,7 @@ async function main() {
   const parser = new Parser({
     timeout: 15000,
     headers: {
-      "User-Agent": "AutomatedNewsAggregator/1.0 (+https://example.com; RSS validation)"
+      "User-Agent": "AutomatedNewsAggregator/1.0 (+https://techrevenuebrief.com; RSS validation)"
     }
   });
 

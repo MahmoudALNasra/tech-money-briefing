@@ -4,6 +4,8 @@ export type ComparisonRow = {
   right: string;
 };
 
+import generatedComparisonsJson from "@/data/generated-comparisons.json";
+
 export type ComparisonPage = {
   slug: string;
   title: string;
@@ -19,7 +21,7 @@ export type ComparisonPage = {
   keywords: string[];
 };
 
-export const COMPARISONS: ComparisonPage[] = [
+const CURATED_COMPARISONS: ComparisonPage[] = [
   {
     slug: "beehiiv-vs-substack",
     title: "Beehiiv vs Substack",
@@ -472,6 +474,32 @@ export const COMPARISONS: ComparisonPage[] = [
     keywords: ["frase vs surfer", "AI SEO tools comparison", "best AI SEO tools"]
   }
 ];
+
+function mergeComparisons(
+  curated: ComparisonPage[],
+  generated: ComparisonPage[]
+): ComparisonPage[] {
+  const seen = new Set<string>();
+  const merged: ComparisonPage[] = [];
+
+  for (const comparison of [...curated, ...generated]) {
+    if (seen.has(comparison.slug)) {
+      continue;
+    }
+
+    seen.add(comparison.slug);
+    merged.push(comparison);
+  }
+
+  return merged;
+}
+
+const GENERATED_COMPARISONS = generatedComparisonsJson as ComparisonPage[];
+
+export const COMPARISONS = mergeComparisons(
+  CURATED_COMPARISONS,
+  GENERATED_COMPARISONS
+);
 
 export function getComparisonBySlug(slug: string) {
   return COMPARISONS.find((comparison) => comparison.slug === slug);

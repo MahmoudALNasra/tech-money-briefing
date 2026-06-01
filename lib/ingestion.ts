@@ -41,7 +41,7 @@ const parser = new Parser({
   timeout: 15000,
   headers: {
     "User-Agent":
-      "AutomatedNewsAggregator/1.0 (+https://example.com; RSS ingestion)"
+      "AutomatedNewsAggregator/1.0 (+https://techrevenuebrief.com; RSS ingestion)"
   }
 });
 
@@ -317,7 +317,7 @@ export async function fetchOpenGraphImage(sourceUrl: string) {
     const response = await fetch(sourceUrl, {
       headers: {
         "User-Agent":
-          "AutomatedNewsAggregator/1.0 (+https://example.com; image discovery)"
+          "AutomatedNewsAggregator/1.0 (+https://techrevenuebrief.com; image discovery)"
       },
       signal: AbortSignal.timeout(10000)
     });
@@ -429,13 +429,17 @@ async function rewriteArticle(input: {
             "Write a highly specific, niche-targeted title for professionals in this industry.",
             "Summarize the original article quickly, then dedicate at least 50% of the output to explaining why this matters for professionals in this industry.",
             "Add original analysis, operational implications, buyer or operator context, and concrete risks or opportunities without inventing facts.",
+            "Follow Google's generative AI Search guidance: add a distinct, useful operator perspective instead of commodity summaries or recycled generic advice.",
+            "Do not use keyword stuffing, thin query-variation sections, AEO/GEO hacks, fake first-hand experience, or inauthentic mentions.",
             "Use markdown with ## and ### headings only. Start with a short direct-answer opening paragraph, then include a ## Quick Answer section, practical implications, what to watch next, and a ## FAQ section when the topic supports it.",
             "Use **bold** for key terms and metrics, ==highlighted phrases== for the most important takeaways, and one tasteful emoji in each major ## heading when it fits naturally.",
             "Use >> callout lines for one standout operator tip per article.",
             "Never escape markdown with backslashes.",
             "Use short paragraphs, clear subheadings, and concrete examples so the article renders with the same readable structure as other Tech Revenue Brief guides.",
+            "When a chart, screenshot, or video would improve understanding, describe the useful visual honestly rather than implying one is already present.",
             "Generate exactly 3 actionable key_takeaways as short bullet-ready strings.",
             "When relevant, include 2-4 natural internal markdown links between paragraphs to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator, /ai-headline-generator, /tools, or /compare/beehiiv-vs-substack. The links should help the reader take the next step and should not feel forced.",
+            "Internal markdown links must use root-relative paths only. Never use example.com or placeholder absolute URLs.",
             "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
             "Use this keyword research plan to cover variants and common misspellings naturally (misspellings only in FAQ or a short note):",
             JSON.stringify(keywordPlan),
