@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ComparisonView } from "@/components/compare/ComparisonView";
+import { BackButton } from "@/components/navigation/BackButton";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { getAllComparisonSlugs, getComparisonBySlug } from "@/lib/comparisons";
 import { absoluteUrl, siteConfig } from "@/lib/site";
@@ -27,6 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${comparison.title} Comparison`,
     description: `${comparison.description} - from ${siteConfig.name}.`,
+    publisher: siteConfig.name,
     keywords: comparison.keywords,
     robots: { index: true, follow: true },
     openGraph: {
@@ -61,6 +63,9 @@ export default async function ComparisonPage({ params }: PageProps) {
       monetizationContext="compare"
       newsletterSource={`compare_${comparison.slug}`}
     >
+      <div className="mb-6">
+        <BackButton fallbackHref="/compare" label="Back to comparisons" />
+      </div>
       <ComparisonView comparison={comparison} />
     </ToolPageShell>
   );

@@ -14,6 +14,7 @@ import { ArticleVideoSection } from "@/components/articles/ArticleVideoSection";
 import { RelatedArticles } from "@/components/articles/RelatedArticles";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { MonetizationRail } from "@/components/monetization/MonetizationRail";
+import { BackButton } from "@/components/navigation/BackButton";
 import { ScrollNewsletter } from "@/components/newsletter/ScrollNewsletter";
 import { ToolAssistant } from "@/components/tools/ToolAssistant";
 import { getArticleMedia } from "@/lib/article-media";
@@ -40,6 +41,22 @@ type ArticlePageProps = {
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+function articleKeywords(article: Awaited<ReturnType<typeof getArticleBySlug>>) {
+  if (!article) {
+    return [];
+  }
+
+  return [
+    article.title,
+    article.category,
+    ...article.key_takeaways,
+    siteConfig.name
+  ]
+    .map((keyword) => keyword.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
 
 function ArticleVisualBreak({
   label,
@@ -97,6 +114,8 @@ export async function generateMetadata({
   return {
     title: article.title,
     description: article.meta_description,
+    publisher: siteConfig.name,
+    keywords: articleKeywords(article),
     alternates: {
       canonical: url
     },
@@ -184,6 +203,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <ScrollNewsletter />
 
         <article className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
+          <div className="mb-5">
+            <BackButton
+              fallbackHref={`/${article.category}`}
+              label={`Back to ${formatCategory(article.category)}`}
+            />
+          </div>
+
           <Link
             href={`/${article.category}`}
             className="inline-flex rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700"

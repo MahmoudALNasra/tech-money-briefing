@@ -23,6 +23,19 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`
   },
   description: siteConfig.description,
+  applicationName: siteConfig.name,
+  publisher: siteConfig.name,
+  keywords: [
+    "Tech Revenue Brief",
+    "SEO tools",
+    "software comparisons",
+    "AI tools",
+    "publisher monetization",
+    "creator business",
+    "Google Search Console",
+    "Google Analytics",
+    "free SEO tools"
+  ],
   icons: {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
     shortcut: ["/icon.svg"],

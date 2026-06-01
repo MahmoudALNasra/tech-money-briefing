@@ -131,9 +131,19 @@ function ComparisonThumbnail({
           Compare
         </span>
       </div>
-      <div className="absolute inset-x-4 top-1/2 grid -translate-y-1/2 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
+      <div
+        className={`absolute inset-x-4 top-1/2 grid -translate-y-1/2 items-center ${
+          compact
+            ? "grid-cols-[minmax(68px,1fr)_52px_minmax(68px,1fr)] gap-2"
+            : "grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-3"
+        }`}
+      >
         <ProductLogoCard name={comparison.productA} compact={compact} />
-        <div className="grid h-14 w-14 place-items-center rounded-full border-4 border-white/40 bg-white text-base font-black text-ink shadow-2xl ring-4 ring-black/10">
+        <div
+          className={`grid place-items-center rounded-full border-4 border-white/40 bg-white font-black text-ink shadow-2xl ring-4 ring-black/10 ${
+            compact ? "h-12 w-12 text-sm" : "h-14 w-14 text-base"
+          }`}
+        >
           VS
         </div>
         <ProductLogoCard name={comparison.productB} compact={compact} />
@@ -241,10 +251,14 @@ function ProductLogoCard({
   const logoUrl = logoUrlForProduct(name);
 
   return (
-    <div className="min-w-0 rounded-[1.35rem] border border-white/35 bg-white/92 p-3 text-center shadow-2xl backdrop-blur">
+    <div
+      className={`flex min-w-0 flex-col items-center justify-center rounded-[1.35rem] border border-white/35 bg-white/92 text-center shadow-2xl backdrop-blur ${
+        compact ? "h-28 px-2 py-3" : "h-32 p-3"
+      }`}
+    >
       <div
-        className={`mx-auto grid place-items-center rounded-2xl bg-stone-950/5 ${
-          compact ? "h-14 w-14" : "h-16 w-16"
+        className={`grid shrink-0 place-items-center rounded-2xl bg-stone-950/5 ${
+          compact ? "h-12 w-12" : "h-16 w-16"
         }`}
       >
         {logoUrl ? (
@@ -253,14 +267,14 @@ function ProductLogoCard({
             alt={`${name} logo`}
             width={64}
             height={64}
-            className="h-10 w-10 rounded-xl object-contain"
+            className={`${compact ? "h-8 w-8" : "h-10 w-10"} rounded-xl object-contain`}
             unoptimized
           />
         ) : (
           <span className="text-lg font-black text-ink">{productInitials(name)}</span>
         )}
       </div>
-      <div className="mt-2 truncate text-xs font-black leading-tight text-ink">
+      <div className="mt-2 w-full truncate text-xs font-black leading-tight text-ink">
         {name}
       </div>
     </div>
