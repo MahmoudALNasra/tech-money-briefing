@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isLikelyBotUserAgent } from "@/lib/bot-detection";
 import {
   getClientIp,
   hashTrackingValue,
@@ -30,7 +31,8 @@ const ALLOWED_EVENTS = new Set([
   "meme_download",
   "share_caption_copy",
   "social_image_download",
-  "session_ping"
+  "session_ping",
+  "session_end"
 ]);
 
 function sanitizeText(value: unknown, max = 500) {
@@ -104,6 +106,11 @@ export async function POST(request: Request) {
     const pagePath = sanitizeText(body.page_path, 240) ?? "/";
     const parsedArticle = parseArticlePath(pagePath);
     const userAgent = request.headers.get("user-agent");
+
+    if (isLikelyBotUserAgent(userAgent)) {
+      return NextResponse.json({ ok: true, skipped: "bot" });
+    }
+
     const ip = getClientIp(request);
 
     const { error } = await supabase.from("visitor_events").insert({

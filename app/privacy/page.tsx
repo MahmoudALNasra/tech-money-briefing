@@ -38,7 +38,8 @@ export default function PrivacyPage() {
       <p>
         For analytics privacy, we store hashed versions of IP addresses and user
         agents rather than raw IP addresses in our first-party analytics
-        database.
+        database. We also attempt to exclude common crawlers, bots, and automated
+        fetch tools from first-party analytics counts.
       </p>
       <p>
         When visitors use a campaign or custom tracking link, we may record the

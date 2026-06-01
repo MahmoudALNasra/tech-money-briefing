@@ -2,11 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { formatDuration } from "@/lib/session-duration";
+
+type SessionDurationStats = {
+  session_count: number;
+  avg_seconds: number;
+  median_seconds: number;
+};
+
 type SummaryResponse = {
   generated_at: string;
   active_visitors_5m: number;
   page_views_30m: number;
   page_views_24h: number;
+  session_duration_30m: SessionDurationStats;
+  session_duration_24h: SessionDurationStats;
   top_pages: Array<{ label: string; count: number }>;
   top_referrers: Array<{ label: string; count: number }>;
   top_events: Array<{ label: string; count: number }>;
@@ -19,6 +29,7 @@ type SummaryResponse = {
     referrer: string | null;
     country: string | null;
     device_type: string | null;
+    metadata?: Record<string, unknown>;
     created_at: string;
   }>;
 };
@@ -224,7 +235,7 @@ export default function AnalyticsDashboardPage() {
           </div>
         ) : null}
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <MetricCard
             label="Active visitors"
             value={summary?.active_visitors_5m ?? 0}
@@ -239,6 +250,21 @@ export default function AnalyticsDashboardPage() {
             label="Page views (24h)"
             value={summary?.page_views_24h ?? 0}
             hint="All page loads in the last 24 hours"
+          />
+          <MetricCard
+            label="Avg session (30m)"
+            value={formatDuration(summary?.session_duration_30m?.avg_seconds ?? 0)}
+            hint={`Median ${formatDuration(summary?.session_duration_30m?.median_seconds ?? 0)} across ${summary?.session_duration_30m?.session_count ?? 0} sessions`}
+          />
+          <MetricCard
+            label="Avg session (24h)"
+            value={formatDuration(summary?.session_duration_24h?.avg_seconds ?? 0)}
+            hint={`Median ${formatDuration(summary?.session_duration_24h?.median_seconds ?? 0)} across ${summary?.session_duration_24h?.session_count ?? 0} sessions`}
+          />
+          <MetricCard
+            label="Session signals"
+            value="ping + end"
+            hint="session_ping keeps visitors active; session_end records time on site when they leave"
           />
         </div>
 
@@ -274,6 +300,10 @@ export default function AnalyticsDashboardPage() {
                     </td>
                     <td className="px-5 py-3 font-semibold text-ink">
                       {event.event_name}
+                      {event.event_name === "session_end" &&
+                      typeof event.metadata?.duration_seconds === "number"
+                        ? ` (${formatDuration(event.metadata.duration_seconds)})`
+                        : null}
                     </td>
                     <td className="px-5 py-3 max-w-xs truncate">
                       {event.page_path ?? "—"}

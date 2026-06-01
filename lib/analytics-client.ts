@@ -1,8 +1,11 @@
 "use client";
 
+import { isLikelyBotUserAgent } from "@/lib/bot-detection";
+
 const ANALYTICS_OPT_OUT_KEY = "tech-revenue-brief-disable-analytics";
 const VISITOR_ID_KEY = "tech-revenue-brief-visitor-id";
 const SESSION_ID_KEY = "tech-revenue-brief-session-id";
+const SESSION_STARTED_AT_KEY = "tech-revenue-brief-session-started-at";
 
 export type AnalyticsClientEvent = {
   event: string;
@@ -60,7 +63,31 @@ export function getAnalyticsSessionId() {
 
   const nextId = createId();
   window.sessionStorage.setItem(SESSION_ID_KEY, nextId);
+  window.sessionStorage.setItem(SESSION_STARTED_AT_KEY, String(Date.now()));
   return nextId;
+}
+
+export function getAnalyticsSessionStartedAt() {
+  if (typeof window === "undefined") {
+    return Date.now();
+  }
+
+  const existing = window.sessionStorage.getItem(SESSION_STARTED_AT_KEY);
+
+  if (existing) {
+    return Number.parseInt(existing, 10) || Date.now();
+  }
+
+  const startedAt = Date.now();
+  window.sessionStorage.setItem(SESSION_STARTED_AT_KEY, String(startedAt));
+  return startedAt;
+}
+
+export function getAnalyticsSessionDurationSeconds() {
+  return Math.max(
+    1,
+    Math.round((Date.now() - getAnalyticsSessionStartedAt()) / 1000)
+  );
 }
 
 function getUtmParams() {
@@ -98,7 +125,11 @@ function getDeviceType() {
 }
 
 export function trackAnalyticsEvent(event: AnalyticsClientEvent) {
-  if (analyticsDisabled() || typeof window === "undefined") {
+  if (
+    analyticsDisabled() ||
+    typeof window === "undefined" ||
+    isLikelyBotUserAgent(navigator.userAgent)
+  ) {
     return;
   }
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { computeSessionDurationStats } from "@/lib/session-duration";
 import { isAnalyticsDashboardAuthorized } from "@/lib/visitor-analytics";
 import { supabase } from "@/lib/supabase";
 
@@ -103,18 +104,27 @@ export async function GET(request: Request) {
 
   const topEvents = countBy(
     recentRows
-      .filter((row) => row.event_name !== "page_view" && row.event_name !== "session_ping")
+      .filter(
+        (row) =>
+          row.event_name !== "page_view" &&
+          row.event_name !== "session_ping" &&
+          row.event_name !== "session_end"
+      )
       .map((row) => row.event_name),
     10
   );
 
   const topCountries = countBy(recentRows.map((row) => row.country), 8);
+  const sessionDuration30m = computeSessionDurationStats(last30Rows);
+  const sessionDuration24h = computeSessionDurationStats(rows);
 
   return NextResponse.json({
     generated_at: new Date().toISOString(),
     active_visitors_5m: activeSessions.size,
     page_views_30m: pageViews30,
     page_views_24h: pageViews24,
+    session_duration_30m: sessionDuration30m,
+    session_duration_24h: sessionDuration24h,
     top_pages: topPages,
     top_referrers: topReferrers,
     top_events: topEvents,
