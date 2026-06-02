@@ -270,6 +270,21 @@ export const getArticleBySlug = cache(
   )
 );
 
+export async function getPublishedArticleBySourceUrl(sourceUrl: string) {
+  const { data, error } = await supabase
+    .from("articles")
+    .select(articleSummaryColumns)
+    .eq("status", "published")
+    .eq("source_url", sourceUrl)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return mapArticleSummary(data as Record<string, unknown>);
+}
+
 function sanitizeSearchTerm(query: string) {
   return query
     .trim()

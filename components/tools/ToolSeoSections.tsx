@@ -1,14 +1,16 @@
 import Link from "next/link";
 
-import { EDITORIAL_TOPICS } from "@/data/editorial-topics";
+import { EDITORIAL_TOPICS, editorialSourceUrl } from "@/data/editorial-topics";
+import { getPublishedArticleBySourceUrl } from "@/lib/articles";
 import { COMPARISONS } from "@/lib/comparisons";
+import { formatCategory } from "@/lib/format";
 import { getToolPageSeo } from "@/lib/tool-pages";
 
 type ToolSeoSectionsProps = {
   toolHref: string;
 };
 
-export function ToolSeoSections({ toolHref }: ToolSeoSectionsProps) {
+export async function ToolSeoSections({ toolHref }: ToolSeoSectionsProps) {
   const seo = getToolPageSeo(toolHref);
 
   if (!seo) {
@@ -22,6 +24,15 @@ export function ToolSeoSections({ toolHref }: ToolSeoSectionsProps) {
   const companionTopics = (seo.editorialTopicIds ?? [])
     .map((id) => EDITORIAL_TOPICS.find((topic) => topic.id === id))
     .filter((topic): topic is (typeof EDITORIAL_TOPICS)[number] => Boolean(topic));
+  const companionGuides = await Promise.all(
+    companionTopics.map(async (topic) => {
+      const article = await getPublishedArticleBySourceUrl(
+        editorialSourceUrl(topic.id)
+      );
+
+      return { topic, article };
+    })
+  );
 
   return (
     <div className="mt-14 space-y-10 border-t border-stone-200 pt-12">
@@ -83,14 +94,23 @@ export function ToolSeoSections({ toolHref }: ToolSeoSectionsProps) {
             or browse SEO briefings as they publish.
           </p>
           <ul className="mt-4 space-y-2">
-            {companionTopics.map((topic) => (
+            {companionGuides.map(({ topic, article }) => (
               <li key={topic.id}>
                 <Link
-                  href={`/search?q=${encodeURIComponent(topic.title)}`}
+                  href={
+                    article
+                      ? `/${article.category}/${article.slug}`
+                      : `/${topic.category}`
+                  }
                   className="text-sm font-semibold text-ink underline decoration-stone-300 underline-offset-4 hover:decoration-ink"
                 >
                   {topic.title}
                 </Link>
+                {!article ? (
+                  <span className="ml-2 text-xs font-semibold text-stone-500">
+                    Publishing soon - browse {formatCategory(topic.category)}
+                  </span>
+                ) : null}
               </li>
             ))}
           </ul>

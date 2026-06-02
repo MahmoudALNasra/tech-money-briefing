@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { ContentBriefGenerator } from "@/components/tools/TextGenerators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
-import { siteConfig } from "@/lib/site";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Free Content Brief Generator",
@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     "content outline tool",
     "free SEO content tool"
   ],
+  alternates: {
+    canonical: absoluteUrl("/content-brief-generator")
+  },
   robots: { index: true, follow: true }
 };
 
