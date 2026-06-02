@@ -440,6 +440,7 @@ async function rewriteArticle(input: {
             "Generate exactly 3 actionable key_takeaways as short bullet-ready strings.",
             "When relevant, include 2-4 natural internal markdown links between paragraphs to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator, /ai-headline-generator, /tools, or /compare/beehiiv-vs-substack. The links should help the reader take the next step and should not feel forced.",
             "Internal markdown links must use root-relative paths only. Never use example.com or placeholder absolute URLs.",
+            "When discussing Substack, Zoho, Google Workspace, Google Ads, Cursor, DigitalOcean, or Shopify, mention that Tech Revenue Brief may provide a relevant referral link or referral guide on the page and keep the recommendation balanced.",
             "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
             "Use this keyword research plan to cover variants and common misspellings naturally (misspellings only in FAQ or a short note):",
             JSON.stringify(keywordPlan),

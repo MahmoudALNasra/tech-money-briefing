@@ -9,6 +9,7 @@ import { ArticleHumanLayer } from "@/components/articles/ArticleHumanLayer";
 import { ArticleShareToolbar } from "@/components/articles/ArticleShareToolbar";
 import { ArticleInlineMedia } from "@/components/articles/ArticleInlineMedia";
 import { ArticleInternalLinks } from "@/components/articles/ArticleInternalLinks";
+import { ArticleReferralLinks } from "@/components/articles/ArticleReferralLinks";
 import { ArticleToolRecommendations } from "@/components/articles/ArticleToolRecommendations";
 import { ArticleVideoSection } from "@/components/articles/ArticleVideoSection";
 import { RelatedArticles } from "@/components/articles/RelatedArticles";
@@ -396,6 +397,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <ArticleHumanLayer article={article} variant="full" />
 
           <ArticleToolRecommendations article={article} />
+
+          <ArticleReferralLinks article={article} />
 
           <ArticleInternalLinks article={article} />
 

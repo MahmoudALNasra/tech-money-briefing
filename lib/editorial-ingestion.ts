@@ -421,6 +421,7 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
             "Aim for 900-1300 words. Be specific and actionable.",
             "Include 2-4 natural internal markdown links between paragraphs to on-site tools, hub pages, or comparisons when relevant (paths like /ai-headline-generator, /tools, /compare/beehiiv-vs-substack). The links should be highlighted by normal markdown syntax and should help the reader take the next step.",
             "Internal markdown links must use root-relative paths only. Never use example.com or placeholder absolute URLs.",
+            "When discussing Substack, Zoho, Google Workspace, Google Ads, Cursor, DigitalOcean, or Shopify, mention that Tech Revenue Brief may provide a relevant referral link or referral guide on the page and keep the recommendation balanced.",
             "Do not cite fake statistics or fabricated quotes.",
             "End content with: Source: Tech Revenue Brief Editorial.",
             "Generate exactly 3 actionable key_takeaways.",

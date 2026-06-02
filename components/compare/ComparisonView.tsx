@@ -3,6 +3,11 @@ import Link from "next/link";
 import { ToolCard } from "@/components/tools/ToolCard";
 import type { ComparisonPage } from "@/lib/comparisons";
 import { FREE_TOOLS } from "@/lib/free-tools";
+import {
+  getReferralLinkForProduct,
+  isExternalReferralUrl,
+  type ReferralLink
+} from "@/lib/referral-links";
 
 type ComparisonViewProps = {
   comparison: ComparisonPage;
@@ -12,6 +17,10 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
   const relatedTools = FREE_TOOLS.filter((tool) =>
     comparison.relatedToolHrefs.includes(tool.href)
   );
+  const referralLinks = [
+    getReferralLinkForProduct(comparison.productA),
+    getReferralLinkForProduct(comparison.productB)
+  ].filter((referral): referral is ReferralLink => Boolean(referral));
 
   return (
     <div className="space-y-10">
@@ -158,6 +167,46 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
           {comparison.monetizationAngle}
         </p>
       </section>
+
+      {referralLinks.length > 0 ? (
+        <section className="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700">
+            Referral options
+          </p>
+          <h2 className="mt-2 text-2xl font-black text-ink">
+            Try the tools from this comparison
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-stone-700">
+            Some links may be referral links. They can support Tech Revenue
+            Brief, but you should still compare the current pricing, terms, and
+            product fit before signing up.
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {referralLinks.map((referral) => (
+              <a
+                key={referral.product}
+                href={referral.href}
+                target={
+                  isExternalReferralUrl(referral.href) ? "_blank" : undefined
+                }
+                rel={
+                  isExternalReferralUrl(referral.href)
+                    ? "sponsored nofollow noopener noreferrer"
+                    : undefined
+                }
+                className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400"
+              >
+                <span className="text-sm font-black text-ink">
+                  Open {referral.product}
+                </span>
+                <span className="mt-2 block text-xs leading-5 text-stone-600">
+                  {referral.disclosure}
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {relatedTools.length > 0 ? (
         <section>
