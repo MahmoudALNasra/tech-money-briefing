@@ -30,6 +30,8 @@ type StepResult = {
   code: number | null;
 };
 
+type Step = () => Promise<StepResult>;
+
 function runNpmScript(
   scriptArgs: string[],
   label: string
@@ -97,10 +99,10 @@ async function main() {
   const skipGsc = hasFlag("skip-gsc");
   const dryRun = hasFlag("dry-run");
 
-  const steps: Promise<StepResult>[] = [];
+  const steps: Step[] = [];
 
   if (!skipTrends) {
-    steps.push(
+    steps.push(() =>
       runNpmScript(
         [
           "ingest:trends",
@@ -114,14 +116,14 @@ async function main() {
   }
 
   if (!skipIngest) {
-    steps.push(runNpmScript(["ingest"], "RSS ingestion"));
-    steps.push(
+    steps.push(() => runNpmScript(["ingest"], "RSS ingestion"));
+    steps.push(() =>
       runNpmScript(["ingest:trends:backfill-images"], "Trends image backfill")
     );
   }
 
   if (!skipEditorial) {
-    steps.push(
+    steps.push(() =>
       runInlineStep("Editorial articles", async () => {
         const { runEditorialIngestion } = await import("../lib/editorial-ingestion");
         const result = await runEditorialIngestion({
@@ -133,7 +135,7 @@ async function main() {
   }
 
   if (!skipCompare) {
-    steps.push(
+    steps.push(() =>
       runInlineStep("Comparison pages", async () => {
         const { generateComparisons } = await import("../lib/comparison-generator");
         const result = await generateComparisons({
@@ -146,7 +148,7 @@ async function main() {
   }
 
   if (!skipSeoImages) {
-    steps.push(
+    steps.push(() =>
       runInlineStep("SEO images", async () => {
         const { generateSeoImages } = await import("../lib/seo-image-generator");
         const result = await generateSeoImages({ limit: seoImageLimit });
@@ -155,32 +157,32 @@ async function main() {
     );
   }
 
-  steps.push(
+  steps.push(() =>
     runNpmScript(
       ["articles:fix-broken-images", "--", `--limit=${fixImagesLimit}`],
       "Fix broken article images"
     )
   );
 
-  steps.push(
+  steps.push(() =>
     runNpmScript(["articles:backfill-hero-images"], "Backfill hero images")
   );
 
   if (!skipGsc) {
-    steps.push(runNpmScript(["seo:gsc-improve:dry"], "GSC improve dry-run"));
-    steps.push(
+    steps.push(() => runNpmScript(["seo:gsc-improve:dry"], "GSC improve dry-run"));
+    steps.push(() =>
       runNpmScript(
         ["seo:gsc-improve", "--", `--limit=${gscImproveLimit}`],
         "GSC improve"
       )
     );
-    steps.push(runNpmScript(["seo:gsc-create:dry"], "GSC create dry-run"));
+    steps.push(() => runNpmScript(["seo:gsc-create:dry"], "GSC create dry-run"));
   }
 
   const results: StepResult[] = [];
 
   for (const step of steps) {
-    results.push(await step);
+    results.push(await step());
   }
 
   console.log("\n[content:compound] Summary");

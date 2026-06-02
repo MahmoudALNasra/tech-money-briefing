@@ -44,6 +44,7 @@ const TREND_CATEGORY = "others";
 const GOOGLE_TRENDS_SOURCE = "Google Trends";
 const BROAD_TREND_LIMIT = 5;
 const CATEGORY_TREND_LIMIT = 5;
+const MIN_TREND_WORD_COUNT = 550;
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   "ai-tools": ["ai", "chatgpt", "claude", "gpt", "llm", "openai", "copilot", "gemini"],
@@ -143,6 +144,16 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
 
     try {
       const article = await writeTrendArticle(hydratedSeed);
+      const qualityIssues = getTrendArticleQualityIssues(hydratedSeed, article);
+
+      if (qualityIssues.length > 0) {
+        result.skipped += 1;
+        result.errors.push(
+          `${hydratedSeed.title}: skipped weak trend article (${qualityIssues.join(", ")})`
+        );
+        continue;
+      }
+
       const slug = await createUniqueSlug(article.title);
       const shareId = await createUniqueShareId();
       const sourceImageUrl = await fetchOpenGraphImage(
@@ -546,7 +557,8 @@ function intentInstructions(intent: string) {
     "Open with a 35-60 word direct-answer paragraph that includes the exact query or the closest natural phrase.",
     "Include a clear '## Quick Answer' section and a '## FAQ' section with 3-4 question-style subheadings.",
     "Use related search phrases naturally in headings, not as a keyword list.",
-    "Aim for 650-900 words unless the source context is too thin; never pad with invented facts."
+    "Aim for 650-900 words unless the source context is too thin; never pad with invented facts.",
+    "Make the page index-worthy: add original context, verification steps, what changed, what to watch next, and internal links when useful instead of publishing a commodity summary."
   ];
 
   if (intent === "hours-and-status") {
@@ -645,6 +657,8 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
             "Optimize for search intent first, then add useful context for publishers, creators, founders, marketers, or operators when it fits naturally.",
             "Do not claim exact ranking positions unless provided. Treat traffic numbers as approximate demand signals.",
             "Include why people are searching, what readers should know now, how to verify key facts, what to watch next, and risks of overreacting to a spike.",
+            "Do not publish a thin page: if the source context is weak, make the article useful with clear definitions, verification paths, timelines, related questions, and practical next steps while staying honest about what is unknown.",
+            "Add a short section that explains why this page is useful beyond the trend spike, such as what readers should verify, save, compare, or monitor next.",
             "Use short paragraphs and include 5-8 markdown-style section headings inside content. Do not escape markdown characters.",
             "Use **bold** for key terms, ==highlighted phrases== for the most important takeaways, one tasteful emoji per major ## heading when natural, and >> callout lines for standout tips.",
             "Keep the same reader-friendly structure as Tech Revenue Brief guides: direct answer first, ## Quick Answer, practical context, what to watch next, and ## FAQ when the query supports it.",
@@ -715,6 +729,52 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
     meta_description: metaDescription,
     key_takeaways: keyTakeaways
   };
+}
+
+function getTrendArticleQualityIssues(seed: TrendSeed, article: TrendArticle) {
+  const issues: string[] = [];
+  const content = article.content.trim();
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+  const headingCount = (content.match(/^##\s+/gm) ?? []).length;
+  const questionHeadingCount = (content.match(/^###\s+.+\?/gm) ?? []).length;
+  const normalizedContent = content.toLowerCase();
+  const normalizedTitle = article.title.toLowerCase();
+  const queryTokens = seed.title
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((token) => token.length >= 3)
+    .slice(0, 4);
+
+  if (wordCount < MIN_TREND_WORD_COUNT) {
+    issues.push(`under ${MIN_TREND_WORD_COUNT} words`);
+  }
+
+  if (!/^##\s+quick answer\b/im.test(content)) {
+    issues.push("missing Quick Answer");
+  }
+
+  if (!/^##\s+faq\b/im.test(content)) {
+    issues.push("missing FAQ");
+  }
+
+  if (headingCount < 4) {
+    issues.push("not enough sections");
+  }
+
+  if (questionHeadingCount < 2) {
+    issues.push("not enough question headings");
+  }
+
+  if (
+    queryTokens.length > 0 &&
+    !queryTokens.some(
+      (token) => normalizedTitle.includes(token) && normalizedContent.includes(token)
+    )
+  ) {
+    issues.push("weak query match");
+  }
+
+  return issues;
 }
 
 function stringifyAiField(value: unknown): string {

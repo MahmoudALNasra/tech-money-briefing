@@ -17,14 +17,38 @@
       "Teams with dedicated DevOps"
     ],
     "decisionRows": [
-      { "label": "Time to launch", "left": "Faster defaults", "right": "More assembly required" },
-      { "label": "Flexibility", "left": "Opinionated platform", "right": "Very high" },
-      { "label": "Postgres", "left": "Core product", "right": "RDS or self-managed" },
-      { "label": "Best fit", "left": "Product teams shipping fast", "right": "Custom infra at scale" }
+      {
+        "label": "Time to launch",
+        "left": "Faster defaults",
+        "right": "More assembly required"
+      },
+      {
+        "label": "Flexibility",
+        "left": "Opinionated platform",
+        "right": "Very high"
+      },
+      {
+        "label": "Postgres",
+        "left": "Core product",
+        "right": "RDS or self-managed"
+      },
+      {
+        "label": "Best fit",
+        "left": "Product teams shipping fast",
+        "right": "Custom infra at scale"
+      }
     ],
     "monetizationAngle": "Backend choices affect margin and ship speed. Model user growth and infra cost before committing to a cloud stack.",
-    "relatedToolHrefs": ["/saas-pricing-calculator", "/utm-builder", "/robots-txt-generator"],
-    "keywords": ["supabase vs aws", "postgres backend comparison", "serverless database"]
+    "relatedToolHrefs": [
+      "/saas-pricing-calculator",
+      "/utm-builder",
+      "/robots-txt-generator"
+    ],
+    "keywords": [
+      "supabase vs aws",
+      "postgres backend comparison",
+      "serverless database"
+    ]
   },
   {
     "slug": "snowflake-vs-bigquery",
@@ -44,14 +68,38 @@
       "Teams using GCP marketing data"
     ],
     "decisionRows": [
-      { "label": "Cloud tie-in", "left": "Multi-cloud", "right": "GCP-first" },
-      { "label": "Pricing model", "left": "Credit-based compute", "right": "On-demand + slots" },
-      { "label": "SQL ergonomics", "left": "Excellent", "right": "Excellent" },
-      { "label": "Best fit", "left": "Warehouse-first BI", "right": "GCP analytics pipelines" }
+      {
+        "label": "Cloud tie-in",
+        "left": "Multi-cloud",
+        "right": "GCP-first"
+      },
+      {
+        "label": "Pricing model",
+        "left": "Credit-based compute",
+        "right": "On-demand + slots"
+      },
+      {
+        "label": "SQL ergonomics",
+        "left": "Excellent",
+        "right": "Excellent"
+      },
+      {
+        "label": "Best fit",
+        "left": "Warehouse-first BI",
+        "right": "GCP analytics pipelines"
+      }
     ],
     "monetizationAngle": "Warehouse spend should tie to measurable reporting ROI. Start with the queries that improve revenue decisions, not vanity dashboards.",
-    "relatedToolHrefs": ["/utm-builder", "/saas-pricing-calculator", "/keyword-cluster-tool"],
-    "keywords": ["snowflake vs bigquery", "data warehouse comparison", "analytics stack"]
+    "relatedToolHrefs": [
+      "/utm-builder",
+      "/saas-pricing-calculator",
+      "/keyword-cluster-tool"
+    ],
+    "keywords": [
+      "snowflake vs bigquery",
+      "data warehouse comparison",
+      "analytics stack"
+    ]
   },
   {
     "slug": "ubersuggest-vs-moz",
@@ -71,10 +119,26 @@
       "Structured SEO learning"
     ],
     "decisionRows": [
-      { "label": "Price", "left": "Lower entry", "right": "Mid-tier suite" },
-      { "label": "Keyword research", "left": "Good for starters", "right": "Solid research tools" },
-      { "label": "Authority metrics", "left": "Basic", "right": "Moz-branded metrics" },
-      { "label": "Best fit", "left": "Budget publishers", "right": "Growing SEO teams" }
+      {
+        "label": "Price",
+        "left": "Lower entry",
+        "right": "Mid-tier suite"
+      },
+      {
+        "label": "Keyword research",
+        "left": "Good for starters",
+        "right": "Solid research tools"
+      },
+      {
+        "label": "Authority metrics",
+        "left": "Basic",
+        "right": "Moz-branded metrics"
+      },
+      {
+        "label": "Best fit",
+        "left": "Budget publishers",
+        "right": "Growing SEO teams"
+      }
     ],
     "monetizationAngle": "Paid SEO tools should feed publishable pages. Pair research with free title, meta, and brief generators to ship faster.",
     "relatedToolHrefs": [
@@ -83,7 +147,11 @@
       "/meta-description-generator",
       "/serp-intent-analyzer"
     ],
-    "keywords": ["ubersuggest vs moz", "affordable SEO tools", "keyword research comparison"]
+    "keywords": [
+      "ubersuggest vs moz",
+      "affordable SEO tools",
+      "keyword research comparison"
+    ]
   },
   {
     "slug": "screaming-frog-vs-sitebulb",
@@ -103,14 +171,38 @@
       "Agencies presenting to clients"
     ],
     "decisionRows": [
-      { "label": "Audit depth", "left": "Very deep", "right": "Deep with guidance" },
-      { "label": "Reporting", "left": "Export-heavy", "right": "Visual-first" },
-      { "label": "Learning curve", "left": "Steeper", "right": "More guided" },
-      { "label": "Best fit", "left": "Power users", "right": "Clarity-first teams" }
+      {
+        "label": "Audit depth",
+        "left": "Very deep",
+        "right": "Deep with guidance"
+      },
+      {
+        "label": "Reporting",
+        "left": "Export-heavy",
+        "right": "Visual-first"
+      },
+      {
+        "label": "Learning curve",
+        "left": "Steeper",
+        "right": "More guided"
+      },
+      {
+        "label": "Best fit",
+        "left": "Power users",
+        "right": "Clarity-first teams"
+      }
     ],
     "monetizationAngle": "Technical fixes should connect to indexation and revenue pages. Crawl templates, tools, and comparison hubs—not orphan URLs.",
-    "relatedToolHrefs": ["/robots-txt-generator", "/meta-description-generator", "/keyword-cluster-tool"],
-    "keywords": ["screaming frog vs sitebulb", "technical SEO crawler", "site audit tools"]
+    "relatedToolHrefs": [
+      "/robots-txt-generator",
+      "/meta-description-generator",
+      "/keyword-cluster-tool"
+    ],
+    "keywords": [
+      "screaming frog vs sitebulb",
+      "technical SEO crawler",
+      "site audit tools"
+    ]
   },
   {
     "slug": "google-analytics-vs-plausible",
@@ -130,14 +222,38 @@
       "Teams avoiding complex GA4 UI"
     ],
     "decisionRows": [
-      { "label": "Complexity", "left": "Higher", "right": "Lower" },
-      { "label": "Privacy", "left": "Consent-heavy regions need care", "right": "Privacy-first positioning" },
-      { "label": "Cost", "left": "Free tier", "right": "Paid SaaS" },
-      { "label": "Best fit", "left": "Growth marketers", "right": "Simple publisher metrics" }
+      {
+        "label": "Complexity",
+        "left": "Higher",
+        "right": "Lower"
+      },
+      {
+        "label": "Privacy",
+        "left": "Consent-heavy regions need care",
+        "right": "Privacy-first positioning"
+      },
+      {
+        "label": "Cost",
+        "left": "Free tier",
+        "right": "Paid SaaS"
+      },
+      {
+        "label": "Best fit",
+        "left": "Growth marketers",
+        "right": "Simple publisher metrics"
+      }
     ],
     "monetizationAngle": "Pick analytics that match decisions you will actually make. Pair traffic data with revenue calculators and UTM discipline.",
-    "relatedToolHrefs": ["/utm-builder", "/cpm-rpm-calculator", "/adsense-revenue-calculator"],
-    "keywords": ["google analytics vs plausible", "GA4 alternatives", "privacy analytics"]
+    "relatedToolHrefs": [
+      "/utm-builder",
+      "/cpm-rpm-calculator",
+      "/adsense-revenue-calculator"
+    ],
+    "keywords": [
+      "google analytics vs plausible",
+      "GA4 alternatives",
+      "privacy analytics"
+    ]
   },
   {
     "slug": "vercel-vs-netlify",
@@ -157,14 +273,38 @@
       "Multi-framework portfolios"
     ],
     "decisionRows": [
-      { "label": "Next.js fit", "left": "Excellent", "right": "Good" },
-      { "label": "DX", "left": "Very polished", "right": "Mature and flexible" },
-      { "label": "Pricing", "left": "Usage-based tiers", "right": "Usage-based tiers" },
-      { "label": "Best fit", "left": "Next.js publishers", "right": "Broader Jamstack sites" }
+      {
+        "label": "Next.js fit",
+        "left": "Excellent",
+        "right": "Good"
+      },
+      {
+        "label": "DX",
+        "left": "Very polished",
+        "right": "Mature and flexible"
+      },
+      {
+        "label": "Pricing",
+        "left": "Usage-based tiers",
+        "right": "Usage-based tiers"
+      },
+      {
+        "label": "Best fit",
+        "left": "Next.js publishers",
+        "right": "Broader Jamstack sites"
+      }
     ],
     "monetizationAngle": "Hosting should stay predictable as traffic grows. Model pageviews, build minutes, and addon costs before scaling content volume.",
-    "relatedToolHrefs": ["/saas-pricing-calculator", "/robots-txt-generator", "/utm-builder"],
-    "keywords": ["vercel vs netlify", "jamstack hosting", "nextjs deploy"]
+    "relatedToolHrefs": [
+      "/saas-pricing-calculator",
+      "/robots-txt-generator",
+      "/utm-builder"
+    ],
+    "keywords": [
+      "vercel vs netlify",
+      "jamstack hosting",
+      "nextjs deploy"
+    ]
   },
   {
     "slug": "supabase-vs-firebase",
@@ -184,14 +324,38 @@
       "Rapid prototype backends"
     ],
     "decisionRows": [
-      { "label": "Database model", "left": "Postgres SQL", "right": "Firestore NoSQL" },
-      { "label": "Mobile SDKs", "left": "Growing", "right": "Very mature" },
-      { "label": "Auth", "left": "Built-in", "right": "Built-in" },
-      { "label": "Best fit", "left": "Web SaaS on SQL", "right": "Mobile-first apps" }
+      {
+        "label": "Database model",
+        "left": "Postgres SQL",
+        "right": "Firestore NoSQL"
+      },
+      {
+        "label": "Mobile SDKs",
+        "left": "Growing",
+        "right": "Very mature"
+      },
+      {
+        "label": "Auth",
+        "left": "Built-in",
+        "right": "Built-in"
+      },
+      {
+        "label": "Best fit",
+        "left": "Web SaaS on SQL",
+        "right": "Mobile-first apps"
+      }
     ],
     "monetizationAngle": "Backend lock-in affects migration cost. Choose the data model that matches how you will monetize and report on users.",
-    "relatedToolHrefs": ["/startup-name-generator", "/saas-pricing-calculator", "/utm-builder"],
-    "keywords": ["supabase vs firebase", "backend as a service", "postgres vs firestore"]
+    "relatedToolHrefs": [
+      "/startup-name-generator",
+      "/saas-pricing-calculator",
+      "/utm-builder"
+    ],
+    "keywords": [
+      "supabase vs firebase",
+      "backend as a service",
+      "postgres vs firestore"
+    ]
   },
   {
     "slug": "spyfu-vs-ubersuggest",
@@ -211,10 +375,26 @@
       "Quick content ideas"
     ],
     "decisionRows": [
-      { "label": "Competitor intel", "left": "Core strength", "right": "Lighter snapshots" },
-      { "label": "PPC overlap", "left": "Strong", "right": "Limited" },
-      { "label": "Price", "left": "Mid-tier", "right": "Lower entry" },
-      { "label": "Best fit", "left": "Competitive research", "right": "Budget content SEO" }
+      {
+        "label": "Competitor intel",
+        "left": "Core strength",
+        "right": "Lighter snapshots"
+      },
+      {
+        "label": "PPC overlap",
+        "left": "Strong",
+        "right": "Limited"
+      },
+      {
+        "label": "Price",
+        "left": "Mid-tier",
+        "right": "Lower entry"
+      },
+      {
+        "label": "Best fit",
+        "left": "Competitive research",
+        "right": "Budget content SEO"
+      }
     ],
     "monetizationAngle": "Competitor research should become pages you can rank. Turn findings into briefs, tools, and comparison content—not spreadsheets alone.",
     "relatedToolHrefs": [
@@ -223,6 +403,115 @@
       "/content-gap-finder",
       "/blog-title-generator"
     ],
-    "keywords": ["spyfu vs ubersuggest", "competitor SEO tools", "affordable keyword research"]
+    "keywords": [
+      "spyfu vs ubersuggest",
+      "competitor SEO tools",
+      "affordable keyword research"
+    ]
+  },
+  {
+    "slug": "cloudflare-vs-aws-cloudfront",
+    "title": "Cloudflare vs AWS CloudFront",
+    "description": "Compare Cloudflare and AWS CloudFront for CDN, caching, and security solutions tailored for publishers.",
+    "productA": "Cloudflare",
+    "productB": "AWS CloudFront",
+    "summary": "Cloudflare and AWS CloudFront are both leading content delivery networks (CDNs) offering robust caching and security features. While Cloudflare excels in ease of use and integrated security, AWS CloudFront provides deep integration with other AWS services, making it ideal for users already within the AWS ecosystem.",
+    "bestForA": [
+      "Publishers looking for an easy-to-implement solution.",
+      "Websites needing strong security features like DDoS protection.",
+      "Users who prefer a straightforward pricing model."
+    ],
+    "bestForB": [
+      "Organizations already using AWS services.",
+      "Publishers requiring advanced customization and control.",
+      "Businesses that need scalable solutions for high traffic."
+    ],
+    "decisionRows": [
+      {
+        "label": "Ease of Use",
+        "left": "Cloudflare offers a user-friendly interface and quick setup.",
+        "right": "AWS CloudFront may require more technical knowledge to configure."
+      },
+      {
+        "label": "Security Features",
+        "left": "Cloudflare includes built-in security features like DDoS protection.",
+        "right": "AWS CloudFront relies on AWS Shield for additional security layers."
+      },
+      {
+        "label": "Integration with Other Services",
+        "left": "Cloudflare integrates well with various CMS platforms.",
+        "right": "AWS CloudFront works seamlessly with other AWS services for enhanced functionality."
+      },
+      {
+        "label": "Pricing Model",
+        "left": "Cloudflare offers a straightforward pricing structure.",
+        "right": "AWS CloudFront pricing can be complex based on usage."
+      }
+    ],
+    "monetizationAngle": "Choosing the right CDN can significantly impact your site's performance and security, leading to better user experience and potentially higher revenue.",
+    "relatedToolHrefs": [
+      "/cpm-rpm-calculator",
+      "/adsense-revenue-calculator",
+      "/newsletter-revenue-calculator",
+      "/content-gap-finder"
+    ],
+    "keywords": [
+      "Cloudflare vs AWS CloudFront",
+      "CDN comparison",
+      "best CDN for publishers"
+    ]
+  },
+  {
+    "siteName": "Tech Revenue Brief",
+    "slug": "matomo-vs-google-analytics",
+    "title": "Matomo vs Google Analytics",
+    "description": "Explore the key differences between Matomo and Google Analytics to find the right analytics tool for your business needs.",
+    "productA": "Matomo",
+    "productB": "Google Analytics",
+    "summary": "Matomo offers a privacy-focused analytics solution with full data ownership, while Google Analytics provides robust features and integrations for large-scale data analysis. Both tools cater to different user needs based on privacy concerns and data handling preferences.",
+    "bestForA": [
+      "Businesses prioritizing data privacy",
+      "Organizations needing full control over their data",
+      "Users looking for an open-source solution"
+    ],
+    "bestForB": [
+      "Companies seeking advanced analytics features",
+      "Users who require seamless integration with Google services",
+      "Organizations that benefit from extensive community support"
+    ],
+    "decisionRows": [
+      {
+        "label": "Data Ownership",
+        "left": "Full ownership and control over data",
+        "right": "Data is owned by Google"
+      },
+      {
+        "label": "Privacy Compliance",
+        "left": "Complies with GDPR and other regulations",
+        "right": "May require additional configurations for compliance"
+      },
+      {
+        "label": "Ease of Use",
+        "left": "User-friendly interface with customizable dashboards",
+        "right": "Intuitive interface but can be complex for beginners"
+      },
+      {
+        "label": "Cost",
+        "left": "Free for self-hosted, paid for cloud hosting",
+        "right": "Free tier available, pricing increases with usage"
+      }
+    ],
+    "monetizationAngle": "Choosing the right analytics tool can significantly impact your revenue strategy by providing insights that drive better decision-making and marketing effectiveness.",
+    "relatedToolHrefs": [
+      "/utm-builder",
+      "/cpm-rpm-calculator",
+      "/adsense-revenue-calculator",
+      "/newsletter-revenue-calculator"
+    ],
+    "keywords": [
+      "Matomo vs Google Analytics",
+      "analytics tools comparison",
+      "data privacy analytics"
+    ]
   }
 ]
