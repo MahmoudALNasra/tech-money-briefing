@@ -19,7 +19,7 @@ export function ArticleReferralLinks({ article }: ArticleReferralLinksProps) {
   }
 
   return (
-    <aside className="mt-10 rounded-3xl border border-emerald-200 bg-emerald-50 p-6">
+    <aside className="mt-10 rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-stone-50 p-6 shadow-sm">
       <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">
         Relevant referral links
       </p>
@@ -42,12 +42,16 @@ export function ArticleReferralLinks({ article }: ArticleReferralLinksProps) {
                 ? "sponsored nofollow noopener noreferrer"
                 : undefined
             }
-            className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400"
+            className="group rounded-3xl border border-stone-900 bg-stone-950 p-5 text-white shadow-xl shadow-stone-950/15 transition hover:-translate-y-1 hover:bg-emerald-700 hover:shadow-2xl"
           >
-            <span className="text-sm font-black text-ink">
-              Open {referral.product}
+            <span className="text-[0.65rem] font-black uppercase tracking-[0.22em] text-emerald-200">
+              Referral link
             </span>
-            <span className="mt-2 block text-xs leading-5 text-stone-600">
+            <span className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 text-sm font-black text-ink transition group-hover:bg-emerald-50">
+              Open {referral.product}
+              <span aria-hidden="true">{"->"}</span>
+            </span>
+            <span className="mt-3 block text-xs leading-5 text-stone-300">
               {referral.disclosure}
             </span>
           </a>
