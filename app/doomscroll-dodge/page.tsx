@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   title: "Doomscroll Dodge",
   description: `A hidden brainrot dodging game from ${siteConfig.name}. Catch revenue signals and avoid fake gurus, bots, ragebait, and AI slop.`,
   robots: {
-    index: true,
-    follow: true
+    index: false,
+    follow: false
   }
 };
 

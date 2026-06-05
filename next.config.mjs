@@ -37,6 +37,20 @@ const nextConfig = {
           }
         ]
       },
+      ...[
+        "/brush-the-algorithm",
+        "/doomscroll-dodge",
+        "/doomscroll-market",
+        "/meme-market"
+      ].map((source) => ({
+        source,
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive"
+          }
+        ]
+      })),
       {
         source: "/:path((?!api/|analytics|_next/|.*\\..*).*)",
         headers: [

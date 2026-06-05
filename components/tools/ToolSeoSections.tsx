@@ -90,8 +90,8 @@ export async function ToolSeoSections({ toolHref }: ToolSeoSectionsProps) {
           </p>
           <h2 className="mt-2 text-2xl font-black text-ink">Companion guides</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-            Long-form articles on this topic are in our editorial queue—search the site
-            or browse SEO briefings as they publish.
+            Continue with related guides when available, or browse the matching
+            topic category for more live briefings.
           </p>
           <ul className="mt-4 space-y-2">
             {companionGuides.map(({ topic, article }) => (
@@ -108,7 +108,7 @@ export async function ToolSeoSections({ toolHref }: ToolSeoSectionsProps) {
                 </Link>
                 {!article ? (
                   <span className="ml-2 text-xs font-semibold text-stone-500">
-                    Publishing soon - browse {formatCategory(topic.category)}
+                    Browse {formatCategory(topic.category)}
                   </span>
                 ) : null}
               </li>

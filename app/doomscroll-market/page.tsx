@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   title: "Doomscroll Meme Market",
   description: `A hidden brainrot market game from ${siteConfig.name}. Buy good signals, dodge cursed feed objects, and try to keep your timeline alive.`,
   robots: {
-    index: true,
-    follow: true
+    index: false,
+    follow: false
   }
 };
 

@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   title: "Meme Market",
   description: `A hidden meme trading game from ${siteConfig.name}. Buy and sell cursed internet trends before they become cringe.`,
   robots: {
-    index: true,
-    follow: true
+    index: false,
+    follow: false
   }
 };
 

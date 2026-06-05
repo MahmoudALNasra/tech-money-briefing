@@ -201,7 +201,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           slug={article.slug}
           category={article.category}
         />
-        <ScrollNewsletter />
+        {process.env.NEXT_PUBLIC_ENABLE_SCROLL_NEWSLETTER === "true" ? (
+          <ScrollNewsletter />
+        ) : null}
 
         <article className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
           <div className="mb-5">

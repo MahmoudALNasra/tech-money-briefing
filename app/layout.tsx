@@ -88,6 +88,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       ? configuredAdClient
       : "ca-pub-8203750015609502";
   const shouldLoadAds = process.env.NODE_ENV === "production";
+  const shouldShowReferralNudge =
+    process.env.NEXT_PUBLIC_ENABLE_REFERRAL_NUDGE === "true";
 
   return (
     <html lang="en" className={geistSans.variable}>
@@ -96,7 +98,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <GoogleTagManager />
         <VisitorAnalytics />
         {children}
-        <ReferralNudge />
+        {shouldShowReferralNudge ? <ReferralNudge /> : null}
         <SiteFooter />
       </body>
     </html>

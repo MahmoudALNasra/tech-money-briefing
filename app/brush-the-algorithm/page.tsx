@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   title: "Brush the Algorithm",
   description: `A silly hidden browser game from ${siteConfig.name}. Brush the algorithm gremlin, survive the rage meter, then read real tech revenue briefings.`,
   robots: {
-    index: true,
-    follow: true
+    index: false,
+    follow: false
   }
 };
 
