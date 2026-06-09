@@ -7,6 +7,7 @@ import "@/app/globals.css";
 import { DeferredAdSense } from "@/components/analytics/DeferredAdSense";
 import { GoogleTagManager } from "@/components/analytics/GoogleTagManager";
 import { VisitorAnalytics } from "@/components/analytics/VisitorAnalyticsShell";
+import { OAuthRedirectRecovery } from "@/components/auth/OAuthRedirectRecovery";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ReferralNudge } from "@/components/referrals/ReferralNudge";
 import { absoluteUrl, siteConfig } from "@/lib/site";
@@ -110,6 +111,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {shouldLoadAds ? <DeferredAdSense client={adClient} /> : null}
         <GoogleTagManager />
         <VisitorAnalytics />
+        <OAuthRedirectRecovery />
         {children}
         {shouldShowReferralNudge ? <ReferralNudge /> : null}
         <SiteFooter />

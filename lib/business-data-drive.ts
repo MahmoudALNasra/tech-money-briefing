@@ -11,6 +11,92 @@ type DriveUploadResult = {
   webViewLink?: string;
 };
 
+export const googleDriveReturnPathKey = "trb.google.driveReturnPath";
+
+function isSafeDriveReturnPath(value: string | null) {
+  return Boolean(
+    value &&
+      value.startsWith("/") &&
+      !value.startsWith("//") &&
+      (value.startsWith("/business-data-generator") || value.startsWith("/profile"))
+  );
+}
+
+export function rememberGoogleDriveReturnPath(returnPath: string) {
+  if (typeof window === "undefined" || !isSafeDriveReturnPath(returnPath)) {
+    return;
+  }
+
+  window.sessionStorage.setItem(googleDriveReturnPathKey, returnPath);
+  window.localStorage.setItem(googleDriveReturnPathKey, returnPath);
+}
+
+export function getStoredGoogleDriveReturnPath() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const returnPath =
+    window.sessionStorage.getItem(googleDriveReturnPathKey) ??
+    window.localStorage.getItem(googleDriveReturnPathKey);
+
+  return isSafeDriveReturnPath(returnPath) ? returnPath : null;
+}
+
+export function clearStoredGoogleDriveReturnPath() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.sessionStorage.removeItem(googleDriveReturnPathKey);
+  window.localStorage.removeItem(googleDriveReturnPathKey);
+}
+
+export function readOAuthCallbackError() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const search = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const errorCode = hash.get("error_code") || search.get("error_code");
+  const errorDescription = hash.get("error_description") || search.get("error_description");
+
+  if (!errorCode && !errorDescription && !hash.get("error") && !search.get("error")) {
+    return null;
+  }
+
+  return {
+    code: errorCode,
+    description: errorDescription?.replace(/\+/g, " ")
+  };
+}
+
+export function getDriveOAuthErrorMessage(error: { code: string | null; description: string | null }) {
+  if (error.code === "identity_already_exists") {
+    return "This Google account is already linked to another Tech Revenue Brief profile. Sign in with Google instead, or choose a different Google account for Drive export.";
+  }
+
+  if (/manual linking is disabled/i.test(error.description ?? "")) {
+    return "Google Drive linking is disabled in Supabase. Enable Allow manual linking in Supabase Auth settings, then try again.";
+  }
+
+  return (
+    error.description ||
+    "Google Drive authorization failed. Check Supabase Auth URL settings and try again."
+  );
+}
+
+export function appendQueryParams(path: string, params: Record<string, string>) {
+  const url = new URL(path, "https://techrevenuebrief.com");
+
+  Object.entries(params).forEach(([key, value]) => {
+    url.searchParams.set(key, value);
+  });
+
+  return `${url.pathname}${url.search}`;
+}
+
 export async function uploadCsvWorkbookToGoogleDrive(input: {
   csv: string;
   filename: string;
@@ -83,6 +169,8 @@ async function redirectToGoogleDriveOAuth(
   session: { user: { id: string } } | null
 ) {
   const supabase = getSupabaseBrowserClient();
+  rememberGoogleDriveReturnPath(returnPath);
+
   const oauthOptions = {
     redirectTo: absoluteUrl(`/auth/callback?next=${encodeURIComponent(returnPath)}`),
     scopes: "https://www.googleapis.com/auth/drive.file",

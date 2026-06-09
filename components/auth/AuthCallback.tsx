@@ -7,8 +7,21 @@ import {
   getOAuthProviderBySupabaseProvider,
   recordAuthProviderUsage
 } from "@/lib/auth-oauth-providers";
+import {
+  appendQueryParams,
+  clearStoredGoogleDriveReturnPath,
+  getDriveOAuthErrorMessage,
+  getStoredGoogleDriveReturnPath,
+  readOAuthCallbackError
+} from "@/lib/business-data-drive";
 import { storeGoogleDriveAccessToken } from "@/lib/google-drive-token";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+
+function getSafeNextPath(value: string | null) {
+  const nextPath = value || "/";
+
+  return nextPath.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/";
+}
 
 export function AuthCallback() {
   const router = useRouter();
@@ -17,9 +30,13 @@ export function AuthCallback() {
 
   useEffect(() => {
     async function finishAuth() {
-      const nextPath = searchParams.get("next") || "/";
+      const nextPath = getSafeNextPath(
+        searchParams.get("next") ?? getStoredGoogleDriveReturnPath()
+      );
       const code = searchParams.get("code");
+      const oauthError = readOAuthCallbackError();
       const authError =
+        oauthError?.description ||
         searchParams.get("error_description") ||
         searchParams.get("error") ||
         searchParams.get("error_code");
@@ -29,6 +46,20 @@ export function AuthCallback() {
 
       try {
         if (authError) {
+          if (isDriveReturn) {
+            const destination = appendQueryParams(nextPath, {
+              driveError: oauthError?.code ?? searchParams.get("error_code") ?? "oauth_error",
+              driveMessage: getDriveOAuthErrorMessage(
+                oauthError ?? {
+                  code: searchParams.get("error_code"),
+                  description: authError
+                }
+              )
+            });
+            router.replace(destination);
+            return;
+          }
+
           throw new Error(authError);
         }
 
@@ -62,6 +93,8 @@ export function AuthCallback() {
               data.session.user.id
             );
           }
+
+          clearStoredGoogleDriveReturnPath();
         }
 
         router.replace(nextPath);

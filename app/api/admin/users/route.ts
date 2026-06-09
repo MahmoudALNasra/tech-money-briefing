@@ -1,15 +1,36 @@
 import { NextResponse } from "next/server";
 
-import { getAdminFromRequest, requireAdminConfigured } from "@/lib/admin-auth";
+import { getAdminAccessDenial, requireAdminConfigured } from "@/lib/admin-auth";
+import { getUserFromRequest } from "@/lib/business-data-auth";
 import { listAdminUsers } from "@/lib/admin-credits";
 
 export async function GET(request: Request) {
   try {
     requireAdminConfigured();
-    const admin = await getAdminFromRequest(request);
+    const user = await getUserFromRequest(request);
+    const denial = getAdminAccessDenial(user, request);
 
-    if (!admin) {
-      return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+    if (denial === "unauthenticated") {
+      return NextResponse.json({ error: "Sign in required.", reason: denial }, { status: 401 });
+    }
+
+    if (denial === "email_not_authorized") {
+      return NextResponse.json(
+        {
+          error:
+            "This signed-in email is not listed in ADMIN_EMAILS. Add it to your environment configuration and redeploy.",
+          reason: denial,
+          email: user?.email ?? null
+        },
+        { status: 403 }
+      );
+    }
+
+    if (denial === "mfa_required") {
+      return NextResponse.json(
+        { error: "Authenticator verification is required.", reason: denial },
+        { status: 403 }
+      );
     }
 
     const { searchParams } = new URL(request.url);

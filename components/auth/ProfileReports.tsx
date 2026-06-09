@@ -59,6 +59,14 @@ export function ProfileReports() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const driveErrorMessage = params.get("driveMessage");
+
+    if (driveErrorMessage) {
+      window.setTimeout(() => setMessage(driveErrorMessage), 0);
+      window.history.replaceState({}, "", "/profile#reports");
+      return;
+    }
+
     const reportId =
       params.get("reportId") ?? window.sessionStorage.getItem(profileDriveReportKey);
 
@@ -215,6 +223,8 @@ export function ProfileReports() {
           {driveFileLink ? (
             <a
               href={driveFileLink.url}
+              target="_blank"
+              rel="noopener noreferrer"
               title={`Open ${driveFileLink.name} in Google Drive`}
               className="mt-3 inline-flex rounded-full bg-emerald-700 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:bg-emerald-800"
             >

@@ -11,6 +11,11 @@ type ExportLoadingOverlayProps = {
   location: string;
   title: string;
   subtitle?: string;
+  completedFile?: {
+    name: string;
+    url: string;
+  } | null;
+  onClose?: () => void;
   resultCount?: number;
   processedCount?: number;
   requestedCount?: number;
@@ -24,6 +29,8 @@ export function ExportLoadingOverlay({
   location,
   title,
   subtitle = "Please keep this page open while we finish the subscriber report.",
+  completedFile = null,
+  onClose,
   resultCount = 0,
   processedCount = 0,
   requestedCount = 0,
@@ -90,6 +97,44 @@ export function ExportLoadingOverlay({
 
     return () => window.clearInterval(timer);
   }, []);
+
+  if (completedFile) {
+    return (
+      <div className="fixed inset-0 z-[80] flex items-center justify-center bg-stone-950/80 p-4 backdrop-blur-sm">
+        <div className="w-full max-w-xl rounded-[2rem] border border-white/10 bg-white p-6 text-center shadow-2xl sm:p-8">
+          <LoadingMascot
+            label="Your Google Drive export is ready"
+            description="The workbook finished uploading. You can open the new file in Google Drive now, or stay here and keep working."
+          />
+          <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-left">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700">
+              New file name
+            </p>
+            <p className="mt-2 break-words text-sm font-black text-emerald-950">
+              {completedFile.name}
+            </p>
+          </div>
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <a
+              href={completedFile.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-full bg-emerald-700 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-800"
+            >
+              Open Google Drive
+            </a>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-stone-300 px-5 py-3 text-sm font-black text-ink transition hover:bg-stone-100"
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-stone-950/80 p-4 backdrop-blur-sm">

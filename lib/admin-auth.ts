@@ -56,16 +56,37 @@ export function isAdminEmail(email?: string | null) {
   return getAdminEmails().includes(email.trim().toLowerCase());
 }
 
+export type AdminAccessDenial =
+  | "unauthenticated"
+  | "email_not_authorized"
+  | "mfa_required";
+
+export function getAdminAccessDenial(
+  user: AuthenticatedUser | null,
+  request: Request
+): AdminAccessDenial | null {
+  if (!user) {
+    return "unauthenticated";
+  }
+
+  if (!isAdminEmail(user.email)) {
+    return "email_not_authorized";
+  }
+
+  if (!hasMfaAssurance(request)) {
+    return "mfa_required";
+  }
+
+  return null;
+}
+
 export async function getAdminFromRequest(
   request: Request
 ): Promise<AuthenticatedUser | null> {
   const user = await getUserFromRequest(request);
+  const denial = getAdminAccessDenial(user, request);
 
-  if (!user || !isAdminEmail(user.email)) {
-    return null;
-  }
-
-  if (!hasMfaAssurance(request)) {
+  if (denial) {
     return null;
   }
 

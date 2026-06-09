@@ -25,6 +25,32 @@ export function AdminGate() {
   const [totpSecret, setTotpSecret] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [message, setMessage] = useState("");
+  const [forbiddenMessage, setForbiddenMessage] = useState("");
+  const [signedInEmail, setSignedInEmail] = useState("");
+
+  const handleAdminAccessResponse = async (
+    response: Response,
+    sessionEmail?: string | null
+  ) => {
+    if (response.ok) {
+      setStatus("allowed");
+      return;
+    }
+
+    const json = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      email?: string | null;
+    };
+
+    setSignedInEmail(json.email ?? sessionEmail ?? "");
+    setForbiddenMessage(
+      json.error ??
+        (response.status === 500
+          ? "Admin access is not configured. Add ADMIN_EMAILS to your environment and restart the app."
+          : "This account is not authorized for admin access.")
+    );
+    setStatus("forbidden");
+  };
 
   useEffect(() => {
     async function checkAccess() {
@@ -78,17 +104,16 @@ export function AdminGate() {
           headers: await getBusinessDataAuthHeaders()
         });
 
-        if (response.status === 403) {
-          setStatus("forbidden");
+        if (!response.ok) {
+          await handleAdminAccessResponse(response, data.session.user.email);
           return;
         }
 
-        if (!response.ok) {
-          throw new Error("Could not verify admin access.");
-        }
-
         setStatus("allowed");
-      } catch {
+      } catch (error) {
+        setForbiddenMessage(
+          error instanceof Error ? error.message : "Could not verify admin access."
+        );
         setStatus("forbidden");
       }
     }
@@ -133,12 +158,14 @@ export function AdminGate() {
 
       setVerificationCode("");
 
+      const { data: sessionData } = await supabase.auth.getSession();
       const response = await fetch("/api/admin/users?limit=1", {
         headers: await getBusinessDataAuthHeaders()
       });
 
       if (!response.ok) {
-        throw new Error("Could not verify secure access.");
+        await handleAdminAccessResponse(response, sessionData.session?.user.email);
+        return;
       }
 
       setStatus("allowed");
@@ -237,8 +264,23 @@ export function AdminGate() {
         </p>
         <h1 className="mt-3 text-2xl font-black text-ink">Authorized access required</h1>
         <p className="mt-3 text-sm leading-6 text-stone-700">
-          This workspace contains confidential account and billing controls. Sign in with an
-          authorized account to continue.
+          This workspace contains confidential account and billing controls. Admin access is
+          granted only to emails listed in <code>ADMIN_EMAILS</code>.
+        </p>
+        {signedInEmail ? (
+          <p className="mt-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700">
+            Signed in as <span className="font-black text-ink">{signedInEmail}</span>
+          </p>
+        ) : null}
+        {forbiddenMessage ? (
+          <p className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+            {forbiddenMessage}
+          </p>
+        ) : null}
+        <p className="mt-3 text-sm leading-6 text-stone-600">
+          If you recreated this account after deleting it, make sure{" "}
+          <code>ADMIN_EMAILS=info@techrevenuebrief.com</code> is set in Vercel and in your local{" "}
+          <code>.env.local</code>, then redeploy or restart the dev server.
         </p>
         <Link
           href="/"

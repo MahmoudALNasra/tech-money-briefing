@@ -2206,6 +2206,15 @@ export function BusinessDataGenerator() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const driveErrorMessage = params.get("driveMessage");
+
+    if (driveErrorMessage) {
+      window.setTimeout(() => {
+        setError(driveErrorMessage);
+        setExportStatus("");
+      }, 0);
+    }
+
     const checkout = params.get("checkout");
     const checkoutBundle = params.get("checkoutBundle");
     const driveReconnectCache =
@@ -2389,23 +2398,25 @@ export function BusinessDataGenerator() {
 
   return (
     <div className="space-y-8">
-      {isExportLoading || isDriveLoading ? (
+      {isExportLoading || isDriveLoading || driveFileLink ? (
         <ExportLoadingOverlay
           category={category}
           location={location || selectedCenter.label}
           title={
             isDriveLoading
-              ? "Uploading your export to Google Drive..."
+              ? "Processing your Google Drive export..."
               : "Generating your subscriber Excel report..."
           }
           subtitle={
             isDriveLoading
-              ? "Please keep this page open while the completed workbook uploads to Google Drive."
+              ? "Getting your completed workbook ready and uploading it to Google Drive. Please keep this page open."
               : "You can cancel anytime. Credits are charged only for businesses already processed."
           }
           resultCount={search?.totalAvailableEstimate ?? search?.results.length ?? 0}
           processedCount={reportProgress.processed}
           requestedCount={reportProgress.requested || selectedReportLimit}
+          completedFile={driveFileLink}
+          onClose={() => setDriveFileLink(null)}
           cancellable={isExportLoading && !isDriveLoading}
           onCancel={() => void cancelReportGeneration()}
           isCancelling={isCancellingReport}
@@ -3175,6 +3186,8 @@ export function BusinessDataGenerator() {
                 {driveFileLink ? (
                   <a
                     href={driveFileLink.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     title={`Open ${driveFileLink.name} in Google Drive`}
                     className="mt-3 inline-flex rounded-full bg-emerald-700 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:bg-emerald-800"
                   >
