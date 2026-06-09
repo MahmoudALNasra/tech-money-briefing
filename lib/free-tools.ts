@@ -1,5 +1,16 @@
 export const FREE_TOOLS = [
   {
+    href: "/business-data-generator",
+    title: "Business Data Generator",
+    description:
+      "Generate local business lists by location, radius, and category, then unlock enriched exports.",
+    thumbnail: {
+      label: "LEADS",
+      accent: "from-emerald-700 to-sky-500",
+      pattern: "chart"
+    }
+  },
+  {
     href: "/meme-generator",
     title: "Free Meme Generator",
     description: "Upload a photo, add top and bottom text, and download a PNG meme.",

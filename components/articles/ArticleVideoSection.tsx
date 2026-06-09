@@ -24,7 +24,7 @@ function VideoThumbnail({ video }: { video: ArticleMedia }) {
   return (
     <img
       src={thumbnailSrc}
-      alt=""
+      alt={`${video.title} related video thumbnail`}
       loading="lazy"
       onError={() => setThumbnailSrc(fallbackYouTubeThumbnail(video.provider_id))}
       className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"

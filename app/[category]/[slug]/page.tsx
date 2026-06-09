@@ -28,10 +28,17 @@ import {
 import { getArticleBySlug } from "@/lib/articles";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
-import { articleImage, articleUrl, faqJsonLd, newsArticleJsonLd } from "@/lib/seo";
+import {
+  articleImage,
+  articleImageAlt,
+  articleUrl,
+  faqJsonLd,
+  newsArticleJsonLd
+} from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 import { normalizeCategory } from "@/lib/slug";
 import { calculateReadingTime } from "@/lib/utils";
+import type { ArticleMedia } from "@/lib/types";
 
 type ArticlePageProps = {
   params: Promise<{
@@ -91,6 +98,35 @@ function ArticleVisualBreak({
         </p>
       </div>
     </aside>
+  );
+}
+
+function ArticleExternalImage({ media }: { media: ArticleMedia }) {
+  return (
+    <figure className="not-prose my-8 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
+      <img
+        src={media.url}
+        alt={media.alt_text || media.title}
+        loading="lazy"
+        className="mx-auto block h-auto max-h-[32rem] w-full bg-stone-50 object-contain"
+      />
+      <figcaption className="border-t border-stone-200 bg-stone-50 px-5 py-3 text-xs font-semibold leading-5 text-stone-600">
+        {media.caption || media.title}
+        {media.source_url ? (
+          <>
+            {" "}
+            <a
+              href={media.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-black text-ink underline decoration-stone-300 underline-offset-4"
+            >
+              Source
+            </a>
+          </>
+        ) : null}
+      </figcaption>
+    </figure>
   );
 }
 
@@ -156,12 +192,22 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const inlineVideos = articleMedia
     .filter((item) => item.provider === "youtube")
     .slice(0, 2);
+  const inlineImages = articleMedia
+    .filter((item) => item.provider === "image")
+    .slice(0, 3);
   const prefersVideoMedia = inlineVideos.length > 0;
   const heroImageUrl = await resolveArticleHeroImage({
     image_url: article.image_url,
     media: articleMedia
   });
-  const jsonLd = newsArticleJsonLd(article);
+  const jsonLd = newsArticleJsonLd(
+    article,
+    heroImageUrl,
+    inlineImages.map((image) => ({
+      url: image.url,
+      caption: image.caption
+    }))
+  );
   const faqLd = faqJsonLd(article);
   const contentBlocks = normalizeArticleContent(article.content)
     .split(/\n{2,}/)
@@ -333,16 +379,17 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </div>
           </div>
 
-          <div className="relative mt-8 aspect-square overflow-hidden rounded-3xl bg-gray-100">
+          <div className="mt-8 overflow-hidden rounded-3xl border border-stone-200 bg-stone-100">
             {heroImageUrl ? (
               <Image
                 src={heroImageUrl}
-                alt=""
-                fill
+                alt={articleImageAlt(article)}
+                width={1200}
+                height={800}
                 priority
-                quality={65}
+                quality={75}
                 sizes="(min-width: 768px) 768px, 100vw"
-                className="object-cover"
+                className="mx-auto block h-auto max-h-[32rem] w-full object-contain"
               />
             ) : (
               <div className="grid h-full w-full place-items-end bg-gradient-to-br from-ink via-stone-800 to-emerald-700 p-8 text-white">
@@ -368,6 +415,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     label="Related Watch"
                   />
                 ) : null}
+                {index === 3 && inlineImages[0] ? (
+                  <ArticleExternalImage media={inlineImages[0]} />
+                ) : null}
                 {index === 4 && article.key_takeaways[0] && !prefersVideoMedia ? (
                   <ArticleVisualBreak
                     label="Key Takeaway"
@@ -381,6 +431,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     media={inlineVideos[1]}
                     label="More Context"
                   />
+                ) : null}
+                {index === 8 && inlineImages[1] ? (
+                  <ArticleExternalImage media={inlineImages[1]} />
+                ) : null}
+                {index === 12 && inlineImages[2] ? (
+                  <ArticleExternalImage media={inlineImages[2]} />
                 ) : null}
                 {index === 10 && article.key_takeaways[1] && inlineVideos.length < 2 ? (
                   <ArticleVisualBreak

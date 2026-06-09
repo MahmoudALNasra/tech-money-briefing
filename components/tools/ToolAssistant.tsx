@@ -26,6 +26,7 @@ type ChatMessage = {
 const starterPromptsByContext: Record<AssistantContext, string[]> = {
   tool: [
     "What should I do after running this tool?",
+    "Can I build a competitor lead list from this?",
     "Which related tool should I use next?",
     "How do I turn this into a publishable page?"
   ],
@@ -67,10 +68,8 @@ export function ToolAssistant({
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [suggestedTools, setSuggestedTools] = useState<
-    Array<{ href: string; title: string }>
-  >([]);
   const panelRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const pushToDataLayer = useDataLayer();
 
   useEffect(() => {
@@ -87,6 +86,14 @@ export function ToolAssistant({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    messagesEndRef.current?.scrollIntoView({ block: "end" });
+  }, [isLoading, isOpen, messages]);
 
   async function sendMessage(text: string) {
     const trimmed = text.trim();
@@ -128,7 +135,6 @@ export function ToolAssistant({
       const json = (await response.json()) as {
         reply?: string;
         error?: string;
-        suggestedTools?: Array<{ href: string; title: string }>;
       };
 
       if (!response.ok) {
@@ -139,7 +145,6 @@ export function ToolAssistant({
         ...current,
         { role: "assistant", content: json.reply ?? "No response." }
       ]);
-      setSuggestedTools(json.suggestedTools ?? []);
     } catch (error) {
       setMessages((current) => [
         ...current,
@@ -213,11 +218,11 @@ export function ToolAssistant({
       {isOpen ? (
         <div
           ref={panelRef}
-          className="fixed bottom-[calc(env(safe-area-inset-bottom)+10.75rem)] right-3 z-[80] flex max-h-[min(72vh,34rem)] w-[min(100vw-1.5rem,420px)] flex-col overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-2xl shadow-stone-950/25 sm:right-6 md:bottom-[calc(env(safe-area-inset-bottom)+11.75rem)]"
+          className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+6rem)] z-[80] flex h-[min(82dvh,42rem)] flex-col overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-2xl shadow-stone-950/25 sm:inset-x-auto sm:right-6 sm:w-[min(100vw-3rem,460px)] md:bottom-[calc(env(safe-area-inset-bottom)+7rem)]"
           role="dialog"
           aria-label="Tool assistant"
         >
-          <div className="flex items-center gap-3 border-b border-stone-200 bg-gradient-to-r from-indigo-600 to-emerald-600 px-5 py-4 text-white">
+          <div className="flex items-center gap-3 border-b border-stone-200 bg-gradient-to-r from-indigo-600 to-emerald-600 px-5 py-4 pr-14 text-white">
             <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white shadow-lg shadow-indigo-950/20">
               <Image
                 src="/assistant-mascot.svg"
@@ -237,9 +242,32 @@ export function ToolAssistant({
               </p>
               <p className="mt-1 font-black">{resolvedTitle}</p>
             </div>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/15 text-xl font-black text-white transition hover:bg-white/25"
+              aria-label="Minimize assistant"
+            >
+              ×
+            </button>
           </div>
 
-          <div className="flex max-h-72 flex-col gap-3 overflow-y-auto p-4">
+          <div className="border-b border-emerald-100 bg-emerald-50 px-4 py-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs font-bold leading-5 text-emerald-950">
+                Need competitor businesses, pins, and an enriched Excel report?
+              </p>
+              <Link
+                href="/business-data-generator?source=ai_cat_assistant"
+                onClick={() => setIsOpen(false)}
+                className="shrink-0 rounded-full bg-emerald-700 px-3 py-1.5 text-xs font-black text-white transition hover:bg-emerald-800"
+              >
+                Open paid report
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
             {messages.map((msg, index) => (
               <div
                 key={`${msg.role}-${index}`}
@@ -255,31 +283,8 @@ export function ToolAssistant({
             {isLoading ? (
               <p className="text-xs font-semibold text-stone-400">Thinking...</p>
             ) : null}
+            <div ref={messagesEndRef} />
           </div>
-
-          {suggestedTools.length > 0 ? (
-            <div className="flex flex-wrap gap-2 border-t border-stone-100 px-4 py-2">
-              {suggestedTools.map((tool) => (
-                <Link
-                  key={tool.href}
-                  href={tool.href}
-                  className="rounded-full border border-stone-200 px-3 py-1 text-xs font-bold text-ink transition hover:border-ink"
-                  onClick={() => {
-                    pushToDataLayer({
-                      event: "tool_assistant_suggested_tool_click",
-                      tool_href: resolvedHref,
-                      assistant_context: context,
-                      suggested_tool_href: tool.href,
-                      suggested_tool_title: tool.title
-                    });
-                    setIsOpen(false);
-                  }}
-                >
-                  {tool.title}
-                </Link>
-              ))}
-            </div>
-          ) : null}
 
           <div className="flex flex-wrap gap-2 border-t border-stone-100 px-4 py-2">
             {starterPrompts.map((prompt) => (

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { BusinessDataPromoCard } from "@/components/business-data/BusinessDataPromoCard";
 import { MonetizationRail } from "@/components/monetization/MonetizationRail";
 import { ToolAssistant } from "@/components/tools/ToolAssistant";
 import { ToolPageNav } from "@/components/tools/ToolPageNav";
@@ -23,6 +24,8 @@ type ToolPageShellProps = {
   showAssistant?: boolean;
   monetizationContext?: SponsorPlacementContext;
   newsletterSource?: string;
+  contentMaxWidthClassName?: string;
+  heroMaxWidthClassName?: string;
   children: ReactNode;
 };
 
@@ -36,6 +39,8 @@ export function ToolPageShell({
   showAssistant = true,
   monetizationContext = "tool",
   newsletterSource = "tool_page",
+  contentMaxWidthClassName = "max-w-5xl",
+  heroMaxWidthClassName = "max-w-5xl",
   children
 }: ToolPageShellProps) {
   const seo = toolHref ? getToolPageSeo(toolHref) : undefined;
@@ -69,7 +74,9 @@ export function ToolPageShell({
             className="pointer-events-none absolute -right-20 top-0 h-64 w-64 rounded-full bg-gradient-to-br from-emerald-200/60 to-sky-200/40 blur-3xl"
             aria-hidden="true"
           />
-          <div className="relative mx-auto max-w-5xl px-5 py-10 sm:px-8 sm:py-14">
+          <div
+            className={`relative mx-auto ${heroMaxWidthClassName} px-5 py-10 sm:px-8 sm:py-14`}
+          >
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-500">
               {eyebrow}
             </p>
@@ -86,7 +93,7 @@ export function ToolPageShell({
             ) : null}
           </div>
         </section>
-        <section className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
+        <section className={`mx-auto ${contentMaxWidthClassName} px-5 py-10 sm:px-8`}>
           {toolHref ? <ToolPageNav toolHref={toolHref} /> : null}
           {toolHref ? (
             <ToolHumanLayer
@@ -96,6 +103,11 @@ export function ToolPageShell({
             />
           ) : null}
           {children}
+          {toolHref && toolHref !== "/business-data-generator" ? (
+            <div className="mt-8">
+              <BusinessDataPromoCard source={`tool_${toolHref.replace(/^\//, "")}`} />
+            </div>
+          ) : null}
           {toolHref ? (
             <>
               <ToolHumanLayer

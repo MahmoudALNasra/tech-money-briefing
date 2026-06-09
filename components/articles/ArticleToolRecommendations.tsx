@@ -1,3 +1,4 @@
+import { BusinessDataPromoCard } from "@/components/business-data/BusinessDataPromoCard";
 import { ToolCard } from "@/components/tools/ToolCard";
 import { FREE_TOOLS } from "@/lib/free-tools";
 import type { Article } from "@/lib/types";
@@ -47,6 +48,14 @@ export function ArticleToolRecommendations({
         {toolCards.map((tool) => (
           <ToolCard key={tool.href} tool={tool} compact />
         ))}
+      </div>
+      <div className="mt-5">
+        <BusinessDataPromoCard
+          compact
+          source={`article_${article.category}_${article.slug}`}
+          title="Want to turn research into a competitor list?"
+          copy="Use the paid business data generator to find local companies, map competitors, and export enriched lead reports."
+        />
       </div>
     </aside>
   );

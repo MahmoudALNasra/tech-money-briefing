@@ -18,7 +18,7 @@ export type Article = {
   updated_at?: string;
 };
 
-export type ArticleMediaProvider = "youtube";
+export type ArticleMediaProvider = "youtube" | "image";
 
 export type ArticleMedia = {
   id: string;
@@ -29,6 +29,10 @@ export type ArticleMedia = {
   thumbnail_url: string | null;
   url: string;
   position: number;
+  alt_text?: string | null;
+  caption?: string | null;
+  source_name?: string | null;
+  source_url?: string | null;
   created_at?: string;
   updated_at?: string;
 };

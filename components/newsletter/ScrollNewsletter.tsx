@@ -16,22 +16,20 @@ type Message = {
 export function ScrollNewsletter() {
   const [shouldShow, setShouldShow] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [isDismissed, setIsDismissed] = useState(() => {
-    if (typeof window === "undefined") {
-      return true;
-    }
+  const [isDismissed, setIsDismissed] = useState(true);
+  const [message, setMessage] = useState<Message | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const formRef = useRef<HTMLFormElement>(null);
+  const pushToDataLayer = useDataLayer();
 
+  useEffect(() => {
     const dismissedAt = Number.parseInt(
       window.localStorage.getItem(DISMISSED_KEY) ?? "0",
       10
     );
 
-    return dismissedAt > 0 && Date.now() - dismissedAt < DISMISS_DURATION_MS;
-  });
-  const [message, setMessage] = useState<Message | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const formRef = useRef<HTMLFormElement>(null);
-  const pushToDataLayer = useDataLayer();
+    setIsDismissed(dismissedAt > 0 && Date.now() - dismissedAt < DISMISS_DURATION_MS);
+  }, []);
 
   useEffect(() => {
     if (isDismissed) {

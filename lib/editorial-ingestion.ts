@@ -4,6 +4,7 @@ import {
   type EditorialTopic
 } from "@/data/editorial-topics";
 
+import { normalizeArticleContent } from "./article-markdown";
 import { syncArticleHeroImage } from "./article-images";
 import { enrichArticleMedia } from "./article-media";
 import {
@@ -417,6 +418,7 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
             "Never escape markdown with backslashes.",
             "Open with a 40-60 word direct answer to the main question.",
             "Include sections: ## Quick Answer, step-by-step workflow (numbered steps in prose or lists), common mistakes, a short checklist or decision framework, and ## FAQ with 3-4 questions.",
+            "For checklists, put one item per line using `[ ] item text` or `- [ ] item text`. Never put a heading and checklist items on the same line.",
             "When images, videos, examples, or screenshots would help the reader understand the topic, mention exactly what visual would be useful rather than pretending one exists.",
             "Aim for 900-1300 words. Be specific and actionable.",
             "Include 2-4 natural internal markdown links between paragraphs to on-site tools, hub pages, or comparisons when relevant (paths like /ai-headline-generator, /tools, /compare/beehiiv-vs-substack). The links should be highlighted by normal markdown syntax and should help the reader take the next step.",
@@ -483,9 +485,9 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
   const sections = [contentBody, toolsSection, internalLinks].filter(Boolean);
   const sourceCitation = `Source: ${EDITORIAL_SOURCE_NAME}.`;
   const body = sections.join("\n\n");
-  const content = body.includes(sourceCitation)
-    ? body
-    : `${body}\n\n${sourceCitation}`;
+  const content = normalizeArticleContent(
+    body.includes(sourceCitation) ? body : `${body}\n\n${sourceCitation}`
+  );
 
   return {
     title,

@@ -43,13 +43,69 @@ function normalizeInlineHeadingLists(line: string) {
   return `${heading}\n\n${items.map((item) => `- ${item}`).join("\n")}`;
 }
 
+function normalizeChecklistLine(line: string) {
+  return line.replace(/^([-*])\s+(\[[ xX]\]\s+)/, "$2");
+}
+
+function normalizeInlineChecklists(line: string) {
+  if (/\s-\s+\[[ xX]\]\s+/.test(line) && !/^(?:[-*]\s+)?\[[ xX]\]\s+/.test(line)) {
+    return line
+      .split(/\s+-\s+(?=\[[ xX]\]\s+)/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((item) => normalizeChecklistLine(item))
+      .join("\n");
+  }
+
+  return normalizeChecklistLine(line);
+}
+
+function normalizeInlineHeadingChecklists(line: string) {
+  const headingChecklistMatch = line.match(/^(#{2,4}\s+.+?)\s+(\[[ xX]\]\s+.+)$/);
+
+  if (!headingChecklistMatch) {
+    return line;
+  }
+
+  const heading = headingChecklistMatch[1].trim();
+  const checklistText = headingChecklistMatch[2].trim();
+  const items = checklistText
+    .split(/\s+-\s+(?=\[[ xX]\]\s+)/)
+    .map((item) => normalizeChecklistLine(item.trim()))
+    .filter(Boolean);
+
+  if (items.length === 0) {
+    return line;
+  }
+
+  return `${heading}\n\n${items.join("\n")}`;
+}
+
+function normalizeArticleLine(line: string) {
+  return normalizeInlineChecklists(
+    normalizeInlineHeadingChecklists(normalizeInlineHeadingLists(line.trim()))
+  );
+}
+
+export function isChecklistLine(line: string) {
+  return /^(?:[-*]\s+)?\[[ xX]\]\s+/.test(line);
+}
+
+function checklistLabel(line: string) {
+  return line.replace(/^(?:[-*]\s+)?\[[ xX]\]\s+/, "");
+}
+
+function isChecklistChecked(line: string) {
+  return /^(?:[-*]\s+)?\[[xX]\]\s+/.test(line);
+}
+
 export function normalizeArticleContent(content: string) {
   return content
     .replace(/\r\n/g, "\n")
     .replace(/\\(#{2,4})\s+/g, "\n\n$1 ")
     .replace(/\\([#*_`=])/g, "$1")
     .split("\n")
-    .map((line) => normalizeInlineHeadingLists(line.trim()))
+    .map((line) => normalizeArticleLine(line))
     .join("\n")
     .replace(/(^|\n)(#{2,4}\s+[^\n]+)\n(?!\n)/g, "$1$2\n\n")
     .replace(/^\*\*Meta Description:\*\*.*$/gim, "")
@@ -230,9 +286,54 @@ export function renderArticleBlock(block: string) {
   }
 
   const isUnorderedList =
-    lines.length > 1 && lines.every((line) => /^[-*]\s+/.test(line));
+    lines.length > 1 &&
+    lines.every((line) => /^[-*]\s+/.test(line)) &&
+    !lines.every((line) => isChecklistLine(line));
   const isOrderedList =
     lines.length > 1 && lines.every((line) => /^\d+\.\s+/.test(line));
+  const isChecklist =
+    lines.length > 1 && lines.every((line) => isChecklistLine(line));
+  const hasChecklistTitle =
+    lines.length > 1 &&
+    !isChecklistLine(lines[0]) &&
+    lines.slice(1).every((line) => isChecklistLine(line));
+
+  if (hasChecklistTitle || isChecklist) {
+    const title = hasChecklistTitle ? lines[0] : null;
+    const checklistLines = hasChecklistTitle ? lines.slice(1) : lines;
+
+    return (
+      <div key={block} className="not-prose my-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5">
+        {title ? (
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-emerald-800">
+            {renderInlineContent(title)}
+          </p>
+        ) : null}
+        <ul className={title ? "mt-3 space-y-2" : "space-y-2"}>
+          {checklistLines.map((line) => {
+            const checked = isChecklistChecked(line);
+            const label = checklistLabel(line);
+
+            return (
+              <li key={line} className="flex gap-3 text-sm font-semibold leading-6 text-stone-800">
+                <span
+                  className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border text-xs ${
+                    checked
+                      ? "border-emerald-600 bg-emerald-600 text-white"
+                      : "border-emerald-300 bg-white text-transparent"
+                  }`}
+                  aria-hidden="true"
+                >
+                  ✓
+                </span>
+                <span>{renderInlineContent(label)}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  }
 
   if (isUnorderedList || isOrderedList) {
     const ListTag = isOrderedList ? "ol" : "ul";

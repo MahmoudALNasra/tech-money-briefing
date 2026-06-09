@@ -64,6 +64,12 @@ export async function submitContactForm(
     };
   }
 
+  const honeypot = String(formData.get("company_website") ?? "").trim();
+
+  if (honeypot) {
+    return { ok: true, saved: false, emailSent: false, message: "Thanks." };
+  }
+
   const insertPayload = {
     name,
     email,
@@ -80,11 +86,11 @@ export async function submitContactForm(
     console.error("[contact] insert failed", error.message);
     return {
       ok: false,
-      message: "Could not submit right now. Please email info@techrevenuebrief.com."
+      message: "Could not submit right now. Please email sales@techrevenuebrief.com."
     };
   }
 
-  const to = process.env.CONTACT_TO_EMAIL?.trim() || "info@techrevenuebrief.com";
+  const to = process.env.CONTACT_TO_EMAIL?.trim() || "sales@techrevenuebrief.com";
   const subject = `Tech Revenue Brief contact: ${topic} - ${name}`;
   const html = `
     <h2>New contact submission</h2>
@@ -145,6 +151,6 @@ export async function submitContactForm(
     ok: true,
     saved: true,
     emailSent: true,
-    message: "Thanks. Your message was sent to info@techrevenuebrief.com."
+    message: "Thanks. Your message was sent to sales@techrevenuebrief.com."
   };
 }

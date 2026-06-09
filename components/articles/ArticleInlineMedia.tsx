@@ -58,7 +58,7 @@ export function ArticleInlineMedia({ media, label }: ArticleInlineMediaProps) {
             {thumbnailSrc ? (
               <img
                 src={thumbnailSrc}
-                alt=""
+                alt={`${media.title} related video thumbnail`}
                 loading="lazy"
                 onError={() =>
                   setThumbnailSrc(fallbackYouTubeThumbnail(media.provider_id))

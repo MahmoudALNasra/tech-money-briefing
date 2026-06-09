@@ -428,7 +428,7 @@ const CURATED_COMPARISONS: ComparisonPage[] = [
     slug: "google-workspace-vs-zoho",
     title: "Google Workspace vs Zoho",
     description:
-      "Compare Google Workspace and Zoho for email, docs, CRM overlap, and small-business software stacks.",
+      "Compare Google Workspace vs Zoho, including G Suite vs Zoho queries, email, docs, CRM overlap, and small-business software stacks.",
     productA: "Google Workspace",
     productB: "Zoho",
     summary:
@@ -444,7 +444,13 @@ const CURATED_COMPARISONS: ComparisonPage[] = [
     monetizationAngle:
       "Stack decisions affect workflow speed and vendor spend. Pick the suite that matches how you sell, support customers, and publish content.",
     relatedToolHrefs: ["/newsletter-subject-line-generator", "/utm-builder", "/startup-name-generator"],
-    keywords: ["google workspace vs zoho", "business software comparison"]
+    keywords: [
+      "google workspace vs zoho",
+      "zoho vs gsuite",
+      "zoho vs g suite",
+      "g suite vs zoho",
+      "business software comparison"
+    ]
   },
   {
     slug: "frase-vs-surfer",

@@ -14,27 +14,27 @@ const houseDefaults: Record<
   { title: string; description: string; cta: string }
 > = {
   feed: {
-    title: "Promote your product to AI decision makers",
+    title: "Your ad here",
     description:
-      "Reach operators, founders, and technical buyers reading high-intent industry analysis.",
-    cta: "Sponsor this briefing"
+      "Place your offer in front of operators, founders, and technical buyers reading high-intent industry analysis.",
+    cta: "Advertise with us"
   },
   article: {
-    title: "Reach readers while they are evaluating revenue moves",
+    title: "Your ad here",
     description:
-      "Native partner placements on high-intent articles for SaaS, AI tools, hosting, and growth software.",
-    cta: "Request article placement"
+      "Sponsor this briefing with a relevant product, service, or operator-focused offer.",
+    cta: "Advertise here"
   },
   tool: {
-    title: "Put your product in front of operators using free tools",
+    title: "Your ad here",
     description:
-      "Sponsor cards on calculators and SEO utilities where founders plan spend and workflows.",
+      "Reach visitors while they use calculators, SEO tools, and workflow utilities.",
     cta: "Sponsor a tool page"
   },
   compare: {
-    title: "Show up when buyers are choosing between stacks",
+    title: "Your ad here",
     description:
-      "Category-aligned placements on software comparison guides for publishers and operators.",
+      "Place your brand on comparison pages where buyers are actively evaluating tools.",
     cta: "Sponsor a comparison"
   }
 };

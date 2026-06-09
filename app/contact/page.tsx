@@ -14,7 +14,7 @@ export default function ContactPage() {
     <InfoPage
       eyebrow="Contact"
       title="Contact Tech Revenue Brief"
-      description="Ask for help, send a correction, suggest a source, or talk sponsorships. Messages go to info@techrevenuebrief.com and are saved for follow-up."
+      description="Ask for help, send a correction, suggest a source, or talk sponsorships. Messages go to sales@techrevenuebrief.com and are saved for follow-up."
     >
       <p>
         Use the form below when you cannot find the right tool, article, or next
@@ -42,8 +42,8 @@ export default function ContactPage() {
       <p>
         For sponsorships, partner placements, media questions, or strategy help,
         contact{" "}
-        <a href="mailto:info@techrevenuebrief.com">
-          info@techrevenuebrief.com
+        <a href="mailto:sales@techrevenuebrief.com">
+          sales@techrevenuebrief.com
         </a>
         .
       </p>

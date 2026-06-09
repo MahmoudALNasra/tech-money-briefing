@@ -53,7 +53,7 @@
   {
     "slug": "snowflake-vs-bigquery",
     "title": "Snowflake vs BigQuery",
-    "description": "Compare Snowflake and Google BigQuery for analytics warehouses, pricing models, SQL workflows, and team fit.",
+    "description": "Compare Snowflake vs BigQuery, including Google BigQuery pricing, analytics warehouse workflows, SQL fit, and team tradeoffs.",
     "productA": "Snowflake",
     "productB": "BigQuery",
     "summary": "Snowflake is a cross-cloud analytics warehouse popular with data teams that want separation of storage and compute. BigQuery is deeply integrated with Google Cloud and strong for teams already on GCP or GA4 exports.",
@@ -97,6 +97,9 @@
     ],
     "keywords": [
       "snowflake vs bigquery",
+      "bigquery vs snowflake",
+      "google bigquery vs snowflake",
+      "snowflake vs google bigquery",
       "data warehouse comparison",
       "analytics stack"
     ]
@@ -206,8 +209,8 @@
   },
   {
     "slug": "google-analytics-vs-plausible",
-    "title": "Google Analytics vs Plausible",
-    "description": "Compare Google Analytics 4 and Plausible for privacy, simplicity, reporting delay, and publisher analytics needs.",
+    "title": "Google Analytics 4 vs Plausible",
+    "description": "Compare Google Analytics 4 vs Plausible for privacy, simplicity, reporting delay, publisher analytics, and lightweight GA4 alternatives.",
     "productA": "Google Analytics 4",
     "productB": "Plausible",
     "summary": "GA4 is free, deeply integrated with Google marketing products, and powerful for event-based reporting. Plausible is lightweight, privacy-friendly, and easier to read for founders who want simple traffic trends without heavy setup.",
@@ -251,6 +254,8 @@
     ],
     "keywords": [
       "google analytics vs plausible",
+      "plausible vs google analytics",
+      "google analytics alternative plausible",
       "GA4 alternatives",
       "privacy analytics"
     ]
@@ -412,7 +417,7 @@
   {
     "slug": "cloudflare-vs-aws-cloudfront",
     "title": "Cloudflare vs AWS CloudFront",
-    "description": "Compare Cloudflare and AWS CloudFront for CDN, caching, and security solutions tailored for publishers.",
+    "description": "Compare Cloudflare vs AWS CloudFront for CDN performance, caching, security, AWS fit, and publisher infrastructure decisions.",
     "productA": "Cloudflare",
     "productB": "AWS CloudFront",
     "summary": "Cloudflare and AWS CloudFront are both leading content delivery networks (CDNs) offering robust caching and security features. While Cloudflare excels in ease of use and integrated security, AWS CloudFront provides deep integration with other AWS services, making it ideal for users already within the AWS ecosystem.",
@@ -457,6 +462,9 @@
     ],
     "keywords": [
       "Cloudflare vs AWS CloudFront",
+      "cloudflare vs cloudfront",
+      "cloudflare vs aws",
+      "aws vs cloudflare",
       "CDN comparison",
       "best CDN for publishers"
     ]
@@ -464,11 +472,11 @@
   {
     "siteName": "Tech Revenue Brief",
     "slug": "matomo-vs-google-analytics",
-    "title": "Matomo vs Google Analytics",
-    "description": "Explore the key differences between Matomo and Google Analytics to find the right analytics tool for your business needs.",
+    "title": "Matomo vs Google Analytics 4",
+    "description": "Compare Matomo vs Google Analytics 4 for privacy, data ownership, reporting, consent, and publisher analytics decisions.",
     "productA": "Matomo",
     "productB": "Google Analytics",
-    "summary": "Matomo offers a privacy-focused analytics solution with full data ownership, while Google Analytics provides robust features and integrations for large-scale data analysis. Both tools cater to different user needs based on privacy concerns and data handling preferences.",
+    "summary": "Matomo offers a privacy-focused analytics solution with full data ownership, while Google Analytics 4 provides robust event-based reporting and integrations for large-scale marketing analysis. The right choice depends on privacy requirements, reporting depth, consent complexity, and how much control you need over analytics data.",
     "bestForA": [
       "Businesses prioritizing data privacy",
       "Organizations needing full control over their data",
@@ -510,8 +518,273 @@
     ],
     "keywords": [
       "Matomo vs Google Analytics",
+      "matomo vs google analytics",
+      "matomo vs ga4",
+      "google analytics 4 alternative",
       "analytics tools comparison",
       "data privacy analytics"
+    ]
+  },
+  {
+    "siteName": "Tech Revenue Brief",
+    "slug": "rank-math-vs-yoast",
+    "title": "Rank Math vs Yoast SEO",
+    "description": "A comprehensive comparison between Rank Math and Yoast SEO, two leading WordPress SEO plugins.",
+    "productA": "Rank Math",
+    "productB": "Yoast SEO",
+    "summary": "Rank Math and Yoast SEO are two powerful WordPress plugins designed to optimize your website's search engine performance. While both offer essential SEO features, they cater to different user needs and preferences.",
+    "bestForA": [
+      "Users looking for a free solution with extensive features",
+      "Webmasters who prefer a user-friendly interface",
+      "SEO professionals wanting advanced customization options"
+    ],
+    "bestForB": [
+      "Beginners needing straightforward SEO guidance",
+      "Users who value a long-standing reputation in the market",
+      "Those who prefer a robust premium support system"
+    ],
+    "decisionRows": [
+      {
+        "label": "Ease of Use",
+        "left": "Rank Math offers a more intuitive setup wizard.",
+        "right": "Yoast SEO has a simpler interface for beginners."
+      },
+      {
+        "label": "Features",
+        "left": "Rank Math includes advanced features like schema markup and keyword tracking in the free version.",
+        "right": "Yoast SEO's premium version offers additional insights and suggestions."
+      },
+      {
+        "label": "Pricing",
+        "left": "Rank Math is free with optional paid upgrades.",
+        "right": "Yoast SEO has a free version but charges for premium features."
+      },
+      {
+        "label": "Support",
+        "left": "Rank Math provides community support and documentation.",
+        "right": "Yoast SEO offers dedicated premium support."
+      }
+    ],
+    "monetizationAngle": "Choosing the right SEO plugin can significantly impact your website's visibility and revenue potential. Rank Math's robust features can enhance your workflow, while Yoast SEO's reliability can provide peace of mind for beginners.",
+    "relatedToolHrefs": [
+      "/keyword-cluster-tool",
+      "/content-gap-finder",
+      "/meta-description-generator"
+    ],
+    "keywords": [
+      "Rank Math vs Yoast SEO",
+      "best WordPress SEO plugin",
+      "SEO plugin comparison"
+    ]
+  },
+  {
+    "siteName": "Tech Revenue Brief",
+    "slug": "surfer-vs-clearscope",
+    "title": "Surfer vs Clearscope",
+    "description": "Compare Surfer and Clearscope, two powerful content optimization tools designed to enhance SEO performance.",
+    "productA": "Surfer",
+    "productB": "Clearscope",
+    "summary": "Surfer and Clearscope are leading tools in the SEO content optimization space. Surfer focuses on data-driven optimization, while Clearscope excels in readability and content relevance.",
+    "bestForA": [
+      "SEO professionals looking for data-driven insights",
+      "Content creators who want to optimize for specific keywords",
+      "Marketers aiming to improve organic search traffic"
+    ],
+    "bestForB": [
+      "Content strategists focused on readability and user engagement",
+      "Writers needing a straightforward interface for content creation",
+      "Teams aiming for collaborative content optimization"
+    ],
+    "decisionRows": [
+      {
+        "label": "Ease of Use",
+        "left": "Surfer has a steeper learning curve due to its advanced features.",
+        "right": "Clearscope offers a more intuitive interface, making it easier for beginners."
+      },
+      {
+        "label": "Data Insights",
+        "left": "Surfer provides comprehensive data analytics and keyword suggestions.",
+        "right": "Clearscope emphasizes content relevance and readability metrics."
+      },
+      {
+        "label": "Collaboration Features",
+        "left": "Surfer allows for team collaboration but is more focused on individual optimization.",
+        "right": "Clearscope is designed for collaborative content workflows."
+      },
+      {
+        "label": "Pricing",
+        "left": "Surfer offers tiered pricing based on features and usage.",
+        "right": "Clearscope has a subscription model with different plans for varying needs."
+      }
+    ],
+    "monetizationAngle": "Choosing the right tool can significantly enhance your content strategy, leading to increased organic traffic and revenue generation.",
+    "relatedToolHrefs": [
+      "/keyword-cluster-tool",
+      "/content-gap-finder",
+      "/blog-title-generator"
+    ],
+    "keywords": [
+      "Surfer vs Clearscope",
+      "SEO content optimization tools",
+      "best content optimization software"
+    ]
+  },
+  {
+    "slug": "hubspot-vs-pipedrive",
+    "title": "HubSpot vs Pipedrive",
+    "description": "Explore the key differences between HubSpot and Pipedrive to find the best CRM solution for your business needs.",
+    "productA": "HubSpot",
+    "productB": "Pipedrive",
+    "summary": "HubSpot offers a comprehensive suite of marketing, sales, and service tools, making it ideal for businesses looking for an all-in-one solution. Pipedrive, on the other hand, focuses on sales pipeline management, providing a streamlined approach for sales teams to close deals effectively.",
+    "bestForA": [
+      "Businesses needing integrated marketing and sales tools.",
+      "Teams looking for automation and CRM capabilities.",
+      "Companies that prioritize customer service and support."
+    ],
+    "bestForB": [
+      "Sales teams focused on managing their pipeline efficiently.",
+      "Businesses that require a straightforward, user-friendly interface.",
+      "Companies looking for robust reporting and sales forecasting."
+    ],
+    "decisionRows": [
+      {
+        "label": "Ease of Use",
+        "left": "User-friendly interface with a steep learning curve for advanced features.",
+        "right": "Intuitive design, easy to set up and use from day one."
+      },
+      {
+        "label": "Integrations",
+        "left": "Extensive integrations with various marketing tools and platforms.",
+        "right": "Strong focus on sales tools, fewer marketing integrations."
+      },
+      {
+        "label": "Pricing",
+        "left": "Offers a free tier with paid plans for advanced features.",
+        "right": "No free tier, but competitive pricing for sales-focused features."
+      },
+      {
+        "label": "Customer Support",
+        "left": "Comprehensive support including live chat, email, and knowledge base.",
+        "right": "Solid support options, primarily focused on sales inquiries."
+      }
+    ],
+    "monetizationAngle": "Choosing between HubSpot and Pipedrive can significantly impact your sales workflow and revenue generation, depending on whether you prioritize an all-in-one solution or a focused sales pipeline tool.",
+    "relatedToolHrefs": [
+      "/saas-pricing-calculator",
+      "/utm-builder",
+      "/newsletter-revenue-calculator",
+      "/content-brief-generator"
+    ],
+    "keywords": [
+      "HubSpot vs Pipedrive",
+      "CRM comparison",
+      "best CRM for sales teams"
+    ]
+  },
+  {
+    "siteName": "Tech Revenue Brief",
+    "slug": "railway-vs-render",
+    "title": "Railway vs Render",
+    "description": "Compare Railway and Render for your hosting needs and discover which platform best suits your project requirements.",
+    "productA": "Railway",
+    "productB": "Render",
+    "summary": "Railway offers a streamlined platform for developers looking for simplicity and speed, while Render provides a robust solution with advanced features for scaling applications. Both platforms cater to different user needs, making the choice dependent on your specific project requirements.",
+    "bestForA": [
+      "Developers seeking a straightforward deployment process.",
+      "Teams that prioritize speed and ease of use.",
+      "Projects that require rapid iteration and testing."
+    ],
+    "bestForB": [
+      "Businesses needing advanced features for scaling.",
+      "Teams that require more control over infrastructure.",
+      "Projects that demand high performance and reliability."
+    ],
+    "decisionRows": [
+      {
+        "label": "Ease of Use",
+        "left": "Railway is designed for quick setups and minimal configuration.",
+        "right": "Render offers more options but may require a steeper learning curve."
+      },
+      {
+        "label": "Scalability",
+        "left": "Railway is suitable for small to medium projects.",
+        "right": "Render excels in handling large-scale applications."
+      },
+      {
+        "label": "Pricing Structure",
+        "left": "Railway has a straightforward pricing model based on usage.",
+        "right": "Render's pricing can vary based on the selected features and resources."
+      },
+      {
+        "label": "Support and Community",
+        "left": "Railway has a growing community with responsive support.",
+        "right": "Render provides extensive documentation and a robust support system."
+      }
+    ],
+    "monetizationAngle": "Choosing the right hosting platform can significantly impact your development workflow and ultimately your revenue generation, as it affects deployment speed and application performance.",
+    "relatedToolHrefs": [
+      "/serp-intent-analyzer",
+      "/content-gap-finder",
+      "/saas-pricing-calculator"
+    ],
+    "keywords": [
+      "Railway vs Render",
+      "hosting comparison",
+      "best hosting platforms"
+    ]
+  },
+  {
+    "siteName": "Tech Revenue Brief",
+    "slug": "planetscale-vs-neon",
+    "title": "PlanetScale vs Neon",
+    "description": "Compare PlanetScale and Neon for your data needs, focusing on serverless MySQL and Postgres solutions.",
+    "productA": "PlanetScale",
+    "productB": "Neon",
+    "summary": "PlanetScale offers a serverless MySQL experience, ideal for applications requiring scalability and flexibility. In contrast, Neon provides a serverless Postgres solution, focusing on developer-friendly features and performance.",
+    "bestForA": [
+      "Teams needing MySQL compatibility",
+      "Developers looking for automatic scaling",
+      "Projects requiring high availability"
+    ],
+    "bestForB": [
+      "Developers preferring Postgres features",
+      "Applications that benefit from real-time collaboration",
+      "Teams focused on modern cloud-native development"
+    ],
+    "decisionRows": [
+      {
+        "label": "Database Type",
+        "left": "MySQL",
+        "right": "Postgres"
+      },
+      {
+        "label": "Scalability",
+        "left": "Automatic scaling with no downtime",
+        "right": "Dynamic scaling with performance optimizations"
+      },
+      {
+        "label": "Developer Experience",
+        "left": "Focus on MySQL tooling and integration",
+        "right": "Built-in features for collaboration and development"
+      },
+      {
+        "label": "Use Cases",
+        "left": "Best for web apps and microservices",
+        "right": "Ideal for analytics and real-time applications"
+      }
+    ],
+    "monetizationAngle": "Choosing the right database can significantly impact your application's performance and scalability, directly influencing your revenue potential.",
+    "relatedToolHrefs": [
+      "/serp-intent-analyzer",
+      "/content-gap-finder",
+      "/saas-pricing-calculator",
+      "/startup-name-generator"
+    ],
+    "keywords": [
+      "PlanetScale vs Neon",
+      "serverless MySQL vs Postgres",
+      "database comparison",
+      "cloud database solutions"
     ]
   }
 ]

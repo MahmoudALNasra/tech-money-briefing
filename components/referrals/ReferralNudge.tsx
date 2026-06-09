@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { REFERRAL_OFFERS } from "@/lib/referral-offers";
 
@@ -14,10 +14,7 @@ function dismissedUntil(days: number) {
 
 export function ReferralNudge() {
   const [isVisible, setIsVisible] = useState(false);
-  const offer = useMemo(() => {
-    const day = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
-    return REFERRAL_OFFERS[day % REFERRAL_OFFERS.length];
-  }, []);
+  const [offer, setOffer] = useState(REFERRAL_OFFERS[0]);
 
   useEffect(() => {
     const dismissedValue = window.localStorage.getItem(STORAGE_KEY);
@@ -26,6 +23,9 @@ export function ReferralNudge() {
     if (Number.isFinite(dismissedTimestamp) && dismissedTimestamp > Date.now()) {
       return;
     }
+
+    const day = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
+    setOffer(REFERRAL_OFFERS[day % REFERRAL_OFFERS.length]);
 
     const timer = window.setTimeout(() => setIsVisible(true), 14000);
     return () => window.clearTimeout(timer);

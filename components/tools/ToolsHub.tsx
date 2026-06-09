@@ -6,6 +6,10 @@ import { useMemo, useState } from "react";
 import { ToolCard } from "@/components/tools/ToolCard";
 import { FREE_TOOLS } from "@/lib/free-tools";
 import {
+  SUBSCRIPTION_CREDIT_GRANT,
+  SUBSCRIPTION_PRICE_USD
+} from "@/lib/business-data-token-config";
+import {
   TOOL_CATEGORIES,
   TOOL_WORKFLOWS,
   type ToolCategory,
@@ -55,6 +59,30 @@ export function ToolsHub({ featuredToolHrefs }: ToolsHubProps) {
           </div>
         ))}
       </div>
+
+      <section className="mt-8 overflow-hidden rounded-[2rem] border border-emerald-200 bg-gradient-to-br from-stone-950 via-emerald-950 to-sky-950 p-6 text-white shadow-xl shadow-emerald-950/10 sm:p-8">
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-200">
+              Lead list tool
+            </p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight">
+              Build local business reports by location, radius, and category.
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-300">
+              Start with a free preview, then choose how many businesses to process in a subscriber
+              report. Billing uses business credits: ${SUBSCRIPTION_PRICE_USD} includes{" "}
+              {SUBSCRIPTION_CREDIT_GRANT} credits (1 credit per processed business).
+            </p>
+          </div>
+          <Link
+            href="/business-data-generator"
+            className="inline-flex w-full items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-sm font-black text-stone-950 transition hover:-translate-y-0.5 hover:bg-emerald-300 lg:w-auto"
+          >
+            Open Business Data Generator
+          </Link>
+        </div>
+      </section>
 
       <section className="mt-10">
         <p className="text-xs font-bold uppercase tracking-[0.24em] text-stone-400">

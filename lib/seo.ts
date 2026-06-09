@@ -12,15 +12,38 @@ export function articleImage(
   return resolvedImageUrl ?? article.image_url ?? absoluteUrl("/og-default-v3.png");
 }
 
-export function newsArticleJsonLd(article: Article) {
+export function articleImageAlt(
+  article: Pick<Article, "title" | "category">
+) {
+  return `${article.title} - ${article.category.replace(/-/g, " ")} guide from ${siteConfig.name}`;
+}
+
+export function newsArticleJsonLd(
+  article: Article,
+  resolvedImageUrl?: string | null,
+  extraImages: Array<{ url: string; caption?: string | null }> = []
+) {
   const publishedAt = article.published_at ?? new Date().toISOString();
+  const imageUrl = articleImage(article, resolvedImageUrl);
 
   return {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     headline: article.title,
     description: article.meta_description,
-    image: [articleImage(article)],
+    image: [
+      {
+        "@type": "ImageObject",
+        url: imageUrl,
+        caption: articleImageAlt(article)
+      },
+      ...extraImages.map((image) => ({
+        "@type": "ImageObject",
+        url: image.url,
+        caption: image.caption ?? articleImageAlt(article)
+      }))
+    ],
+    thumbnailUrl: imageUrl,
     datePublished: publishedAt,
     dateModified: article.updated_at ?? publishedAt,
     mainEntityOfPage: articleUrl(article),

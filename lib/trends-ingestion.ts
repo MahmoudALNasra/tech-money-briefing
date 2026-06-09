@@ -1,5 +1,6 @@
 import Parser from "rss-parser";
 
+import { normalizeArticleContent } from "./article-markdown";
 import { syncArticleHeroImage } from "./article-images";
 import { enrichArticleMedia } from "./article-media";
 import { fetchOpenGraphImage } from "./ingestion";
@@ -719,9 +720,11 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
   const bodyWithTools = toolsSection
     ? `${contentBody}\n\n${toolsSection}`
     : contentBody;
-  const content = bodyWithTools.includes(sourceCitation)
-    ? bodyWithTools
-    : `${bodyWithTools}\n\n${sourceCitation}`;
+  const content = normalizeArticleContent(
+    bodyWithTools.includes(sourceCitation)
+      ? bodyWithTools
+      : `${bodyWithTools}\n\n${sourceCitation}`
+  );
 
   return {
     title,

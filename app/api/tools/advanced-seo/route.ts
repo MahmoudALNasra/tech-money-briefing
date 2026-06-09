@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { logUsageEvent } from "@/lib/business-data-tokens";
 import { getOpenAIClient } from "@/lib/openai";
 
 type AdvancedSeoTool = "keyword-cluster" | "serp-intent" | "content-gap";
@@ -148,6 +149,16 @@ async function fetchSerp(keyword: string) {
   if (!response.ok) {
     throw new Error(`Serper failed (${response.status}): ${JSON.stringify(json)}`);
   }
+
+  await logUsageEvent({
+    eventType: "serper_search",
+    tokensCharged: 1,
+    metadata: {
+      tool: "advanced_seo",
+      endpoint: "search",
+      keyword
+    }
+  });
 
   return {
     organic:

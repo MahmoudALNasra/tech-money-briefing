@@ -10,12 +10,16 @@ function mapArticleMedia(row: Record<string, unknown>): ArticleMedia {
   return {
     id: String(row.id),
     article_id: String(row.article_id),
-    provider: "youtube",
+    provider: row.provider === "image" ? "image" : "youtube",
     provider_id: String(row.provider_id),
     title: String(row.title),
     thumbnail_url: row.thumbnail_url ? String(row.thumbnail_url) : null,
     url: String(row.url),
     position: Number(row.position ?? 0),
+    alt_text: row.alt_text ? String(row.alt_text) : null,
+    caption: row.caption ? String(row.caption) : null,
+    source_name: row.source_name ? String(row.source_name) : null,
+    source_url: row.source_url ? String(row.source_url) : null,
     created_at: row.created_at ? String(row.created_at) : undefined,
     updated_at: row.updated_at ? String(row.updated_at) : undefined
   };
@@ -35,7 +39,7 @@ export async function getArticleMedia(articleId: string) {
     .select("*")
     .eq("article_id", articleId)
     .order("position", { ascending: true })
-    .limit(3);
+    .limit(6);
 
   if (error) {
     if (isMissingTableError(error)) {
@@ -56,7 +60,8 @@ export async function replaceArticleMedia(
   const { error: deleteError } = await supabase
     .from("article_media")
     .delete()
-    .eq("article_id", articleId);
+    .eq("article_id", articleId)
+    .eq("provider", "youtube");
 
   if (deleteError) {
     if (isMissingTableError(deleteError)) {
@@ -89,6 +94,68 @@ export async function replaceArticleMedia(
     }
 
     throw new Error(`Failed to insert article media: ${insertError.message}`);
+  }
+
+  return { inserted: rows.length, skipped: 0 };
+}
+
+export type ArticleImageCandidate = {
+  providerId: string;
+  title: string;
+  imageUrl: string;
+  thumbnailUrl?: string | null;
+  altText: string;
+  caption: string;
+  sourceName?: string | null;
+  sourceUrl?: string | null;
+};
+
+export async function replaceArticleImageMedia(
+  articleId: string,
+  images: ArticleImageCandidate[]
+) {
+  const { error: deleteError } = await supabase
+    .from("article_media")
+    .delete()
+    .eq("article_id", articleId)
+    .eq("provider", "image");
+
+  if (deleteError) {
+    if (isMissingTableError(deleteError)) {
+      console.warn("[article-media] Skipped: article_media table is missing");
+      return { inserted: 0, skipped: images.length };
+    }
+
+    throw new Error(`Failed to clear article image media: ${deleteError.message}`);
+  }
+
+  if (images.length === 0) {
+    return { inserted: 0, skipped: 0 };
+  }
+
+  const rows = images.slice(0, 3).map((image, index) => ({
+    article_id: articleId,
+    provider: "image",
+    provider_id: image.providerId,
+    title: image.title,
+    thumbnail_url: image.thumbnailUrl ?? image.imageUrl,
+    url: image.imageUrl,
+    alt_text: image.altText,
+    caption: image.caption,
+    source_name: image.sourceName ?? null,
+    source_url: image.sourceUrl ?? null,
+    position: index + 3
+  }));
+
+  const { error: insertError } = await supabase.from("article_media").insert(rows);
+
+  if (insertError) {
+    if (isMissingTableError(insertError)) {
+      console.warn("[article-media] Skipped: article_media image columns are missing");
+      return { inserted: 0, skipped: images.length };
+    }
+
+    throw new Error(`Failed to insert article image media: ${insertError.message}`);
   }
 
   return { inserted: rows.length, skipped: 0 };

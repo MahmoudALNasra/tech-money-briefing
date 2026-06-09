@@ -56,6 +56,14 @@ export function ContactForm({ source = "contact_page" }: ContactFormProps) {
       className="not-prose space-y-5 rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm sm:p-8"
     >
       <input type="hidden" name="source" value={source} />
+      <input
+        type="text"
+        name="company_website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="hidden"
+      />
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="contact-name" className="text-sm font-bold text-ink">
@@ -153,7 +161,7 @@ export function ContactForm({ source = "contact_page" }: ContactFormProps) {
         disabled={isPending}
         className="min-h-12 rounded-full bg-ink px-6 text-sm font-bold text-white transition hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {isPending ? "Sending..." : "Send to info@techrevenuebrief.com"}
+        {isPending ? "Sending..." : "Send to sales@techrevenuebrief.com"}
       </button>
 
       {message ? (

@@ -1,5 +1,6 @@
 import Parser from "rss-parser";
 
+import { normalizeArticleContent } from "./article-markdown";
 import { syncArticleHeroImage } from "./article-images";
 import { enrichArticleMedia } from "./article-media";
 import { getOpenAIClient } from "./openai";
@@ -493,9 +494,11 @@ async function rewriteArticle(input: {
   }
 
   const sourceCitation = `Source: ${input.sourceName}.`;
-  const content = contentBody.includes(sourceCitation)
-    ? contentBody
-    : `${contentBody}\n\n${sourceCitation}`;
+  const content = normalizeArticleContent(
+    contentBody.includes(sourceCitation)
+      ? contentBody
+      : `${contentBody}\n\n${sourceCitation}`
+  );
 
   return {
     title,

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { formatCategory } from "@/lib/format";
+import { articleImageAlt } from "@/lib/seo";
 import type { ArticleSummary } from "@/lib/types";
 
 type ArticleCardProps = {
@@ -70,7 +71,7 @@ export function ArticleCard({
           {article.image_url ? (
             <Image
               src={article.image_url}
-              alt=""
+              alt={articleImageAlt(article)}
               fill
               quality={65}
               sizes="(min-width: 768px) 220px, calc(100vw - 2.5rem)"

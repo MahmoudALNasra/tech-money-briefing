@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { getRelatedArticles } from "@/lib/articles";
 import { formatCategory } from "@/lib/format";
+import { articleImageAlt } from "@/lib/seo";
 
 type RelatedArticlesProps = {
   currentArticleId: string;
@@ -43,7 +44,7 @@ export async function RelatedArticles({
                   {article.image_url ? (
                     <Image
                       src={article.image_url}
-                      alt=""
+                      alt={articleImageAlt(article)}
                       fill
                       quality={65}
                       sizes="(min-width: 768px) 33vw, 100vw"

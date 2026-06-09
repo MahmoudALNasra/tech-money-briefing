@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { formatDuration } from "@/lib/session-duration";
 
@@ -34,12 +34,73 @@ type SummaryResponse = {
   }>;
 };
 
+type UsageResponse = {
+  generated_at: string;
+  searches: number;
+  exports: number;
+  drive_uploads: number;
+  tokens_issued: number;
+  tokens_consumed: number;
+  tokens_remaining_total: number;
+  estimated_api_cost_usd: number;
+  estimated_revenue_usd: number;
+  estimated_margin_usd: number;
+  estimated_margin_pct: number;
+  top_events: Array<{ label: string; count: number }>;
+  api_credit_accounts?: ApiCreditAccount[];
+};
+
+type ApiCreditAccount = {
+  provider: string;
+  keyConfigured: boolean;
+  creditLimit: number | null;
+  creditsUsed: number;
+  creditsUsedLast24h: number;
+  estimatedRemaining: number | null;
+  expiresAt: string | null;
+  daysUntilExpiry: number | null;
+  status: "ok" | "warning" | "danger" | "missing";
+  notes: string[];
+};
+
+function formatUsd(value: number) {
+  return `$${value.toFixed(2)}`;
+}
+
 function formatTime(value: string) {
   return new Intl.DateTimeFormat("en", {
     hour: "numeric",
     minute: "2-digit",
     second: "2-digit"
   }).format(new Date(value));
+}
+
+function formatDate(value: string | null) {
+  if (!value) {
+    return "Not configured";
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  }).format(new Date(value));
+}
+
+function formatDaysUntil(value: number | null) {
+  if (value === null) {
+    return "Add expiry env";
+  }
+
+  if (value < 0) {
+    return `${Math.abs(value)} days expired`;
+  }
+
+  if (value === 0) {
+    return "Expires today";
+  }
+
+  return `${value} days left`;
 }
 
 function MetricCard({
@@ -99,21 +160,83 @@ function RankList({
   );
 }
 
+function ApiCreditCard({ account }: { account: ApiCreditAccount }) {
+  const statusClass =
+    account.status === "danger"
+      ? "border-red-200 bg-red-50 text-red-800"
+      : account.status === "warning"
+        ? "border-amber-200 bg-amber-50 text-amber-800"
+        : account.status === "missing"
+          ? "border-stone-200 bg-stone-50 text-stone-600"
+          : "border-emerald-200 bg-emerald-50 text-emerald-800";
+  const remainingLabel =
+    account.estimatedRemaining === null
+      ? "Set credit total"
+      : account.estimatedRemaining.toLocaleString();
+  const limitLabel =
+    account.creditLimit === null ? "unknown limit" : `${account.creditLimit.toLocaleString()} total`;
+
+  return (
+    <div className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-stone-500">
+            {account.provider}
+          </p>
+          <p className="mt-2 text-3xl font-black tracking-tight text-ink">
+            {remainingLabel}
+          </p>
+          <p className="mt-1 text-xs font-semibold text-stone-500">estimated credits remaining</p>
+        </div>
+        <span className={`rounded-full border px-3 py-1 text-xs font-black ${statusClass}`}>
+          {account.keyConfigured ? account.status : "missing key"}
+        </span>
+      </div>
+      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+        <div className="rounded-2xl bg-stone-50 p-3">
+          <p className="text-xs font-bold text-stone-500">Used</p>
+          <p className="mt-1 font-black text-ink">{account.creditsUsed.toLocaleString()}</p>
+          <p className="text-xs text-stone-500">{limitLabel}</p>
+        </div>
+        <div className="rounded-2xl bg-stone-50 p-3">
+          <p className="text-xs font-bold text-stone-500">Last 24h</p>
+          <p className="mt-1 font-black text-ink">
+            {account.creditsUsedLast24h.toLocaleString()}
+          </p>
+          <p className="text-xs text-stone-500">tracked calls</p>
+        </div>
+        <div className="rounded-2xl bg-stone-50 p-3">
+          <p className="text-xs font-bold text-stone-500">Renewal</p>
+          <p className="mt-1 font-black text-ink">{formatDaysUntil(account.daysUntilExpiry)}</p>
+          <p className="text-xs text-stone-500">{formatDate(account.expiresAt)}</p>
+        </div>
+      </div>
+      {account.notes.length > 0 ? (
+        <p className="mt-4 text-xs leading-6 text-stone-500">{account.notes.join(" ")}</p>
+      ) : null}
+    </div>
+  );
+}
+
 export default function AnalyticsDashboardPage() {
   const [tokenInput, setTokenInput] = useState("");
   const [token, setToken] = useState("");
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
+  const [usage, setUsage] = useState<UsageResponse | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const queryToken = params.get("token");
+    const queryToken = new URLSearchParams(window.location.search).get("token");
 
-    if (queryToken) {
+    if (!queryToken) {
+      return;
+    }
+
+    window.queueMicrotask(() => {
       setToken(queryToken);
       setTokenInput(queryToken);
-    }
+    });
   }, []);
 
   useEffect(() => {
@@ -127,15 +250,20 @@ export default function AnalyticsDashboardPage() {
       setIsLoading(true);
 
       try {
-        const response = await fetch(`/api/analytics/summary?token=${encodeURIComponent(token)}`);
-        const json = (await response.json()) as SummaryResponse & { error?: string };
+        const [summaryResponse, usageResponse] = await Promise.all([
+          fetch(`/api/analytics/summary?token=${encodeURIComponent(token)}`),
+          fetch(`/api/analytics/usage?token=${encodeURIComponent(token)}`)
+        ]);
+        const json = (await summaryResponse.json()) as SummaryResponse & { error?: string };
+        const usageJson = (await usageResponse.json()) as UsageResponse & { error?: string };
 
-        if (!response.ok) {
+        if (!summaryResponse.ok) {
           throw new Error(json.error ?? "Failed to load analytics.");
         }
 
         if (!cancelled) {
           setSummary(json);
+          setUsage(usageResponse.ok ? usageJson : null);
           setError("");
         }
       } catch (loadError) {
@@ -164,13 +292,9 @@ export default function AnalyticsDashboardPage() {
     };
   }, [token]);
 
-  const updatedLabel = useMemo(() => {
-    if (!summary?.generated_at) {
-      return "Waiting for data";
-    }
-
-    return `Updated ${formatTime(summary.generated_at)}`;
-  }, [summary?.generated_at]);
+  const updatedLabel = summary?.generated_at
+    ? `Updated ${formatTime(summary.generated_at)}`
+    : "Waiting for data";
 
   if (!token) {
     return (
@@ -267,6 +391,72 @@ export default function AnalyticsDashboardPage() {
             hint="session_ping keeps visitors active; session_end records time on site when they leave"
           />
         </div>
+
+        <section className="mt-8">
+          <div className="mb-4">
+            <h2 className="text-2xl font-black text-ink">Business data consumption</h2>
+            <p className="mt-1 text-sm text-stone-600">
+              Token usage, API cost estimates, and margin for the last 24 hours.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard
+              label="Preview searches"
+              value={usage?.searches ?? 0}
+              hint="Free preview searches logged server-side"
+            />
+            <MetricCard
+              label="Paid exports"
+              value={usage?.exports ?? 0}
+              hint="Full enriched CSV exports"
+            />
+            <MetricCard
+              label="Tokens consumed"
+              value={usage?.tokens_consumed ?? 0}
+              hint={`${usage?.tokens_remaining_total ?? 0} tokens remaining across wallets`}
+            />
+            <MetricCard
+              label="Estimated margin"
+              value={usage ? `${usage.estimated_margin_pct}%` : "0%"}
+              hint={
+                usage
+                  ? `${formatUsd(usage.estimated_revenue_usd)} revenue vs ${formatUsd(usage.estimated_api_cost_usd)} API cost`
+                  : "Waiting for usage data"
+              }
+            />
+          </div>
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <RankList title="Business data events" items={usage?.top_events ?? []} />
+            <MetricCard
+              label="Drive uploads"
+              value={usage?.drive_uploads ?? 0}
+              hint={`Tokens issued in window: ${usage?.tokens_issued ?? 0}`}
+            />
+          </div>
+        </section>
+
+        <section className="mt-8">
+          <div className="mb-4">
+            <h2 className="text-2xl font-black text-ink">API credit monitor</h2>
+            <p className="mt-1 text-sm text-stone-600">
+              Server-side key status, tracked API usage, estimated remaining credits, and renewal
+              deadlines.
+            </p>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {(usage?.api_credit_accounts ?? []).length > 0 ? (
+              usage?.api_credit_accounts?.map((account) => (
+                <ApiCreditCard key={account.provider} account={account} />
+              ))
+            ) : (
+              <MetricCard
+                label="API credit monitor"
+                value="Waiting"
+                hint="Usage data will appear after the private analytics endpoint refreshes."
+              />
+            )}
+          </div>
+        </section>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
           <RankList title="Live pages" items={summary?.top_pages ?? []} />

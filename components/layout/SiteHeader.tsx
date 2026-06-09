@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import { AuthNavLink } from "@/components/auth/AuthNavLink";
 import { SearchForm } from "@/components/search/SearchForm";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
@@ -17,6 +18,7 @@ type SiteHeaderProps = {
 };
 
 const primaryLinks = [
+  { href: "/business-data-generator", label: "Leads", badge: "New" },
   { href: "/tools", label: "Tools", badge: "Free" },
   { href: "/compare", label: "Compare" },
   { href: "/monetization-audit", label: "Audit" },
@@ -315,6 +317,10 @@ export function SiteHeader({
                 <SearchForm compact />
               </div>
 
+              <div className="hidden md:block">
+                <AuthNavLink />
+              </div>
+
               <div className="hidden items-center gap-2 md:flex lg:hidden">
                 <Link
                   href="/tools"
@@ -399,6 +405,7 @@ export function SiteHeader({
                       ) : null}
                     </Link>
                   ))}
+                  <AuthNavLink />
                 </nav>
 
                 <div className="my-3 h-px bg-stone-100" />
