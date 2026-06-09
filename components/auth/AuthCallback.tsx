@@ -52,7 +52,7 @@ export function AuthCallback() {
               driveMessage: getDriveOAuthErrorMessage(
                 oauthError ?? {
                   code: searchParams.get("error_code"),
-                  description: authError
+                  description: authError ?? null
                 }
               )
             });
