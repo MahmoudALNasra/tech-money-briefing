@@ -1554,6 +1554,7 @@ export function BusinessDataGenerator() {
       const cooldownUntil = Date.now() + MAP_IMAGE_COOLDOWN_MS;
       setMapImageCooldownUntil(cooldownUntil);
       setMapCooldownTick(Date.now());
+      setDriveFileLink(null);
       setExportStatus("Map image downloaded and cached for this search.");
       pushToDataLayer({
         event: "business_data_map_image_download",
@@ -1686,6 +1687,7 @@ export function BusinessDataGenerator() {
     }
 
     persistReadyReport(report);
+    setDriveFileLink(null);
 
     if (json.status === "cancelled") {
       setExportSummary(
@@ -1724,6 +1726,7 @@ export function BusinessDataGenerator() {
     const cachedReport = loadCachedReadyReport();
     if (cachedReport) {
       persistReadyReport(cachedReport);
+      setDriveFileLink(null);
       setExportSummary(
         `Using cached report for this ${selectedReportLimit}-business search. No additional credits were charged.`
       );
@@ -1732,6 +1735,7 @@ export function BusinessDataGenerator() {
     }
 
     setIsExportLoading(true);
+    setDriveFileLink(null);
     setExportStatus("Generating the subscriber report with website analysis and pitch recommendations...");
     setError("");
     cancelReportRef.current = false;
@@ -1793,6 +1797,7 @@ export function BusinessDataGenerator() {
         cancelled: finalJson.status === "cancelled"
       });
     } catch (exportError) {
+      setDriveFileLink(null);
       setExportStatus("");
       setError(
         handleTurnstileError(
@@ -1834,6 +1839,7 @@ export function BusinessDataGenerator() {
 
     setError("");
     await downloadFormattedWorkbook(activeReport.csv, activeReport.filename);
+    setDriveFileLink(null);
     setExportStatus("Subscriber workbook downloaded.");
     pushToDataLayer({
       event: "business_data_preview_download",
@@ -1911,6 +1917,14 @@ export function BusinessDataGenerator() {
     return driveTab;
   };
 
+  const shouldAutoOpenGoogleDriveTab = () => {
+    const userAgent = window.navigator.userAgent;
+    const isiOS = /iP(hone|ad|od)/.test(userAgent);
+    const isSafari = /Safari/i.test(userAgent) && !/(CriOS|FxiOS|EdgiOS|OPiOS)/i.test(userAgent);
+
+    return !(isiOS && isSafari);
+  };
+
   const uploadToGoogleDrive = async (preopenedDriveTab?: Window | null) => {
     if (!activeReport) {
       setError("Generate the subscriber report first, then send the completed workbook to Google Drive.");
@@ -1937,7 +1951,9 @@ export function BusinessDataGenerator() {
       }
 
       const exportFile = activeReport;
-      driveTab ??= openGoogleDriveUploadTab();
+      if (!driveTab && shouldAutoOpenGoogleDriveTab()) {
+        driveTab = openGoogleDriveUploadTab();
+      }
 
       const workbookBlob = await makeFormattedWorkbookBlob(exportFile.csv);
       const uploadJson = await uploadCsvWorkbookToGoogleDrive({
@@ -1956,10 +1972,6 @@ export function BusinessDataGenerator() {
         if (driveTab) {
           driveTab.location.href = uploadJson.webViewLink;
           openedDriveFile = true;
-        } else {
-          openedDriveFile = Boolean(
-            window.open(uploadJson.webViewLink, "_blank", "noopener,noreferrer")
-          );
         }
       } else {
         driveTab?.close();
@@ -1969,7 +1981,7 @@ export function BusinessDataGenerator() {
       setExportStatus(
         openedDriveFile
           ? `Uploaded ${uploadJson.name ?? exportFile.filename} to Google Drive and opened it in a new tab.`
-          : `Uploaded ${uploadJson.name ?? exportFile.filename} to your Google Drive. Use the button below if Safari blocked the new tab.`
+          : `Uploaded ${uploadJson.name ?? exportFile.filename} to your Google Drive. Tap the button below to open it.`
       );
       pushToDataLayer({
         event: "business_data_preview_download",
@@ -2007,7 +2019,8 @@ export function BusinessDataGenerator() {
   };
 
   const startGoogleDriveUpload = () => {
-    const driveTab = activeReport ? openGoogleDriveUploadTab() : null;
+    const driveTab =
+      activeReport && shouldAutoOpenGoogleDriveTab() ? openGoogleDriveUploadTab() : null;
 
     void uploadToGoogleDrive(driveTab);
   };
@@ -2213,6 +2226,7 @@ export function BusinessDataGenerator() {
       if (statusTarget === "checkout") {
         setCheckoutStatus(status);
       } else {
+        setDriveFileLink(null);
         setExportStatus(status);
       }
     },
@@ -3141,6 +3155,7 @@ export function BusinessDataGenerator() {
                           setReadyReport(null);
                           setEnrichedRows([]);
                           setExportSummary("");
+                          setDriveFileLink(null);
                           setExportStatus("");
                         }}
                         className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-bold text-ink transition hover:bg-stone-100"
@@ -3189,8 +3204,6 @@ export function BusinessDataGenerator() {
                 {driveFileLink ? (
                   <a
                     href={driveFileLink.url}
-                    target="_blank"
-                    rel="noreferrer"
                     title={`Open ${driveFileLink.name} in Google Drive`}
                     className="mt-3 inline-flex rounded-full bg-emerald-700 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:bg-emerald-800"
                   >
