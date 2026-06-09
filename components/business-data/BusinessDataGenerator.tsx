@@ -857,6 +857,7 @@ export function BusinessDataGenerator() {
   const [mapImageCooldownUntil, setMapImageCooldownUntil] = useState(0);
   const [mapCooldownTick, setMapCooldownTick] = useState(0);
   const [exportStatus, setExportStatus] = useState("");
+  const [driveFileLink, setDriveFileLink] = useState<{ name: string; url: string } | null>(null);
   const [exportSummary, setExportSummary] = useState("");
   const [enrichedRows, setEnrichedRows] = useState<EnrichedExportRow[]>([]);
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
@@ -1918,6 +1919,7 @@ export function BusinessDataGenerator() {
 
     setIsDriveLoading(true);
     setExportStatus("Preparing the formatted Excel workbook for your Google Drive...");
+    setDriveFileLink(null);
     setError("");
 
     let driveTab: Window | null = preopenedDriveTab ?? null;
@@ -1946,6 +1948,11 @@ export function BusinessDataGenerator() {
       let openedDriveFile = false;
 
       if (uploadJson.webViewLink) {
+        setDriveFileLink({
+          name: uploadJson.name ?? exportFile.filename,
+          url: uploadJson.webViewLink
+        });
+
         if (driveTab) {
           driveTab.location.href = uploadJson.webViewLink;
           openedDriveFile = true;
@@ -1962,7 +1969,7 @@ export function BusinessDataGenerator() {
       setExportStatus(
         openedDriveFile
           ? `Uploaded ${uploadJson.name ?? exportFile.filename} to Google Drive and opened it in a new tab.`
-          : `Uploaded ${uploadJson.name ?? exportFile.filename} to your Google Drive.`
+          : `Uploaded ${uploadJson.name ?? exportFile.filename} to your Google Drive. Use the button below if Safari blocked the new tab.`
       );
       pushToDataLayer({
         event: "business_data_preview_download",
@@ -3177,9 +3184,20 @@ export function BusinessDataGenerator() {
             ) : null}
 
             {exportStatus ? (
-              <p className="rounded-2xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
-                {exportStatus}
-              </p>
+              <div className="rounded-2xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
+                <p>{exportStatus}</p>
+                {driveFileLink ? (
+                  <a
+                    href={driveFileLink.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={`Open ${driveFileLink.name} in Google Drive`}
+                    className="mt-3 inline-flex rounded-full bg-emerald-700 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:bg-emerald-800"
+                  >
+                    Open in Google Drive
+                  </a>
+                ) : null}
+              </div>
             ) : null}
 
             <div className="overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-sm">
