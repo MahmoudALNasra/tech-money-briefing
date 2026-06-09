@@ -52,7 +52,7 @@ export function clearStoredGoogleDriveReturnPath() {
   window.localStorage.removeItem(googleDriveReturnPathKey);
 }
 
-export function readOAuthCallbackError() {
+export function readOAuthCallbackError(): { code: string | null; description: string | null } | null {
   if (typeof window === "undefined") {
     return null;
   }
@@ -68,7 +68,7 @@ export function readOAuthCallbackError() {
 
   return {
     code: errorCode,
-    description: errorDescription?.replace(/\+/g, " ")
+    description: errorDescription ? errorDescription.replace(/\+/g, " ") : null
   };
 }
 
