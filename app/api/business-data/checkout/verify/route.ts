@@ -12,6 +12,7 @@ import {
   businessDataPaidCookieOptions,
   createBusinessDataPaidCookie
 } from "@/lib/business-data-paid-access";
+import { sendBusinessDataPaymentEmail } from "@/lib/business-data-payment-email";
 
 function getStripeSecretKey() {
   return process.env.STRIPE_SECRET_KEY?.trim() ?? "";
@@ -27,8 +28,12 @@ type StripeCheckoutSession = {
     user_id?: string;
     bundle_id?: string;
     credits?: string;
+    bundle_name?: string;
   };
   client_reference_id?: string;
+  customer_details?: { email?: string };
+  amount_total?: number;
+  currency?: string;
   error?: {
     message?: string;
   };
@@ -89,7 +94,7 @@ export async function GET(request: Request) {
     const creditsGranted = getSessionCredits(session);
 
     if (userId) {
-      await creditTokens({
+      const creditResult = await creditTokens({
         userId,
         amount: creditsGranted,
         reason: "stripe_checkout_verify_fallback",
@@ -100,16 +105,30 @@ export async function GET(request: Request) {
         }
       });
 
-      await logUsageEvent({
-        userId,
-        eventType: "tokens_credited",
-        metadata: {
-          amount: creditsGranted,
-          stripe_session_id: session.id ?? sessionId,
-          bundle_id: session.metadata?.bundle_id ?? null,
-          source: "checkout_verify"
+      if (!creditResult.alreadyProcessed) {
+        try {
+          await sendBusinessDataPaymentEmail({
+            to: session.customer_details?.email,
+            bundleName: session.metadata?.bundle_name,
+            credits: creditsGranted,
+            amountTotal: session.amount_total,
+            currency: session.currency
+          });
+        } catch (emailError) {
+          console.error("[stripe-checkout-verify-email]", emailError);
         }
-      });
+
+        await logUsageEvent({
+          userId,
+          eventType: "tokens_credited",
+          metadata: {
+            amount: creditsGranted,
+            stripe_session_id: session.id ?? sessionId,
+            bundle_id: session.metadata?.bundle_id ?? null,
+            source: "checkout_verify"
+          }
+        });
+      }
     }
 
     const result = NextResponse.json({

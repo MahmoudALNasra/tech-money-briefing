@@ -5,6 +5,7 @@ import {
   getBusinessDataCreditBundle,
   logUsageEvent
 } from "@/lib/business-data-tokens";
+import { sendBusinessDataPaymentEmail } from "@/lib/business-data-payment-email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,9 +65,25 @@ type StripeEvent = {
       payment_status?: string;
       status?: string;
       customer_details?: { email?: string };
+      amount_total?: number;
+      currency?: string;
     };
   };
 };
+
+async function sendPaymentEmailSafely(input: {
+  to?: string | null;
+  bundleName?: string | null;
+  credits: number;
+  amountTotal?: number | null;
+  currency?: string | null;
+}) {
+  try {
+    await sendBusinessDataPaymentEmail(input);
+  } catch (error) {
+    console.error("[stripe-webhook-email]", error);
+  }
+}
 
 async function fulfillCheckoutSession(session: StripeEvent["data"]["object"], eventId: string) {
   const userId = session.client_reference_id || session.metadata?.user_id;
@@ -105,6 +122,14 @@ async function fulfillCheckoutSession(session: StripeEvent["data"]["object"], ev
   });
 
   if (!result.alreadyProcessed) {
+    await sendPaymentEmailSafely({
+      to: session.customer_details?.email,
+      bundleName: session.metadata?.bundle_name,
+      credits: creditsGranted,
+      amountTotal: session.amount_total,
+      currency: session.currency
+    });
+
     await logUsageEvent({
       userId,
       eventType: "tokens_credited",

@@ -61,11 +61,13 @@ export async function POST(request: Request) {
     const radiusMeters = cleanText(body.radiusMeters, 16);
     const cacheKey = cleanText(body.cacheKey, 120);
     const siteUrl = siteConfig.url;
+    const customerEmail = user.email?.trim();
     const invoiceDescription = `${bundle.name} business data credits for Tech Revenue Brief`;
 
     const params = new URLSearchParams({
       mode,
       locale: "auto",
+      billing_address_collection: "auto",
       client_reference_id: user.id,
       success_url: absoluteUrl(
         `/business-data-generator?checkout=success&session_id={CHECKOUT_SESSION_ID}&cache=${encodeURIComponent(cacheKey)}`
@@ -87,13 +89,17 @@ export async function POST(request: Request) {
       "custom_text[submit][message]": `Credits are added to your Tech Revenue Brief account after payment. Website: ${siteUrl}`
     });
 
-    if (user.email) {
-      params.set("customer_email", user.email);
+    if (customerEmail) {
+      params.set("customer_email", customerEmail);
+      params.set("metadata[customer_email]", customerEmail);
     }
 
     if (mode === "payment") {
-      if (user.email) {
-        params.set("payment_intent_data[receipt_email]", user.email);
+      params.set("submit_type", "pay");
+
+      if (customerEmail) {
+        params.set("payment_intent_data[receipt_email]", customerEmail);
+        params.set("payment_intent_data[metadata][customer_email]", customerEmail);
       }
 
       params.set("customer_creation", "always");
@@ -111,6 +117,9 @@ export async function POST(request: Request) {
       params.set("invoice_creation[invoice_data][metadata][user_id]", user.id);
       params.set("invoice_creation[invoice_data][metadata][bundle_id]", bundle.id);
       params.set("invoice_creation[invoice_data][metadata][site_url]", siteUrl);
+      if (customerEmail) {
+        params.set("invoice_creation[invoice_data][metadata][customer_email]", customerEmail);
+      }
     } else {
       params.set("subscription_data[description]", invoiceDescription);
       params.set("subscription_data[metadata][product]", "business-data-export");
