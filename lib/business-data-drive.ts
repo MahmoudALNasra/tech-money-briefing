@@ -1,7 +1,5 @@
 import {
   clearGoogleDriveAccessToken,
-  prefersGoogleDriveRedirectAuth,
-  requestGoogleDriveAccessTokenForCurrentUser,
   resolveGoogleDriveAccessToken
 } from "@/lib/google-drive-token";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -80,18 +78,6 @@ export async function uploadCsvWorkbookToGoogleDrive(input: {
   } satisfies DriveUploadResult;
 }
 
-function shouldFallbackGoogleDriveAuthToRedirect(error: unknown) {
-  if (!(error instanceof Error)) {
-    return prefersGoogleDriveRedirectAuth();
-  }
-
-  if (error.message === "GOOGLE_DRIVE_CLIENT_ID_REQUIRED") {
-    return true;
-  }
-
-  return prefersGoogleDriveRedirectAuth();
-}
-
 async function redirectToGoogleDriveOAuth(
   returnPath: string,
   session: { user: { id: string } } | null
@@ -99,7 +85,7 @@ async function redirectToGoogleDriveOAuth(
   const supabase = getSupabaseBrowserClient();
   const oauthOptions = {
     redirectTo: absoluteUrl(`/auth/callback?next=${encodeURIComponent(returnPath)}`),
-    scopes: "email profile https://www.googleapis.com/auth/drive.file",
+    scopes: "https://www.googleapis.com/auth/drive.file",
     queryParams: {
       access_type: "offline",
       prompt: "consent"
@@ -153,20 +139,6 @@ export async function requestGoogleDriveIdentityLink(returnPath: string) {
   const supabase = getSupabaseBrowserClient();
   const { data: sessionData } = await supabase.auth.getSession();
   const session = sessionData.session;
-
-  if (session && !prefersGoogleDriveRedirectAuth()) {
-    try {
-      await requestGoogleDriveAccessTokenForCurrentUser(session.user.id);
-      return { data: { url: null }, error: null };
-    } catch (error) {
-      if (!shouldFallbackGoogleDriveAuthToRedirect(error)) {
-        return {
-          data: { url: null },
-          error: error instanceof Error ? error : new Error(String(error))
-        };
-      }
-    }
-  }
 
   return redirectToGoogleDriveOAuth(returnPath, session);
 }

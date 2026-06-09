@@ -7,11 +7,7 @@ import {
   getOAuthProviderBySupabaseProvider,
   recordAuthProviderUsage
 } from "@/lib/auth-oauth-providers";
-import {
-  prefersGoogleDriveRedirectAuth,
-  requestGoogleDriveAccessTokenForCurrentUser,
-  storeGoogleDriveAccessToken
-} from "@/lib/google-drive-token";
+import { storeGoogleDriveAccessToken } from "@/lib/google-drive-token";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 export function AuthCallback() {
@@ -65,12 +61,6 @@ export function AuthCallback() {
               data.session.provider_refresh_token,
               data.session.user.id
             );
-          } else if (!prefersGoogleDriveRedirectAuth()) {
-            try {
-              await requestGoogleDriveAccessTokenForCurrentUser(data.session.user.id);
-            } catch {
-              // The business data page will retry or ask the user to tap export again.
-            }
           }
         }
 

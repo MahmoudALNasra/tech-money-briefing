@@ -30,6 +30,7 @@ export function ProfileReports() {
   const [reports, setReports] = useState<SavedReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [driveFileLink, setDriveFileLink] = useState<{ name: string; url: string } | null>(null);
   const [activeAction, setActiveAction] = useState<string | null>(null);
 
   const loadReports = async () => {
@@ -70,6 +71,7 @@ export function ProfileReports() {
 
     void (async () => {
       setActiveAction(`drive:${reportId}`);
+      setDriveFileLink(null);
       setMessage("Sending your saved report to Google Drive...");
 
       try {
@@ -93,11 +95,11 @@ export function ProfileReports() {
           workbookBlob
         });
 
-        if (upload.webViewLink) {
-          window.open(upload.webViewLink, "_blank", "noopener,noreferrer");
-        }
+        setDriveFileLink(
+          upload.webViewLink ? { name: upload.name, url: upload.webViewLink } : null
+        );
 
-        setMessage(`Uploaded ${upload.name} to Google Drive.`);
+        setMessage(`Uploaded ${upload.name} to Google Drive. Tap Open in Google Drive to view it.`);
       } catch (error) {
         const driveMessage = error instanceof Error ? error.message : String(error);
         if (driveMessage === "GOOGLE_DRIVE_AUTH_REQUIRED") {
@@ -121,6 +123,7 @@ export function ProfileReports() {
 
   const downloadReport = async (report: SavedReport) => {
     setActiveAction(`download:${report.id}`);
+    setDriveFileLink(null);
     setMessage("");
 
     try {
@@ -148,6 +151,7 @@ export function ProfileReports() {
 
   const exportReportToDrive = async (report: SavedReport) => {
     setActiveAction(`drive:${report.id}`);
+    setDriveFileLink(null);
     setMessage("Preparing Google Drive export...");
 
     try {
@@ -171,11 +175,11 @@ export function ProfileReports() {
         workbookBlob
       });
 
-      if (upload.webViewLink) {
-        window.open(upload.webViewLink, "_blank", "noopener,noreferrer");
-      }
+      setDriveFileLink(
+        upload.webViewLink ? { name: upload.name, url: upload.webViewLink } : null
+      );
 
-      setMessage(`Uploaded ${upload.name} to Google Drive.`);
+      setMessage(`Uploaded ${upload.name} to Google Drive. Tap Open in Google Drive to view it.`);
     } catch (error) {
       const driveMessage = error instanceof Error ? error.message : String(error);
       if (driveMessage === "GOOGLE_DRIVE_AUTH_REQUIRED") {
@@ -184,8 +188,6 @@ export function ProfileReports() {
         const { error: oauthError } = await requestGoogleDriveIdentityLink(returnPath);
         if (oauthError) {
           setMessage(oauthError.message);
-        } else {
-          await exportReportToDrive(report);
         }
         return;
       }
@@ -208,9 +210,18 @@ export function ProfileReports() {
         again or send it to Google Drive without regenerating it.
       </p>
       {message ? (
-        <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
-          {message}
-        </p>
+        <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
+          <p>{message}</p>
+          {driveFileLink ? (
+            <a
+              href={driveFileLink.url}
+              title={`Open ${driveFileLink.name} in Google Drive`}
+              className="mt-3 inline-flex rounded-full bg-emerald-700 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white transition hover:bg-emerald-800"
+            >
+              Open in Google Drive
+            </a>
+          ) : null}
+        </div>
       ) : null}
       {isLoading ? (
         <LoadingMascot
