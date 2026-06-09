@@ -27,6 +27,7 @@ import {
 } from "@/lib/business-data-drive";
 import {
   clearGoogleDriveAccessToken,
+  prefersGoogleDriveRedirectAuth,
   resolveGoogleDriveAccessToken
 } from "@/lib/google-drive-token";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -1881,7 +1882,9 @@ export function BusinessDataGenerator() {
     window.localStorage.setItem(driveReconnectCacheKey, cacheKey);
     setError("");
     setExportStatus(
-      "Google Drive needs permission. Choose the Google account where you want the file saved; your website account and credits will stay unchanged."
+      prefersGoogleDriveRedirectAuth()
+        ? "Redirecting to Google so you can authorize Drive access. You will return here to finish the upload."
+        : "Google Drive needs permission. Choose the Google account where you want the file saved; your website account and credits will stay unchanged."
     );
 
     try {
@@ -1892,7 +1895,12 @@ export function BusinessDataGenerator() {
         throw oauthError;
       }
 
-      return Boolean(await resolveGoogleDriveAccessToken());
+      const providerToken = await resolveGoogleDriveAccessToken();
+      if (!providerToken && prefersGoogleDriveRedirectAuth()) {
+        return false;
+      }
+
+      return Boolean(providerToken);
     } catch (driveReconnectError) {
       setExportStatus("");
       setError(
@@ -1917,14 +1925,6 @@ export function BusinessDataGenerator() {
     return driveTab;
   };
 
-  const shouldAutoOpenGoogleDriveTab = () => {
-    const userAgent = window.navigator.userAgent;
-    const isiOS = /iP(hone|ad|od)/.test(userAgent);
-    const isSafari = /Safari/i.test(userAgent) && !/(CriOS|FxiOS|EdgiOS|OPiOS)/i.test(userAgent);
-
-    return !(isiOS && isSafari);
-  };
-
   const uploadToGoogleDrive = async (preopenedDriveTab?: Window | null) => {
     if (!activeReport) {
       setError("Generate the subscriber report first, then send the completed workbook to Google Drive.");
@@ -1943,15 +1943,23 @@ export function BusinessDataGenerator() {
       if (!providerToken) {
         driveTab?.close();
         driveTab = null;
-        const connectedInline = await requestGoogleDriveAccess();
+        await requestGoogleDriveAccess();
         providerToken = await resolveGoogleDriveAccessToken();
-        if (!connectedInline || !providerToken) {
+        if (!providerToken) {
+          if (prefersGoogleDriveRedirectAuth()) {
+            return;
+          }
+
+          setExportStatus("");
+          setError(
+            "Google Drive access was not granted. Tap Send to my Google Drive again to connect Google and finish the upload."
+          );
           return;
         }
       }
 
       const exportFile = activeReport;
-      if (!driveTab && shouldAutoOpenGoogleDriveTab()) {
+      if (!driveTab && !prefersGoogleDriveRedirectAuth()) {
         driveTab = openGoogleDriveUploadTab();
       }
 
@@ -2001,8 +2009,8 @@ export function BusinessDataGenerator() {
 
       if (driveMessage === "GOOGLE_DRIVE_AUTH_REQUIRED") {
         clearGoogleDriveAccessToken();
-        const connectedInline = await requestGoogleDriveAccess();
-        if (connectedInline) {
+        await requestGoogleDriveAccess();
+        if (await resolveGoogleDriveAccessToken()) {
           await uploadToGoogleDrive();
         }
         return;
@@ -2020,7 +2028,7 @@ export function BusinessDataGenerator() {
 
   const startGoogleDriveUpload = () => {
     const driveTab =
-      activeReport && shouldAutoOpenGoogleDriveTab() ? openGoogleDriveUploadTab() : null;
+      activeReport && !prefersGoogleDriveRedirectAuth() ? openGoogleDriveUploadTab() : null;
 
     void uploadToGoogleDrive(driveTab);
   };
@@ -2033,7 +2041,16 @@ export function BusinessDataGenerator() {
     let cancelled = false;
 
     void (async () => {
-      const providerToken = await resolveGoogleDriveAccessToken();
+      let providerToken: string | null = null;
+
+      for (let attempt = 0; attempt < 12; attempt += 1) {
+        providerToken = await resolveGoogleDriveAccessToken();
+        if (providerToken || cancelled) {
+          break;
+        }
+
+        await sleep(500);
+      }
 
       if (cancelled) {
         return;
@@ -2043,7 +2060,9 @@ export function BusinessDataGenerator() {
         pendingDriveUploadRef.current = false;
         setExportStatus("");
         setError(
-          "Google Drive access was not granted. Click Export to Drive again to connect Google and finish the upload."
+          prefersGoogleDriveRedirectAuth()
+            ? "Google Drive access was not granted. Tap Send to my Google Drive again and allow Google access when redirected."
+            : "Google Drive access was not granted. Click Export to Drive again to connect Google and finish the upload."
         );
         return;
       }

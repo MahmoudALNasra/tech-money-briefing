@@ -1,5 +1,6 @@
 import {
   clearGoogleDriveAccessToken,
+  prefersGoogleDriveRedirectAuth,
   requestGoogleDriveAccessTokenForCurrentUser,
   resolveGoogleDriveAccessToken
 } from "@/lib/google-drive-token";
@@ -79,9 +80,23 @@ export async function uploadCsvWorkbookToGoogleDrive(input: {
   } satisfies DriveUploadResult;
 }
 
-export async function requestGoogleDriveIdentityLink(returnPath: string) {
+function shouldFallbackGoogleDriveAuthToRedirect(error: unknown) {
+  if (!(error instanceof Error)) {
+    return prefersGoogleDriveRedirectAuth();
+  }
+
+  if (error.message === "GOOGLE_DRIVE_CLIENT_ID_REQUIRED") {
+    return true;
+  }
+
+  return prefersGoogleDriveRedirectAuth();
+}
+
+async function redirectToGoogleDriveOAuth(
+  returnPath: string,
+  session: { user: { id: string } } | null
+) {
   const supabase = getSupabaseBrowserClient();
-  const { data: sessionData } = await supabase.auth.getSession();
   const oauthOptions = {
     redirectTo: absoluteUrl(`/auth/callback?next=${encodeURIComponent(returnPath)}`),
     scopes: "email profile https://www.googleapis.com/auth/drive.file",
@@ -92,29 +107,18 @@ export async function requestGoogleDriveIdentityLink(returnPath: string) {
     skipBrowserRedirect: false
   };
 
-  if (sessionData.session) {
-    try {
-      await requestGoogleDriveAccessTokenForCurrentUser(sessionData.session.user.id);
-      return { data: { url: null }, error: null };
-    } catch (error) {
-      if (!(error instanceof Error) || error.message !== "GOOGLE_DRIVE_CLIENT_ID_REQUIRED") {
-        return {
-          data: { url: null },
-          error: error instanceof Error ? error : new Error(String(error))
-        };
-      }
-    }
-
+  if (session) {
     const linkResult = await supabase.auth.linkIdentity({
-        provider: "google",
-        options: oauthOptions
-      });
+      provider: "google",
+      options: oauthOptions
+    });
 
     if (linkResult.error) {
       return {
         data: { url: null },
         error: new Error(
-          "Google Drive connection is not configured yet. Add NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID so users can authorize Drive without changing their website account."
+          linkResult.error.message ||
+            "Google Drive connection failed. Try again and allow Google access when prompted."
         )
       };
     }
@@ -131,9 +135,38 @@ export async function requestGoogleDriveIdentityLink(returnPath: string) {
     options: oauthOptions
   });
 
-  if (!result.error && result.data.url) {
+  if (result.error) {
+    return {
+      data: { url: null },
+      error: result.error
+    };
+  }
+
+  if (result.data.url) {
     window.location.assign(result.data.url);
   }
 
   return result;
+}
+
+export async function requestGoogleDriveIdentityLink(returnPath: string) {
+  const supabase = getSupabaseBrowserClient();
+  const { data: sessionData } = await supabase.auth.getSession();
+  const session = sessionData.session;
+
+  if (session && !prefersGoogleDriveRedirectAuth()) {
+    try {
+      await requestGoogleDriveAccessTokenForCurrentUser(session.user.id);
+      return { data: { url: null }, error: null };
+    } catch (error) {
+      if (!shouldFallbackGoogleDriveAuthToRedirect(error)) {
+        return {
+          data: { url: null },
+          error: error instanceof Error ? error : new Error(String(error))
+        };
+      }
+    }
+  }
+
+  return redirectToGoogleDriveOAuth(returnPath, session);
 }

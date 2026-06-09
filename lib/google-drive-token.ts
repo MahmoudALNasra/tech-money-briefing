@@ -6,6 +6,18 @@ const googleDriveClientId =
   process.env.NEXT_PUBLIC_GOOGLE_OAUTH_CLIENT_ID?.trim() ||
   "";
 
+export function prefersGoogleDriveRedirectAuth() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const userAgent = window.navigator.userAgent;
+  const isiOS = /iP(hone|ad|od)/.test(userAgent);
+  const isSafari = /Safari/i.test(userAgent) && !/(CriOS|FxiOS|EdgiOS|OPiOS)/i.test(userAgent);
+
+  return isiOS && isSafari;
+}
+
 type GoogleDriveTokenResponse = {
   access_token?: string;
   error?: string;
