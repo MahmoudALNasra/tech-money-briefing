@@ -189,6 +189,7 @@ type GoogleLatLngBoundsInstance = {
 
 type GoogleMapsWindow = Window & {
   __initBusinessDataGoogleMaps?: () => void;
+  gm_authFailure?: () => void;
   google?: {
     maps?: {
       importLibrary?: (library: string) => Promise<Record<string, unknown>>;
@@ -1105,6 +1106,15 @@ export function BusinessDataGenerator() {
     let cancelled = false;
 
     async function setupMap() {
+      const mapsWindow = window as GoogleMapsWindow;
+      mapsWindow.gm_authFailure = () => {
+        if (!cancelled) {
+          setMapError(
+            `Google Maps blocked this page. In Google Cloud Console, open your browser key and add ${window.location.origin}/* to HTTP referrers.`
+          );
+        }
+      };
+
       try {
         const constructors = await loadGoogleMapsConstructors();
         if (cancelled) {

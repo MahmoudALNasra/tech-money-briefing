@@ -62,7 +62,10 @@ function turnstileErrorMessage(errorCode: string) {
   }
 
   if (family === 300 || family === 600) {
-    return "Security check failed. Tap Retry below, or refresh the page if it keeps happening.";
+    const host =
+      typeof window !== "undefined" ? window.location.hostname : "your domain";
+
+    return `Security check failed. In Cloudflare Turnstile, add ${host} under Hostname Management, confirm your production site key and secret match, wait a minute, then retry.`;
   }
 
   return "Security check failed. Tap Retry below.";
