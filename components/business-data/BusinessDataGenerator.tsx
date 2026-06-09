@@ -1246,11 +1246,9 @@ export function BusinessDataGenerator() {
   const showResultOnMapFromTable = (result: BusinessResult, index: number) => {
     selectMapResult(result, index, "table");
 
-    if (window.matchMedia("(max-width: 1023px)").matches) {
-      window.requestAnimationFrame(() => {
-        mapPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    }
+    window.requestAnimationFrame(() => {
+      mapPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   useEffect(() => {
@@ -1899,7 +1897,20 @@ export function BusinessDataGenerator() {
     }
   };
 
-  const uploadToGoogleDrive = async () => {
+  const openGoogleDriveUploadTab = () => {
+    const driveTab = window.open("about:blank", "_blank");
+
+    if (driveTab) {
+      driveTab.opener = null;
+      driveTab.document.title = "Opening Google Drive...";
+      driveTab.document.body.innerHTML =
+        "<p style=\"font-family: system-ui, sans-serif; padding: 24px;\">Uploading your formatted Excel workbook to Google Drive...</p>";
+    }
+
+    return driveTab;
+  };
+
+  const uploadToGoogleDrive = async (preopenedDriveTab?: Window | null) => {
     if (!activeReport) {
       setError("Generate the subscriber report first, then send the completed workbook to Google Drive.");
       return;
@@ -1909,11 +1920,13 @@ export function BusinessDataGenerator() {
     setExportStatus("Preparing the formatted Excel workbook for your Google Drive...");
     setError("");
 
-    let driveTab: Window | null = null;
+    let driveTab: Window | null = preopenedDriveTab ?? null;
 
     try {
       let providerToken = await resolveGoogleDriveAccessToken();
       if (!providerToken) {
+        driveTab?.close();
+        driveTab = null;
         const connectedInline = await requestGoogleDriveAccess();
         providerToken = await resolveGoogleDriveAccessToken();
         if (!connectedInline || !providerToken) {
@@ -1922,13 +1935,7 @@ export function BusinessDataGenerator() {
       }
 
       const exportFile = activeReport;
-      driveTab = window.open("about:blank", "_blank");
-      if (driveTab) {
-        driveTab.opener = null;
-        driveTab.document.title = "Opening Google Drive...";
-        driveTab.document.body.innerHTML =
-          "<p style=\"font-family: system-ui, sans-serif; padding: 24px;\">Uploading your formatted Excel workbook to Google Drive...</p>";
-      }
+      driveTab ??= openGoogleDriveUploadTab();
 
       const workbookBlob = await makeFormattedWorkbookBlob(exportFile.csv);
       const uploadJson = await uploadCsvWorkbookToGoogleDrive({
@@ -1936,12 +1943,16 @@ export function BusinessDataGenerator() {
         filename: exportFile.filename,
         workbookBlob
       });
+      let openedDriveFile = false;
 
       if (uploadJson.webViewLink) {
         if (driveTab) {
           driveTab.location.href = uploadJson.webViewLink;
+          openedDriveFile = true;
         } else {
-          window.open(uploadJson.webViewLink, "_blank", "noopener,noreferrer");
+          openedDriveFile = Boolean(
+            window.open(uploadJson.webViewLink, "_blank", "noopener,noreferrer")
+          );
         }
       } else {
         driveTab?.close();
@@ -1949,7 +1960,7 @@ export function BusinessDataGenerator() {
 
       await refreshTokenBalance();
       setExportStatus(
-        uploadJson.webViewLink
+        openedDriveFile
           ? `Uploaded ${uploadJson.name ?? exportFile.filename} to Google Drive and opened it in a new tab.`
           : `Uploaded ${uploadJson.name ?? exportFile.filename} to your Google Drive.`
       );
@@ -1986,6 +1997,12 @@ export function BusinessDataGenerator() {
     } finally {
       setIsDriveLoading(false);
     }
+  };
+
+  const startGoogleDriveUpload = () => {
+    const driveTab = activeReport ? openGoogleDriveUploadTab() : null;
+
+    void uploadToGoogleDrive(driveTab);
   };
 
   useEffect(() => {
@@ -2714,7 +2731,7 @@ export function BusinessDataGenerator() {
 
           <div
             ref={mapPanelRef}
-            className="relative min-h-[720px] overflow-hidden bg-stone-900 xl:min-h-[820px]"
+            className="relative min-h-[720px] scroll-mt-24 overflow-hidden bg-stone-900 xl:min-h-[820px]"
           >
             <div ref={mapElementRef} className="absolute inset-0" />
             {!mapReady ? (
@@ -2791,18 +2808,6 @@ export function BusinessDataGenerator() {
                 <span
                   aria-hidden="true"
                   className="absolute -left-2 top-1/2 hidden h-4 w-4 -translate-y-1/2 rotate-45 border-b border-l border-white/30 bg-white/95 lg:block"
-                />
-                <span
-                  aria-hidden="true"
-                  className="absolute -left-20 top-1/2 hidden w-20 -translate-y-1/2 border-t-2 border-dotted border-stone-950/70 lg:block"
-                />
-                <span
-                  aria-hidden="true"
-                  className="absolute -bottom-16 left-1/2 h-16 -translate-x-1/2 border-l-2 border-dotted border-stone-950/70 lg:hidden"
-                />
-                <span
-                  aria-hidden="true"
-                  className="absolute -bottom-[4.35rem] left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-stone-950 shadow-[0_0_0_4px_rgba(255,255,255,0.8)] lg:hidden"
                 />
                 <div className="flex items-start gap-3">
                   <span className={`grid h-9 min-w-9 place-items-center rounded-full px-2 text-sm font-black text-white ${
@@ -3112,7 +3117,7 @@ export function BusinessDataGenerator() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => void uploadToGoogleDrive()}
+                        onClick={startGoogleDriveUpload}
                         disabled={isDriveLoading}
                         title="Uploads the formatted Excel workbook to the Google Drive account used for sign-in."
                         className="rounded-full border border-stone-300 px-5 py-2.5 text-sm font-bold text-ink transition hover:bg-stone-100 disabled:cursor-wait disabled:bg-stone-100 disabled:text-stone-400"

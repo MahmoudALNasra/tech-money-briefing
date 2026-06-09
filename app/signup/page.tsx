@@ -17,8 +17,10 @@ export default function SignupPage() {
       description="Create a profile for saved business data searches, exports, and future paid workspace features."
       showMonetizationRail={false}
       showAssistant={false}
+      contentMaxWidthClassName="max-w-xl"
+      heroMaxWidthClassName="max-w-xl"
     >
-      <div className="mx-auto max-w-xl">
+      <div className="mx-auto w-full min-w-0">
         <AuthForm mode="signup" />
       </div>
     </ToolPageShell>

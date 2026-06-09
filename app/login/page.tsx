@@ -17,8 +17,10 @@ export default function LoginPage() {
       description="Access your profile, saved business data searches, exports, and future paid tools."
       showMonetizationRail={false}
       showAssistant={false}
+      contentMaxWidthClassName="max-w-xl"
+      heroMaxWidthClassName="max-w-xl"
     >
-      <div className="mx-auto max-w-xl">
+      <div className="mx-auto w-full min-w-0">
         <AuthForm mode="login" />
       </div>
     </ToolPageShell>

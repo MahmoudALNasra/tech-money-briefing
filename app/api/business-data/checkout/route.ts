@@ -3,27 +3,13 @@ import { NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/business-data-auth";
 import { enforceBusinessDataSecurity } from "@/lib/business-data-security";
 import { getBusinessDataCreditBundle, logUsageEvent } from "@/lib/business-data-tokens";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 function cleanText(value: unknown, maxLength: number) {
   return String(value ?? "")
     .trim()
     .replace(/\s+/g, " ")
     .slice(0, maxLength);
-}
-
-function checkoutUrl(request: Request, path: string) {
-  const origin = request.headers.get("origin") ?? new URL(request.url).origin;
-  const normalizedOrigin = origin.replace(/\/$/, "");
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-  return `${normalizedOrigin}${normalizedPath}`;
-}
-
-function getSiteUrl(request: Request) {
-  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  const fallbackUrl = request.headers.get("origin") ?? new URL(request.url).origin;
-
-  return (configuredUrl || fallbackUrl).replace(/\/$/, "");
 }
 
 function getStripeConfig(bundleId?: unknown) {
@@ -74,18 +60,17 @@ export async function POST(request: Request) {
     const category = cleanText(body.category, 60);
     const radiusMeters = cleanText(body.radiusMeters, 16);
     const cacheKey = cleanText(body.cacheKey, 120);
-    const siteUrl = getSiteUrl(request);
+    const siteUrl = siteConfig.url;
     const invoiceDescription = `${bundle.name} business data credits for Tech Revenue Brief`;
 
     const params = new URLSearchParams({
       mode,
       locale: "auto",
       client_reference_id: user.id,
-      success_url: checkoutUrl(
-        request,
+      success_url: absoluteUrl(
         `/business-data-generator?checkout=success&session_id={CHECKOUT_SESSION_ID}&cache=${encodeURIComponent(cacheKey)}`
       ),
-      cancel_url: checkoutUrl(request, "/business-data-generator?checkout=cancelled"),
+      cancel_url: absoluteUrl("/business-data-generator?checkout=cancelled"),
       "line_items[0][price]": priceId,
       "line_items[0][quantity]": "1",
       "metadata[product]": "business-data-export",

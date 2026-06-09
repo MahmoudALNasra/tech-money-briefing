@@ -1,12 +1,11 @@
+import { siteConfig } from "@/lib/site";
+
 export async function revalidateSiteCache(options?: {
   paths?: string[];
   tags?: string[];
 }) {
   const secret = process.env.CRON_SECRET;
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(
-    /\/$/,
-    ""
-  );
+  const siteUrl = siteConfig.url;
 
   if (!secret) {
     console.warn("[revalidate] Skipped: CRON_SECRET is not configured");

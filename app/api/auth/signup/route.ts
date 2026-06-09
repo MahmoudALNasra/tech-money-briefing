@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { sendVerificationEmail } from "@/lib/auth-verification-email";
+import { absoluteUrl } from "@/lib/site";
 import { getSupabaseClient } from "@/lib/supabase";
 
 function getSafeNextPath(value: unknown) {
@@ -32,17 +33,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const origin =
-      process.env.NEXT_PUBLIC_SITE_URL ??
-      request.headers.get("origin") ??
-      new URL(request.url).origin;
     const supabase = getSupabaseClient();
     const { data, error } = await supabase.auth.admin.generateLink({
       type: "signup",
       email,
       password,
       options: {
-        redirectTo: `${origin.replace(/\/$/, "")}/auth/callback?next=${encodeURIComponent(nextPath)}`
+        redirectTo: absoluteUrl(`/auth/callback?next=${encodeURIComponent(nextPath)}`)
       }
     });
 

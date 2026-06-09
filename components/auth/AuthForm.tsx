@@ -14,6 +14,7 @@ import {
   type AuthProviderUsage,
   type OAuthProviderId
 } from "@/lib/auth-oauth-providers";
+import { absoluteUrl } from "@/lib/site";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 type AuthMode = "login" | "signup";
@@ -224,7 +225,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         throw new Error("This sign-in provider is not available.");
       }
 
-      const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+      const redirectTo = absoluteUrl(`/auth/callback?next=${encodeURIComponent(nextPath)}`);
       const providerOptions =
         providerId === "google"
           ? {
@@ -256,11 +257,11 @@ export function AuthForm({ mode }: AuthFormProps) {
   };
 
   return (
-    <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm sm:p-8">
+    <div className="w-full min-w-0 rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-8">
       <p className="text-xs font-black uppercase tracking-[0.24em] text-stone-400">
         {isSignup ? "Create account" : "Welcome back"}
       </p>
-      <h1 className="mt-3 text-3xl font-black tracking-tight text-ink">
+      <h1 className="mt-3 text-2xl font-black tracking-tight text-ink sm:text-3xl">
         {isSignup ? "Create your workspace profile" : "Sign in to your profile"}
       </h1>
       <p className="mt-3 text-sm leading-6 text-stone-600">
@@ -275,7 +276,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               type="button"
               onClick={() => void signInWithProvider(provider.id)}
               disabled={isLoading}
-              className="flex min-h-12 items-center justify-center gap-2.5 rounded-full border border-stone-300 bg-white px-4 text-sm font-black text-ink transition hover:bg-stone-50 disabled:cursor-wait disabled:opacity-60"
+              className="flex min-h-12 min-w-0 flex-wrap items-center justify-center gap-2 rounded-full border border-stone-300 bg-white px-4 text-sm font-black text-ink transition hover:bg-stone-50 disabled:cursor-wait disabled:opacity-60"
             >
               <OAuthProviderIcon provider={provider.id} />
               <span>{provider.label}</span>
@@ -300,7 +301,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-2 min-h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm outline-none ring-stone-200 transition focus:ring-4"
+            className="mt-2 min-h-12 w-full rounded-2xl border border-stone-200 px-4 text-base outline-none ring-stone-200 transition focus:ring-4 sm:text-sm"
             autoComplete="email"
           />
         </label>
@@ -311,7 +312,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="mt-2 min-h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm outline-none ring-stone-200 transition focus:ring-4"
+            className="mt-2 min-h-12 w-full rounded-2xl border border-stone-200 px-4 text-base outline-none ring-stone-200 transition focus:ring-4 sm:text-sm"
             autoComplete={isSignup ? "new-password" : "current-password"}
           />
         </label>

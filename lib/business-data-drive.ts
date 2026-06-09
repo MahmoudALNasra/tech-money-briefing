@@ -4,6 +4,7 @@ import {
   resolveGoogleDriveAccessToken
 } from "@/lib/google-drive-token";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { absoluteUrl } from "@/lib/site";
 
 type DriveUploadResult = {
   id: string;
@@ -82,7 +83,7 @@ export async function requestGoogleDriveIdentityLink(returnPath: string) {
   const supabase = getSupabaseBrowserClient();
   const { data: sessionData } = await supabase.auth.getSession();
   const oauthOptions = {
-    redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnPath)}`,
+    redirectTo: absoluteUrl(`/auth/callback?next=${encodeURIComponent(returnPath)}`),
     scopes: "email profile https://www.googleapis.com/auth/drive.file",
     queryParams: {
       access_type: "offline",

@@ -1,14 +1,14 @@
-const DEFAULT_PRODUCTION_URL = "https://techrevenuebrief.com";
+export const DEFAULT_PRODUCTION_URL = "https://techrevenuebrief.com";
+
+const LOCAL_URL_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/i;
 
 function resolveSiteUrl() {
-  const configured = (
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.NODE_ENV === "production"
-      ? DEFAULT_PRODUCTION_URL
-      : "http://localhost:3000")
-  ).replace(/\/$/, "");
+  const configured = (process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_PRODUCTION_URL).replace(
+    /\/$/,
+    ""
+  );
 
-  if (/example\.com/i.test(configured)) {
+  if (/example\.com/i.test(configured) || LOCAL_URL_PATTERN.test(configured)) {
     return DEFAULT_PRODUCTION_URL;
   }
 
