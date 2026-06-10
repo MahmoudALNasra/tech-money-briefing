@@ -2615,7 +2615,7 @@ export function BusinessDataGenerator() {
               <p className="mt-1 text-xs leading-5 text-stone-500">
                 {isSignedIn
                   ? `Process ${formatCreditBalance(selectedReportLimit)} businesses = ${formatCreditBalance(selectedReportLimit)} credits. Plans start at $${BUSINESS_DATA_CREDIT_BUNDLES.starter.priceUsd} for ${formatCreditBalance(BUSINESS_DATA_CREDIT_BUNDLES.starter.credits)} credits.`
-                  : "Sign in before checkout so credits attach to your account."}
+                  : "Sign in to see your credits or buy more."}
               </p>
               {!isSignedIn ? (
                 <Link
