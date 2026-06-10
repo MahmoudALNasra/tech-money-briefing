@@ -436,11 +436,6 @@ export default function AnalyticsDashboardPage() {
               value={usage?.drive_uploads ?? 0}
               hint={`Tokens issued in window: ${usage?.tokens_issued ?? 0}`}
             />
-            <MetricCard
-              label="Wallet tokens remaining"
-              value={usage?.tokens_remaining_total ?? 0}
-              hint="Current balance across all business data wallets"
-            />
           </div>
         </section>
 
