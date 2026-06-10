@@ -4,7 +4,7 @@ import { BusinessDataGenerator } from "@/components/business-data/BusinessDataGe
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
-const pageTitle = "Business Data Generator for Local Leads & Competitor Research";
+const pageTitle = "Local Lead Generator";
 const pageDescription =
   "Find local businesses, competitors, phone numbers, websites, ratings, emails, and outreach recommendations. Export lead reports to Excel or Google Drive.";
 
