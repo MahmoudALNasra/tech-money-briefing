@@ -36,7 +36,11 @@ type SummaryResponse = {
 
 type UsageResponse = {
   generated_at: string;
+  window_label?: string;
+  window_start?: string;
   searches: number;
+  free_previews?: number;
+  free_preview_estimated_api_cost_usd?: number;
   exports: number;
   drive_uploads: number;
   tokens_issued: number;
@@ -396,14 +400,14 @@ export default function AnalyticsDashboardPage() {
           <div className="mb-4">
             <h2 className="text-2xl font-black text-ink">Business data consumption</h2>
             <p className="mt-1 text-sm text-stone-600">
-              Token usage, API cost estimates, and margin for the last 24 hours.
+              Today&apos;s free previews, paid token usage, API cost estimates, and revenue margin.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-              label="Preview searches"
-              value={usage?.searches ?? 0}
-              hint="Free preview searches logged server-side"
+              label="Free previews today"
+              value={usage?.free_previews ?? usage?.searches ?? 0}
+              hint={`${formatUsd(usage?.free_preview_estimated_api_cost_usd ?? 0)} estimated API cost`}
             />
             <MetricCard
               label="Paid exports"
@@ -413,14 +417,14 @@ export default function AnalyticsDashboardPage() {
             <MetricCard
               label="Tokens consumed"
               value={usage?.tokens_consumed ?? 0}
-              hint={`${usage?.tokens_remaining_total ?? 0} tokens remaining across wallets`}
+              hint="Paid credits consumed today; free previews consume 0 tokens"
             />
             <MetricCard
               label="Estimated margin"
               value={usage ? `${usage.estimated_margin_pct}%` : "0%"}
               hint={
                 usage
-                  ? `${formatUsd(usage.estimated_revenue_usd)} revenue vs ${formatUsd(usage.estimated_api_cost_usd)} API cost`
+                  ? `${formatUsd(usage.estimated_revenue_usd)} revenue vs ${formatUsd(usage.estimated_api_cost_usd)} total API cost today`
                   : "Waiting for usage data"
               }
             />
@@ -431,6 +435,11 @@ export default function AnalyticsDashboardPage() {
               label="Drive uploads"
               value={usage?.drive_uploads ?? 0}
               hint={`Tokens issued in window: ${usage?.tokens_issued ?? 0}`}
+            />
+            <MetricCard
+              label="Wallet tokens remaining"
+              value={usage?.tokens_remaining_total ?? 0}
+              hint="Current balance across all business data wallets"
             />
           </div>
         </section>

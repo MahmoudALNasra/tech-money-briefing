@@ -31,19 +31,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const todayStart = new Date();
+  todayStart.setUTCHours(0, 0, 0, 0);
+  const todayStartIso = todayStart.toISOString();
 
   const [usageResult, ledgerResult, walletResult, apiCreditAccounts] = await Promise.all([
     supabase
       .from("business_data_usage_events")
       .select("event_type, tokens_charged, estimated_cost_usd, user_id, created_at")
-      .gte("created_at", twentyFourHoursAgo)
+      .gte("created_at", todayStartIso)
       .order("created_at", { ascending: false })
       .limit(5000),
     supabase
       .from("business_data_token_ledger")
       .select("delta, reason, created_at")
-      .gte("created_at", twentyFourHoursAgo)
+      .gte("created_at", todayStartIso)
       .order("created_at", { ascending: false })
       .limit(2000),
     supabase.from("business_data_wallets").select("balance, lifetime_credited, lifetime_debited"),
@@ -75,9 +77,14 @@ export async function GET(request: Request) {
   const creditEvents = ledgerRows.filter((row) => row.delta > 0).length;
   const estimatedRevenueUsd =
     creditEvents > 0 ? creditEvents * SUBSCRIPTION_PRICE_USD : 0;
-  const estimatedMarginUsd = estimatedRevenueUsd - totalEstimatedCost;
+  const estimatedMarginUsd =
+    estimatedRevenueUsd > 0 ? estimatedRevenueUsd - totalEstimatedCost : 0;
   const estimatedMarginPct =
     estimatedRevenueUsd > 0 ? (estimatedMarginUsd / estimatedRevenueUsd) * 100 : 0;
+  const freePreviews = eventCounts.get("preview_search") ?? 0;
+  const freePreviewEstimatedCost = usageRows
+    .filter((row) => row.event_type === "preview_search")
+    .reduce((sum, row) => sum + Number(row.estimated_cost_usd ?? 0), 0);
 
   const totalBalanceRemaining = wallets.reduce(
     (sum, wallet) => sum + Number(wallet.balance ?? 0),
@@ -91,10 +98,13 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     generated_at: new Date().toISOString(),
-    window_hours: 24,
+    window_label: "today_utc",
+    window_start: todayStartIso,
     subscription_price_usd: SUBSCRIPTION_PRICE_USD,
     subscription_token_grant: SUBSCRIPTION_TOKEN_GRANT,
-    searches: eventCounts.get("preview_search") ?? 0,
+    searches: freePreviews,
+    free_previews: freePreviews,
+    free_preview_estimated_api_cost_usd: Number(freePreviewEstimatedCost.toFixed(4)),
     exports: eventCounts.get("full_export") ?? 0,
     drive_uploads:
       (eventCounts.get("drive_upload_cached") ?? 0) +
