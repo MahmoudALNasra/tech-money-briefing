@@ -68,12 +68,17 @@ export function isGeneratedHeroImage(url: string | null | undefined) {
 export async function resolveArticleHeroImage(input: {
   image_url: string | null;
   media?: ArticleMedia[];
+  preferMedia?: boolean;
 }) {
+  const mediaFallback = heroImageFromMedia(input.media ?? []);
+
+  if (input.preferMedia && (await isImageUrlUsable(mediaFallback))) {
+    return mediaFallback;
+  }
+
   if (await isImageUrlUsable(input.image_url)) {
     return input.image_url!.trim();
   }
-
-  const mediaFallback = heroImageFromMedia(input.media ?? []);
 
   if (await isImageUrlUsable(mediaFallback)) {
     return mediaFallback;
@@ -85,11 +90,13 @@ export async function resolveArticleHeroImage(input: {
 export async function syncArticleHeroImage(input: {
   articleId: string;
   currentImageUrl?: string | null;
+  preferMedia?: boolean;
 }) {
   const media = await getArticleMedia(input.articleId);
   const resolved = await resolveArticleHeroImage({
     image_url: input.currentImageUrl ?? null,
-    media
+    media,
+    preferMedia: input.preferMedia
   });
 
   if (!resolved || resolved === input.currentImageUrl) {

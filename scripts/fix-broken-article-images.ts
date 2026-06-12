@@ -4,7 +4,6 @@ import {
   isImageUrlUsable,
   resolveArticleHeroImage
 } from "../lib/article-images";
-import { buildArticleSeoImage } from "../lib/seo-image-generator";
 import type { ArticleMedia } from "../lib/types";
 import { getSupabaseClient } from "../lib/supabase";
 import { revalidateSiteCache } from "../lib/revalidate-site";
@@ -68,10 +67,11 @@ async function run() {
     try {
       const currentUrl = article.image_url ? String(article.image_url) : null;
       const currentUsable = await isImageUrlUsable(currentUrl);
-      const shouldUseGeneratedHero =
-        article.category === "others" && !isGeneratedHeroImage(currentUrl);
+      const shouldPreferMedia = article.category === "others";
+      const shouldReplaceGeneratedHero =
+        article.category === "others" && isGeneratedHeroImage(currentUrl);
 
-      if (currentUsable && !shouldUseGeneratedHero) {
+      if (currentUsable && !shouldPreferMedia && !shouldReplaceGeneratedHero) {
         result.skipped += 1;
         continue;
       }
@@ -100,17 +100,11 @@ async function run() {
           }) satisfies ArticleMedia
       );
 
-      const resolved =
-        (shouldUseGeneratedHero
-          ? buildArticleSeoImage({
-              title: String(article.title),
-              category: String(article.category)
-            })
-          : null) ??
-        (await resolveArticleHeroImage({
-          image_url: currentUrl,
-          media: mappedMedia
-        }));
+      const resolved = await resolveArticleHeroImage({
+        image_url: shouldReplaceGeneratedHero ? null : currentUrl,
+        media: mappedMedia,
+        preferMedia: shouldPreferMedia
+      });
 
       if (!resolved || !(await isImageUrlUsable(resolved))) {
         result.skipped += 1;
