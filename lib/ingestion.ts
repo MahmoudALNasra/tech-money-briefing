@@ -1,7 +1,7 @@
 import Parser from "rss-parser";
 
+import { syncLocalizedArticleHeroImage } from "./article-hero-localization";
 import { normalizeArticleContent } from "./article-markdown";
-import { syncArticleHeroImage } from "./article-images";
 import { enrichArticleMedia } from "./article-media";
 import { getOpenAIClient } from "./openai";
 import { revalidateSiteCache } from "./revalidate-site";
@@ -204,9 +204,12 @@ async function ingestSource(
             metaDescription: rewritten.meta_description
           });
 
-          await syncArticleHeroImage({
+          await syncLocalizedArticleHeroImage({
             articleId: String(insertedArticle.id),
-            currentImageUrl: imageUrl
+            currentImageUrl: imageUrl,
+            slug,
+            title: rewritten.title,
+            publishedAt
           });
         }
       } catch (error) {

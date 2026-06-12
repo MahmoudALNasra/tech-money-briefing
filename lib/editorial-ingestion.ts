@@ -5,7 +5,7 @@ import {
 } from "@/data/editorial-topics";
 
 import { normalizeArticleContent } from "./article-markdown";
-import { syncArticleHeroImage } from "./article-images";
+import { syncLocalizedArticleHeroImage } from "./article-hero-localization";
 import { enrichArticleMedia } from "./article-media";
 import {
   articleExistsBySourceUrl,
@@ -95,6 +95,7 @@ export async function runEditorialIngestion(
       const article = await writeEditorialArticle(topic);
       const slug = await createUniqueSlug(article.title);
       const shareId = await createUniqueShareId();
+      const publishedAt = new Date().toISOString();
 
       const { data: insertedArticle, error } = await supabase
         .from("articles")
@@ -110,7 +111,7 @@ export async function runEditorialIngestion(
           image_url: null,
           share_id: shareId,
           status: "published",
-          published_at: new Date().toISOString()
+          published_at: publishedAt
         })
         .select("id")
         .single();
@@ -144,9 +145,12 @@ export async function runEditorialIngestion(
           metaDescription: article.meta_description
         });
 
-        await syncArticleHeroImage({
+        await syncLocalizedArticleHeroImage({
           articleId: String(insertedArticle.id),
-          currentImageUrl: null
+          currentImageUrl: null,
+          slug,
+          title: article.title,
+          publishedAt
         });
       }
     } catch (error) {

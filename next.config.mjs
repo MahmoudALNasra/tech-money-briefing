@@ -37,6 +37,15 @@ const nextConfig = {
           }
         ]
       },
+      {
+        source: "/media/articles/:path*",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "index, follow, max-image-preview:large"
+          }
+        ]
+      },
       ...[
         "/brush-the-algorithm",
         "/doomscroll-dodge",

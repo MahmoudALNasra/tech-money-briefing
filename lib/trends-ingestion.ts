@@ -1,7 +1,7 @@
 import Parser from "rss-parser";
 
+import { syncLocalizedArticleHeroImage } from "./article-hero-localization";
 import { normalizeArticleContent } from "./article-markdown";
-import { syncArticleHeroImage } from "./article-images";
 import { enrichArticleMedia } from "./article-media";
 import { fetchOpenGraphImage } from "./ingestion";
 import { getOpenAIClient } from "./openai";
@@ -164,6 +164,7 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
         sourceImageUrl ?? hydratedSeed.imageUrl
       );
       const status = "published";
+      const publishedAt = new Date().toISOString();
 
       const { data: insertedArticle, error } = await supabase
         .from("articles")
@@ -183,7 +184,7 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
           share_id: shareId,
           status,
           // Use our publish time so feeds sort newest-first on the site.
-          published_at: new Date().toISOString()
+          published_at: publishedAt
         })
         .select("id")
         .single();
@@ -207,10 +208,13 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
           metaDescription: article.meta_description
         });
 
-        await syncArticleHeroImage({
+        await syncLocalizedArticleHeroImage({
           articleId: String(insertedArticle.id),
           currentImageUrl: imageUrl,
-          preferMedia: true
+          preferMedia: true,
+          slug,
+          title: article.title,
+          publishedAt
         });
       }
     } catch (error) {

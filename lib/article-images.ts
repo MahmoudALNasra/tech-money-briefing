@@ -13,7 +13,7 @@ export async function isImageUrlUsable(url: string | null | undefined) {
 
   const normalized = url.trim();
 
-  if (isGeneratedHeroImage(normalized)) {
+  if (isSiteHostedArticleImage(normalized)) {
     return true;
   }
 
@@ -63,6 +63,15 @@ export function heroImageFromMedia(media: ArticleMedia[]) {
 
 export function isGeneratedHeroImage(url: string | null | undefined) {
   return Boolean(url && url.includes("/generated/article-"));
+}
+
+function isSiteHostedArticleImage(url: string | null | undefined) {
+  return Boolean(
+    url &&
+      (url.startsWith("/media/articles/") ||
+        url.includes("/media/articles/") ||
+        url.includes("/generated/article-"))
+  );
 }
 
 export async function resolveArticleHeroImage(input: {

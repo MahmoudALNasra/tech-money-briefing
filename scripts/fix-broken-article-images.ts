@@ -4,6 +4,7 @@ import {
   isImageUrlUsable,
   resolveArticleHeroImage
 } from "../lib/article-images";
+import { importArticleImageToPublic } from "../lib/article-public-image-files";
 import type { ArticleMedia } from "../lib/types";
 import { getSupabaseClient } from "../lib/supabase";
 import { revalidateSiteCache } from "../lib/revalidate-site";
@@ -26,14 +27,16 @@ function getStringArg(name: string) {
 
 async function run() {
   const dryRun = process.argv.includes("--dry-run");
+  const localizeAll = process.argv.includes("--localize-all");
   const limit = getNumberArg("limit", 250);
   const slug = getStringArg("slug");
   const category = getStringArg("category");
+  const since = getStringArg("since");
   const supabase = getSupabaseClient();
 
   let query = supabase
     .from("articles")
-    .select("id,slug,title,category,image_url")
+    .select("id,slug,title,category,image_url,published_at")
     .eq("status", "published")
     .order("published_at", { ascending: false })
     .limit(limit);
@@ -44,6 +47,10 @@ async function run() {
 
   if (category) {
     query = query.eq("category", category);
+  }
+
+  if (since) {
+    query = query.gte("published_at", since);
   }
 
   const { data: articles, error } = await query;
@@ -70,15 +77,23 @@ async function run() {
       const shouldPreferMedia = article.category === "others";
       const shouldReplaceGeneratedHero =
         article.category === "others" && isGeneratedHeroImage(currentUrl);
+      const shouldLocalizeCurrent = localizeAll && Boolean(currentUrl?.startsWith("http"));
 
-      if (currentUsable && !shouldPreferMedia && !shouldReplaceGeneratedHero) {
+      if (
+        currentUsable &&
+        !shouldPreferMedia &&
+        !shouldReplaceGeneratedHero &&
+        !shouldLocalizeCurrent
+      ) {
         result.skipped += 1;
         continue;
       }
 
       const { data: media, error: mediaError } = await supabase
         .from("article_media")
-        .select("provider,provider_id,thumbnail_url,url,position")
+        .select(
+          "id,provider,provider_id,title,thumbnail_url,url,position,alt_text,caption,source_name,source_url"
+        )
         .eq("article_id", article.id)
         .order("position", { ascending: true });
 
@@ -86,24 +101,74 @@ async function run() {
         throw new Error(mediaError.message);
       }
 
-      const mappedMedia = (media ?? []).map(
-        (row) =>
-          ({
-            id: String(row.provider_id),
-            article_id: String(article.id),
-            provider: row.provider === "image" ? "image" : "youtube",
-            provider_id: String(row.provider_id),
-            title: "",
-            thumbnail_url: row.thumbnail_url ? String(row.thumbnail_url) : null,
-            url: row.url ? String(row.url) : "",
-            position: Number(row.position ?? 0)
-          }) satisfies ArticleMedia
-      );
+      const localizedMedia: ArticleMedia[] = [];
 
-      const resolved = await resolveArticleHeroImage({
+      for (const row of media ?? []) {
+        const provider = row.provider === "image" ? "image" : "youtube";
+        let mediaUrl = row.url ? String(row.url) : "";
+        let thumbnailUrl = row.thumbnail_url ? String(row.thumbnail_url) : null;
+
+        if (provider === "image" && mediaUrl) {
+          const localizedUrl = await importArticleImageToPublic({
+            imageUrl: mediaUrl,
+            slug: String(article.slug),
+            title: String(row.title ?? article.title),
+            publishedAt: article.published_at ? String(article.published_at) : null
+          });
+          const localizedThumbnail = thumbnailUrl
+            ? await importArticleImageToPublic({
+                imageUrl: thumbnailUrl,
+                slug: `${String(article.slug)}-thumb`,
+                title: String(row.title ?? article.title),
+                publishedAt: article.published_at ? String(article.published_at) : null
+              })
+            : localizedUrl;
+
+          if (localizedUrl && localizedUrl !== mediaUrl && !dryRun) {
+            const { error: mediaUpdateError } = await supabase
+              .from("article_media")
+              .update({
+                url: localizedUrl,
+                thumbnail_url: localizedThumbnail ?? localizedUrl,
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", row.id);
+
+            if (mediaUpdateError) {
+              throw mediaUpdateError;
+            }
+          }
+
+          mediaUrl = localizedUrl ?? mediaUrl;
+          thumbnailUrl = localizedThumbnail ?? thumbnailUrl;
+        }
+
+        localizedMedia.push({
+          id: String(row.id ?? row.provider_id),
+          article_id: String(article.id),
+          provider,
+          provider_id: String(row.provider_id),
+          title: row.title ? String(row.title) : "",
+          thumbnail_url: thumbnailUrl,
+          url: mediaUrl,
+          position: Number(row.position ?? 0),
+          alt_text: row.alt_text ? String(row.alt_text) : null,
+          caption: row.caption ? String(row.caption) : null,
+          source_name: row.source_name ? String(row.source_name) : null,
+          source_url: row.source_url ? String(row.source_url) : null
+        });
+      }
+
+      const resolvedRemote = await resolveArticleHeroImage({
         image_url: shouldReplaceGeneratedHero ? null : currentUrl,
-        media: mappedMedia,
+        media: localizedMedia,
         preferMedia: shouldPreferMedia
+      });
+      const resolved = await importArticleImageToPublic({
+        imageUrl: resolvedRemote,
+        slug: String(article.slug),
+        title: String(article.title),
+        publishedAt: article.published_at ? String(article.published_at) : null
       });
 
       if (!resolved || !(await isImageUrlUsable(resolved))) {
