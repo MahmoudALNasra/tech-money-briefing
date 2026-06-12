@@ -81,6 +81,7 @@ export function ArticleCard({
               quality={65}
               sizes="(min-width: 768px) 220px, calc(100vw - 2.5rem)"
               priority={priority}
+              unoptimized={article.image_url!.startsWith("http")}
               onError={() => setImageFailed(true)}
               className="object-cover transition duration-300 group-hover:scale-[1.02]"
             />

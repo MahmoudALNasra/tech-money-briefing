@@ -388,6 +388,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 height={800}
                 priority
                 quality={75}
+                unoptimized={heroImageUrl.startsWith("http")}
                 sizes="(min-width: 768px) 768px, 100vw"
                 className="mx-auto block h-auto max-h-[32rem] w-full object-contain"
               />
