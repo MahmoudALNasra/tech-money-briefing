@@ -13,6 +13,10 @@ export async function isImageUrlUsable(url: string | null | undefined) {
 
   const normalized = url.trim();
 
+  if (isGeneratedHeroImage(normalized)) {
+    return true;
+  }
+
   if (usableCache.has(normalized)) {
     return usableCache.get(normalized) === true;
   }
@@ -38,6 +42,16 @@ export async function isImageUrlUsable(url: string | null | undefined) {
 }
 
 export function heroImageFromMedia(media: ArticleMedia[]) {
+  const firstImage = media.find((item) => item.provider === "image");
+
+  if (firstImage?.url) {
+    return firstImage.url;
+  }
+
+  if (firstImage?.thumbnail_url) {
+    return firstImage.thumbnail_url;
+  }
+
   const firstVideo = media.find((item) => item.provider === "youtube");
 
   if (!firstVideo?.provider_id) {
@@ -45,6 +59,10 @@ export function heroImageFromMedia(media: ArticleMedia[]) {
   }
 
   return highQualityYouTubeThumbnail(firstVideo.provider_id);
+}
+
+export function isGeneratedHeroImage(url: string | null | undefined) {
+  return Boolean(url && url.includes("/generated/article-"));
 }
 
 export async function resolveArticleHeroImage(input: {

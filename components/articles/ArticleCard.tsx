@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 import { formatCategory } from "@/lib/format";
 import { articleImageAlt } from "@/lib/seo";
@@ -46,6 +49,8 @@ export function ArticleCard({
   featured = false,
   priority = false
 }: ArticleCardProps) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const shouldShowImage = Boolean(article.image_url && !imageFailed);
   const publishedLabel = article.published_at
     ? new Intl.DateTimeFormat("en", {
         month: "short",
@@ -68,14 +73,15 @@ export function ArticleCard({
             featured ? "aspect-[16/10] md:aspect-[4/3]" : "aspect-[16/10]"
           }`}
         >
-          {article.image_url ? (
+          {shouldShowImage ? (
             <Image
-              src={article.image_url}
+              src={article.image_url!}
               alt={articleImageAlt(article)}
               fill
               quality={65}
               sizes="(min-width: 768px) 220px, calc(100vw - 2.5rem)"
               priority={priority}
+              onError={() => setImageFailed(true)}
               className="object-cover transition duration-300 group-hover:scale-[1.02]"
             />
           ) : (

@@ -1,5 +1,10 @@
 import { loadLocalEnv } from "../lib/load-env";
-import { isImageUrlUsable, resolveArticleHeroImage } from "../lib/article-images";
+import {
+  isGeneratedHeroImage,
+  isImageUrlUsable,
+  resolveArticleHeroImage
+} from "../lib/article-images";
+import { buildArticleSeoImage } from "../lib/seo-image-generator";
 import type { ArticleMedia } from "../lib/types";
 import { getSupabaseClient } from "../lib/supabase";
 import { revalidateSiteCache } from "../lib/revalidate-site";
@@ -24,17 +29,22 @@ async function run() {
   const dryRun = process.argv.includes("--dry-run");
   const limit = getNumberArg("limit", 250);
   const slug = getStringArg("slug");
+  const category = getStringArg("category");
   const supabase = getSupabaseClient();
 
   let query = supabase
     .from("articles")
-    .select("id,slug,category,image_url")
+    .select("id,slug,title,category,image_url")
     .eq("status", "published")
     .order("published_at", { ascending: false })
     .limit(limit);
 
   if (slug) {
     query = query.eq("slug", slug);
+  }
+
+  if (category) {
+    query = query.eq("category", category);
   }
 
   const { data: articles, error } = await query;
@@ -58,15 +68,17 @@ async function run() {
     try {
       const currentUrl = article.image_url ? String(article.image_url) : null;
       const currentUsable = await isImageUrlUsable(currentUrl);
+      const shouldUseGeneratedHero =
+        article.category === "others" && !isGeneratedHeroImage(currentUrl);
 
-      if (currentUsable) {
+      if (currentUsable && !shouldUseGeneratedHero) {
         result.skipped += 1;
         continue;
       }
 
       const { data: media, error: mediaError } = await supabase
         .from("article_media")
-        .select("provider,provider_id,thumbnail_url,position")
+        .select("provider,provider_id,thumbnail_url,url,position")
         .eq("article_id", article.id)
         .order("position", { ascending: true });
 
@@ -74,22 +86,31 @@ async function run() {
         throw new Error(mediaError.message);
       }
 
-      const resolved = await resolveArticleHeroImage({
-        image_url: currentUrl,
-        media: (media ?? []).map(
-          (row) =>
-            ({
-              id: String(row.provider_id),
-              article_id: String(article.id),
-              provider: "youtube",
-              provider_id: String(row.provider_id),
-              title: "",
-              thumbnail_url: row.thumbnail_url ? String(row.thumbnail_url) : null,
-              url: "",
-              position: Number(row.position ?? 0)
-            }) satisfies ArticleMedia
-        )
-      });
+      const mappedMedia = (media ?? []).map(
+        (row) =>
+          ({
+            id: String(row.provider_id),
+            article_id: String(article.id),
+            provider: row.provider === "image" ? "image" : "youtube",
+            provider_id: String(row.provider_id),
+            title: "",
+            thumbnail_url: row.thumbnail_url ? String(row.thumbnail_url) : null,
+            url: row.url ? String(row.url) : "",
+            position: Number(row.position ?? 0)
+          }) satisfies ArticleMedia
+      );
+
+      const resolved =
+        (shouldUseGeneratedHero
+          ? buildArticleSeoImage({
+              title: String(article.title),
+              category: String(article.category)
+            })
+          : null) ??
+        (await resolveArticleHeroImage({
+          image_url: currentUrl,
+          media: mappedMedia
+        }));
 
       if (!resolved || !(await isImageUrlUsable(resolved))) {
         result.skipped += 1;

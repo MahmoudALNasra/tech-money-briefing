@@ -1,8 +1,8 @@
 import Parser from "rss-parser";
 
 import { normalizeArticleContent } from "./article-markdown";
-import { syncArticleHeroImage } from "./article-images";
 import { enrichArticleMedia } from "./article-media";
+import { buildArticleSeoImage } from "./seo-image-generator";
 import { fetchOpenGraphImage } from "./ingestion";
 import { getOpenAIClient } from "./openai";
 import { generateShareId } from "./share-id";
@@ -207,10 +207,22 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
           metaDescription: article.meta_description
         });
 
-        await syncArticleHeroImage({
-          articleId: String(insertedArticle.id),
-          currentImageUrl: imageUrl
+        const generatedHeroImage = buildArticleSeoImage({
+          title: article.title,
+          category: TREND_CATEGORY
         });
+
+        const { error: heroUpdateError } = await supabase
+          .from("articles")
+          .update({
+            image_url: generatedHeroImage,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", insertedArticle.id);
+
+        if (heroUpdateError) {
+          throw heroUpdateError;
+        }
       }
     } catch (error) {
       result.errors.push(
