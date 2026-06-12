@@ -5,7 +5,7 @@ import { ArticleCard } from "@/components/articles/ArticleCard";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SearchForm } from "@/components/search/SearchForm";
 import { searchPublishedArticles } from "@/lib/articles";
-import { CORE_CATEGORIES } from "@/lib/categories";
+import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { COMPARISONS } from "@/lib/comparisons";
 import { FREE_TOOLS } from "@/lib/free-tools";
 import { siteConfig } from "@/lib/site";
@@ -84,7 +84,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <>
-      <SiteHeader categories={[...CORE_CATEGORIES]} />
+      <SiteHeader categories={getPublicNavCategories()} />
       <main className="bg-stone-50">
         <section className="border-b border-stone-200 bg-white">
           <div className="mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16">

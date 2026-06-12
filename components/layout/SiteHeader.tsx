@@ -8,12 +8,12 @@ import { useEffect, useRef, useState } from "react";
 
 import { AuthNavLink } from "@/components/auth/AuthNavLink";
 import { SearchForm } from "@/components/search/SearchForm";
-import { CORE_CATEGORIES } from "@/lib/categories";
+import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { formatCategory } from "@/lib/format";
 import { siteConfig } from "@/lib/site";
 
 type SiteHeaderProps = {
-  categories?: readonly string[];
+  categories?: ReturnType<typeof getPublicNavCategories>;
   activeCategory?: string;
 };
 
@@ -21,7 +21,7 @@ const primaryLinks = [
   { href: "/business-data-generator", label: "Leads", badge: "New" },
   { href: "/tools", label: "Tools", badge: "Free" },
   { href: "/compare", label: "Compare" },
-  { href: "/monetization-audit", label: "Audit" },
+  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" }
 ];
 
@@ -72,7 +72,7 @@ const topicMeta: Record<
 };
 
 export function SiteHeader({
-  categories = CORE_CATEGORIES,
+  categories = getPublicNavCategories(),
   activeCategory
 }: SiteHeaderProps) {
   const router = useRouter();
@@ -80,7 +80,7 @@ export function SiteHeader({
   const [isTopicsOpen, setIsTopicsOpen] = useState(false);
   const [clickedHref, setClickedHref] = useState("");
   const closeTopicsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const navCategories = categories.length > 0 ? categories : CORE_CATEGORIES;
+  const navCategories = categories.length > 0 ? categories : getPublicNavCategories();
 
   useEffect(() => {
     return () => {

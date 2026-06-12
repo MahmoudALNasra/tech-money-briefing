@@ -8,7 +8,7 @@ import { FeedWithSidebar } from "@/components/layout/FeedWithSidebar";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { ToolAssistant } from "@/components/tools/ToolAssistant";
 import { getPaginatedHomepageArticles } from "@/lib/articles";
-import { CORE_CATEGORIES } from "@/lib/categories";
+import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { formatCategory } from "@/lib/format";
 import { paginatedCanonicalPath, parsePageParam } from "@/lib/pagination";
 import { absoluteUrl, siteConfig } from "@/lib/site";
@@ -75,7 +75,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <>
-      <SiteHeader categories={[...CORE_CATEGORIES]} />
+      <SiteHeader categories={getPublicNavCategories()} />
 
       <main className="bg-stone-50">
         <section className="border-b border-stone-200 bg-white">
@@ -91,9 +91,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               industry context, and publishes concise B2B briefings with
               actionable takeaways.
             </p>
-            {CORE_CATEGORIES.length > 0 ? (
+            {getPublicNavCategories().length > 0 ? (
               <div className="mt-6 flex flex-wrap gap-2">
-                {CORE_CATEGORIES.map((category) => (
+                {getPublicNavCategories().map((category) => (
                   <span
                     key={category}
                     className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-stone-600"

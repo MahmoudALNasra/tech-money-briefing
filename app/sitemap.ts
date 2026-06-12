@@ -1,5 +1,9 @@
 import type { MetadataRoute } from "next";
 
+import {
+  ADSENSE_TRUST_PAGES,
+  isAdsenseHiddenCategory
+} from "@/lib/adsense-readiness";
 import { getPublishedCategories, getPublishedSitemapEntries } from "@/lib/articles";
 import { COMPARISONS } from "@/lib/comparisons";
 import { FREE_TOOLS } from "@/lib/free-tools";
@@ -50,6 +54,12 @@ function staticSitemapEntries(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.55
+    })),
+    ...ADSENSE_TRUST_PAGES.map((path) => ({
+      url: absoluteUrl(path),
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.5
     }))
   ];
 }
@@ -73,17 +83,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticSitemapEntries(),
-    ...categories.map((category) => ({
-      url: absoluteUrl(`/${category}`),
-      lastModified: new Date(),
-      changeFrequency: "hourly" as const,
-      priority: 0.8
-    })),
-    ...articles.map((article) => ({
-      url: absoluteUrl(`/${article.category}/${article.slug}`),
-      lastModified: article.updated_at ?? article.published_at ?? new Date(),
-      changeFrequency: "daily" as const,
-      priority: 0.7
-    }))
+    ...categories
+      .filter((category) => !isAdsenseHiddenCategory(category))
+      .map((category) => ({
+        url: absoluteUrl(`/${category}`),
+        lastModified: new Date(),
+        changeFrequency: "hourly" as const,
+        priority: 0.8
+      })),
+    ...articles
+      .filter((article) => !isAdsenseHiddenCategory(String(article.category)))
+      .map((article) => ({
+        url: absoluteUrl(`/${article.category}/${article.slug}`),
+        lastModified: article.updated_at ?? article.published_at ?? new Date(),
+        changeFrequency: "daily" as const,
+        priority: 0.7
+      }))
   ];
 }

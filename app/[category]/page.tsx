@@ -7,6 +7,10 @@ import { FeedWithSidebar } from "@/components/layout/FeedWithSidebar";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getPaginatedArticlesByCategory } from "@/lib/articles";
 import {
+  getPublicNavCategories,
+  isAdsenseHiddenCategory
+} from "@/lib/adsense-readiness";
+import {
   CATEGORY_SEO_DESCRIPTIONS,
   CORE_CATEGORIES,
   isCoreCategory
@@ -48,6 +52,9 @@ export async function generateMetadata({
   return {
     title,
     description,
+    robots: isAdsenseHiddenCategory(normalizedCategory)
+      ? { index: false, follow: true }
+      : { index: true, follow: true },
     alternates: {
       canonical: url
     },
@@ -111,7 +118,7 @@ export default async function CategoryPage({
   return (
     <>
       <SiteHeader
-        categories={[...CORE_CATEGORIES]}
+        categories={getPublicNavCategories()}
         activeCategory={normalizedCategory}
       />
       <main className="bg-stone-50">

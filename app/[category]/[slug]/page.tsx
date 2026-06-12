@@ -18,6 +18,8 @@ import { MonetizationRail } from "@/components/monetization/MonetizationRail";
 import { BackButton } from "@/components/navigation/BackButton";
 import { ScrollNewsletter } from "@/components/newsletter/ScrollNewsletter";
 import { ToolAssistant } from "@/components/tools/ToolAssistant";
+import { articleRobotsForAdsense } from "@/lib/adsense-readiness";
+import { shouldBypassArticleImageOptimization } from "@/lib/article-image-optimization";
 import { getArticleMedia } from "@/lib/article-media";
 import { resolveArticleHeroImage } from "@/lib/article-images";
 import {
@@ -26,7 +28,7 @@ import {
   renderArticleBlock
 } from "@/lib/article-markdown";
 import { getArticleBySlug } from "@/lib/articles";
-import { CORE_CATEGORIES } from "@/lib/categories";
+import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { formatCategory } from "@/lib/format";
 import {
   articleImage,
@@ -153,6 +155,7 @@ export async function generateMetadata({
     description: article.meta_description,
     publisher: siteConfig.name,
     keywords: articleKeywords(article),
+    robots: articleRobotsForAdsense(article),
     alternates: {
       canonical: url
     },
@@ -228,7 +231,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   return (
     <>
       <SiteHeader
-        categories={[...CORE_CATEGORIES]}
+        categories={getPublicNavCategories()}
         activeCategory={article.category}
       />
       <main className="bg-white">
@@ -388,7 +391,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 height={800}
                 priority
                 quality={75}
-                unoptimized={heroImageUrl.startsWith("http")}
+                unoptimized={shouldBypassArticleImageOptimization(heroImageUrl)}
                 sizes="(min-width: 768px) 768px, 100vw"
                 className="mx-auto block h-auto max-h-[32rem] w-full object-contain"
               />

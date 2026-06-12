@@ -38,6 +38,16 @@ export default function EditorialPolicyPage() {
         is designed to skip off-topic content when it does not fit the
         publication scope.
       </p>
+      <h2>Human Review</h2>
+      <p>
+        Briefings are reviewed for source attribution, topical fit, readable
+        structure, and practical usefulness before publication. Pages that are
+        off-topic, overly thin, duplicated, or low-value are not published.
+      </p>
+      <p>
+        We also maintain original tools, comparison pages, and editorial guides
+        that provide standalone value beyond automated summaries.
+      </p>
       <h2>Source Attribution</h2>
       <p>
         Articles should fit the site thesis: helping readers understand how

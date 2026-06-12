@@ -2,8 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { NewsletterCapture } from "@/components/newsletter/NewsletterCapture";
+import { shouldBypassArticleImageOptimization } from "@/lib/article-image-optimization";
 import { getPaginatedHomepageArticles } from "@/lib/articles";
-import { CORE_CATEGORIES } from "@/lib/categories";
+import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { formatCategory } from "@/lib/format";
 import { siteConfig } from "@/lib/site";
 
@@ -32,7 +33,7 @@ export async function SiteSidebar({ activeCategory }: SiteSidebarProps) {
           Explore Categories
         </p>
         <nav className="mt-3 grid gap-1.5" aria-label="Sidebar categories">
-          {CORE_CATEGORIES.map((category) => (
+          {getPublicNavCategories().map((category) => (
             <Link
               key={category}
               href={`/${category}`}
@@ -96,6 +97,9 @@ export async function SiteSidebar({ activeCategory }: SiteSidebarProps) {
                           fill
                           quality={65}
                           sizes="52px"
+                          unoptimized={shouldBypassArticleImageOptimization(
+                            article.image_url
+                          )}
                           className="object-cover"
                         />
                       ) : (

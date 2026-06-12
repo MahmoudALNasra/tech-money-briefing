@@ -305,6 +305,7 @@ export async function searchPublishedArticles(query: string, limit = 24) {
     .from("articles")
     .select(articleSummaryColumns)
     .eq("status", "published")
+    .neq("category", "others")
     .or(
       `title.ilike.${pattern},meta_description.ilike.${pattern},content.ilike.${pattern},source_name.ilike.${pattern}`
     )

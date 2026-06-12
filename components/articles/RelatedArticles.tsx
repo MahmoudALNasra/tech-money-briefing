@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { shouldBypassArticleImageOptimization } from "@/lib/article-image-optimization";
 import { getRelatedArticles } from "@/lib/articles";
 import { formatCategory } from "@/lib/format";
 import { articleImageAlt } from "@/lib/seo";
@@ -48,6 +49,9 @@ export async function RelatedArticles({
                       fill
                       quality={65}
                       sizes="(min-width: 768px) 33vw, 100vw"
+                      unoptimized={shouldBypassArticleImageOptimization(
+                        article.image_url
+                      )}
                       className="object-cover transition duration-300 group-hover:scale-[1.02]"
                     />
                   ) : (

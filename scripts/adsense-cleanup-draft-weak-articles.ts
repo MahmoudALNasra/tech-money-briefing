@@ -1,31 +1,9 @@
+import { shouldHideArticleForAdsense } from "../lib/adsense-readiness";
 import { loadLocalEnv } from "../lib/load-env";
 import { revalidateSiteCache } from "../lib/revalidate-site";
 import { supabase } from "../lib/supabase";
 
 loadLocalEnv();
-
-const weakTitlePatterns = [
-  "techcrunch disrupt",
-  "startup battlefield",
-  "early bird",
-  "ticket",
-  "tickets"
-];
-
-function shouldDraft(article: {
-  title: string;
-  category: string;
-  source_name: string;
-}) {
-  const title = article.title.toLowerCase();
-  const sourceName = article.source_name.toLowerCase();
-
-  if (article.category === "others" && sourceName.includes("google trends")) {
-    return true;
-  }
-
-  return weakTitlePatterns.some((pattern) => title.includes(pattern));
-}
 
 async function draftWeakArticles() {
   const dryRun = process.argv.includes("--dry-run");
@@ -40,7 +18,7 @@ async function draftWeakArticles() {
   }
 
   const candidates = (data ?? []).filter((article) =>
-    shouldDraft({
+    shouldHideArticleForAdsense({
       title: String(article.title),
       category: String(article.category),
       source_name: String(article.source_name)

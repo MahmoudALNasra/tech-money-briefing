@@ -1,5 +1,6 @@
 import Parser from "rss-parser";
 
+import { isAdsenseReviewMode } from "./adsense-readiness";
 import { syncLocalizedArticleHeroImage } from "./article-hero-localization";
 import { normalizeArticleContent } from "./article-markdown";
 import { enrichArticleMedia } from "./article-media";
@@ -90,6 +91,22 @@ const parser = new Parser({
 });
 
 export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
+  if (isAdsenseReviewMode()) {
+    return {
+      ok: true,
+      paused: true,
+      reason: "ADSENSE_REVIEW_MODE",
+      source: GOOGLE_TRENDS_SOURCE,
+      geo: options.geo ?? process.env.GOOGLE_TRENDS_GEO ?? "US",
+      maxNewArticles: 0,
+      selected: [],
+      processed: 0,
+      inserted: 0,
+      skipped: 0,
+      errors: [] as string[]
+    };
+  }
+
   const maxNewArticles =
     options.maxNewArticles ??
     Number(process.env.TRENDS_MAX_NEW_ARTICLES ?? 10);

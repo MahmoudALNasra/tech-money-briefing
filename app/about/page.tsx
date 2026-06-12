@@ -46,6 +46,26 @@ export default function AboutPage() {
         readers should watch before acting on it.
       </p>
       <p>
+        Every briefing links to the original source, includes a practical
+        takeaway section, and is reviewed for clarity, attribution, and fit with
+        our monetization-focused editorial scope before publication.
+      </p>
+      <h2>Editorial Standards</h2>
+      <p>
+        We prioritize original analysis, useful tools, comparison pages, and
+        category briefings that help founders, marketers, and operators make
+        better revenue decisions. We avoid publishing thin pages, duplicate
+        summaries, or off-topic trend noise.
+      </p>
+      <p>
+        Questions, corrections, or partnership requests can be sent through our{" "}
+        <a href="/contact">contact page</a> or{" "}
+        <a href="mailto:hello@techrevenuebrief.com">
+          hello@techrevenuebrief.com
+        </a>
+        .
+      </p>
+      <p>
         We are not a financial adviser, investment adviser, or legal adviser.
         Readers should verify important details before making business,
         investment, tax, or legal decisions.
