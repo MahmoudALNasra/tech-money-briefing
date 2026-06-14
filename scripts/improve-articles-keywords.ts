@@ -2,10 +2,7 @@ import { loadLocalEnv } from "../lib/load-env";
 import { getOpenAIClient } from "../lib/openai";
 import { revalidateSiteCache } from "../lib/revalidate-site";
 import { runKeywordResearch } from "../lib/keyword-research";
-import {
-  formatInternalLinksMarkdown,
-  getStaticInternalLinksForText
-} from "../lib/internal-links";
+import { getStaticInternalLinksForText } from "../lib/internal-links";
 import { getSupabaseClient } from "../lib/supabase";
 
 loadLocalEnv();
@@ -245,7 +242,7 @@ async function improveArticle(
                 "Rewrite content to add or improve ## Quick Answer, ## FAQ, and clearer structure.",
                 "Weave primary keyword and variants naturally into title, opening, headings, and FAQ.",
                 "Use misspellings only in FAQ or one short sentence.",
-                "Add 2-3 natural internal markdown links when relevant.",
+                "Add 2-3 natural internal markdown links inside paragraphs, headings, or useful list items when relevant. Do not add a separate related-links section.",
                 "Keep source citation at the end if present.",
                 "meta_description must be 120-155 characters.",
                 "Generate exactly 3 key_takeaways."
@@ -256,7 +253,7 @@ async function improveArticle(
                 "Do not summarize or replace the rest of the article; those fields are merged server-side.",
                 "Weave primary keyword and variants into title, meta, FAQ questions, and quick_answer.",
                 "Use misspellings only in FAQ.",
-                "Add 2-3 natural internal markdown links in FAQ or quick_answer when clearly helpful.",
+                "Add 2-3 natural internal markdown links in FAQ or quick_answer when clearly helpful. Do not add a separate related-links section.",
                 "meta_description must be 120-155 characters.",
                 "Generate exactly 3 key_takeaways from existing takeaways or article theme."
               ],
@@ -292,19 +289,6 @@ async function improveArticle(
       String(parsed.quick_answer ?? ""),
       String(parsed.faq_section ?? "")
     );
-  }
-
-  const internalBlock = formatInternalLinksMarkdown(
-    getStaticInternalLinksForText(
-      [String(parsed.title ?? article.title), String(parsed.meta_description)].join(
-        " "
-      ),
-      2
-    )
-  );
-
-  if (internalBlock && !content.includes(internalBlock.split("\n")[0] ?? "")) {
-    content = `${content}\n\n${internalBlock}`;
   }
 
   return {

@@ -14,10 +14,6 @@ import { getOpenAIClient } from "./openai";
 import { generateShareId } from "./share-id";
 import { slugify } from "./slug";
 import { supabase } from "./supabase";
-import {
-  formatToolRecommendationsMarkdown,
-  getRecommendedToolsForTrend
-} from "./tool-recommendations";
 import { runKeywordResearch } from "./keyword-research";
 
 type TrendArticle = {
@@ -689,7 +685,7 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
             "Keep the same reader-friendly structure as Tech Revenue Brief guides: direct answer first, ## Quick Answer, practical context, what to watch next, and ## FAQ when the query supports it.",
             "Do not include a separate Key Takeaways section inside content because key_takeaways is stored separately.",
             "Do not include a title line inside content; the article title is stored separately.",
-            "When relevant, include 2-4 natural internal markdown links between paragraphs to related tools or comparison pages on this site. Use paths like /adsense-revenue-calculator, /ai-headline-generator, /tools, or /compare/beehiiv-vs-substack. The links should help the reader take the next step and should not feel forced.",
+            "When relevant, include 2-4 natural internal markdown links inside paragraphs, headings, or useful list items. Use paths like /adsense-revenue-calculator, /ai-headline-generator, /tools, or /compare/beehiiv-vs-substack. Do not add a separate related-links section at the bottom.",
             "Generate exactly 3 actionable key_takeaways.",
             "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
             "Use this keyword research plan to cover variants and common misspellings naturally (misspellings only in FAQ or a short note):",
@@ -735,15 +731,7 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
     throw new Error("OpenAI trends response must include exactly 3 takeaways");
   }
 
-  const recommendedTools = getRecommendedToolsForTrend(
-    seed.title,
-    seed.newsTitles
-  );
-  const toolsSection = formatToolRecommendationsMarkdown(recommendedTools);
-  const bodyWithTools = toolsSection
-    ? `${contentBody}\n\n${toolsSection}`
-    : contentBody;
-  const content = normalizeArticleContent(stripGeneratedSourceFooter(bodyWithTools));
+  const content = normalizeArticleContent(stripGeneratedSourceFooter(contentBody));
 
   return {
     title,

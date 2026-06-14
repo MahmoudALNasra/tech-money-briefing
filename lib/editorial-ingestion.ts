@@ -18,18 +18,10 @@ import {
   createUniqueSlug
 } from "./article-publish";
 import { CORE_CATEGORIES, isCoreCategory } from "./categories";
-import {
-  formatInternalLinksMarkdown,
-  getStaticInternalLinksForText
-} from "./internal-links";
 import { getOpenAIClient } from "./openai";
 import { siteConfig } from "./site";
 import { slugify } from "./slug";
 import { supabase } from "./supabase";
-import {
-  formatToolRecommendationsMarkdown,
-  getRecommendedToolsForText
-} from "./tool-recommendations";
 import { runKeywordResearch } from "./keyword-research";
 
 export const EDITORIAL_SOURCE_NAME = ARTICLE_EDITORIAL_SOURCE_NAME;
@@ -430,8 +422,8 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
             "For checklists, put one item per line using `[ ] item text` or `- [ ] item text`. Never put a heading and checklist items on the same line.",
             "When images, videos, examples, or screenshots would help the reader understand the topic, mention exactly what visual would be useful rather than pretending one exists.",
             "Aim for 900-1300 words. Be specific and actionable.",
-            "Include 2-4 natural internal markdown links between paragraphs to on-site tools, hub pages, or comparisons when relevant (paths like /ai-headline-generator, /tools, /compare/beehiiv-vs-substack). The links should be highlighted by normal markdown syntax and should help the reader take the next step.",
-            "Internal markdown links must use root-relative paths only. Never use example.com or placeholder absolute URLs.",
+            "Include 2-4 natural internal markdown links inside paragraphs, headings, or useful list items when relevant (paths like /ai-headline-generator, /tools, /compare/beehiiv-vs-substack).",
+            "Internal markdown links must use root-relative paths only. Never add a separate related-links section at the bottom.",
             "When discussing Substack, Zoho, Google Workspace, Google Ads, Cursor, DigitalOcean, or Shopify, mention that Tech Revenue Brief may provide a relevant referral link or referral guide on the page and keep the recommendation balanced.",
             "Do not cite fake statistics or fabricated quotes.",
             ...ARTICLE_ORIGINALITY_INSTRUCTIONS,
@@ -478,22 +470,7 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
     throw new Error("OpenAI editorial response must include exactly 3 takeaways");
   }
 
-  const haystack = [title, topic.angle, topic.title, topic.category].join(" ");
-  const tools = getRecommendedToolsForText(haystack, 3, true);
-  const toolHrefs = new Set(tools.map((tool) => tool.href));
-  const toolsSection = formatToolRecommendationsMarkdown(
-    tools,
-    siteConfig.url
-  ).replace("## Useful tools for this trend", "## Tools mentioned in this guide");
-  const internalLinks = formatInternalLinksMarkdown(
-    getStaticInternalLinksForText(haystack, 6)
-      .filter((item) => !toolHrefs.has(item.href))
-      .slice(0, 4)
-  );
-
-  const sections = [contentBody, toolsSection, internalLinks].filter(Boolean);
-  const body = sections.join("\n\n");
-  const content = normalizeArticleContent(stripGeneratedSourceFooter(body));
+  const content = normalizeArticleContent(stripGeneratedSourceFooter(contentBody));
 
   return {
     title,

@@ -1,8 +1,5 @@
 import { getOpenAIClient } from "./openai";
-import {
-  formatInternalLinksMarkdown,
-  getStaticInternalLinksForText
-} from "./internal-links";
+import { getStaticInternalLinksForText } from "./internal-links";
 import { runKeywordResearch } from "./keyword-research";
 
 export type GscArticleRow = {
@@ -123,6 +120,7 @@ export async function improvePublishedArticleForGsc(
             "Return quick_answer and faq_section as markdown body only (no ## heading lines).",
             "FAQ should include 3-4 questions; at least one question should closely match the GSC query.",
             "Use **bold** and ==highlighted phrases== in quick_answer and faq_section where helpful.",
+            "Use suggested internal links only inside natural sentences or FAQ answers when clearly helpful. Do not create a separate related-links section.",
             "Do not rewrite the full article body; sections are merged server-side.",
             "meta_description must be 120-155 characters.",
             "Generate exactly 3 key_takeaways."
@@ -154,17 +152,6 @@ export async function improvePublishedArticleForGsc(
     String(parsed.quick_answer ?? ""),
     String(parsed.faq_section ?? "")
   );
-
-  const internalBlock = formatInternalLinksMarkdown(
-    getStaticInternalLinksForText(
-      [String(parsed.title ?? article.title), gscQuery].join(" "),
-      2
-    )
-  );
-
-  if (internalBlock && !content.includes(internalBlock.split("\n")[0] ?? "")) {
-    content = `${content}\n\n${internalBlock}`;
-  }
 
   return {
     title: String(parsed.title ?? "").trim() || article.title,
