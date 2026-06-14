@@ -12,6 +12,17 @@ export const ARTICLE_ORIGINALITY_INSTRUCTIONS = [
   "Keep the style guide flexible because future owner-written samples may refine the voice."
 ];
 
+export const OWNER_VOICE_REWRITE_GUIDE = [
+  "The owner voice is direct, practical, and a little skeptical. It often starts from a real question: do I actually need this, will it save time, is it worth paying for, and what problem does it solve?",
+  "Keep a human reasoning flow: personal observation, practical example, questions a business owner would ask, trade-offs, then a clear takeaway.",
+  "Use simple business-owner logic around time, money, effort, marketing, tools, and whether something creates real value. Avoid sounding like a polished corporate blog.",
+  "It is okay to include honest doubts and decision questions, but keep grammar clean enough for readers and search engines.",
+  "Prefer concrete examples: AI agents, Google Business/Profile data, Google Maps research, APIs, paid tools, local businesses, small websites, referrals, ads, and manual work versus automation.",
+  "Avoid generic AI hype. Make the article useful by explaining when a tool helps, when it does not, what can go wrong, and what the reader should check before spending time or money.",
+  "Do not copy outside articles. Use the old article only as topic context and rebuild the body in an original Tech Revenue Brief voice.",
+  "Keep paragraphs short. Use clear ## headings, a Quick Answer, practical decision points, and FAQ when useful."
+];
+
 export function stripGeneratedSourceFooter(content: string) {
   return content
     .replace(
