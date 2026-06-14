@@ -51,7 +51,24 @@ type UsageResponse = {
   estimated_margin_usd: number;
   estimated_margin_pct: number;
   top_events: Array<{ label: string; count: number }>;
+  top_search_categories?: Array<{ label: string; count: number }>;
+  top_search_locations?: Array<{ label: string; count: number }>;
+  top_business_searches?: Array<{ label: string; count: number }>;
+  recent_business_searches?: BusinessDataSearch[];
   api_credit_accounts?: ApiCreditAccount[];
+};
+
+type BusinessDataSearch = {
+  created_at: string;
+  category: string;
+  location: string;
+  center_label: string;
+  radius_meters: number;
+  result_count: number;
+  total_available_estimate: number;
+  paid_access: boolean;
+  provider: string;
+  result_names: string[];
 };
 
 type ApiCreditAccount = {
@@ -161,6 +178,84 @@ function RankList({
         )}
       </div>
     </div>
+  );
+}
+
+function RecentBusinessSearches({
+  searches
+}: {
+  searches: BusinessDataSearch[];
+}) {
+  return (
+    <section className="overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-sm">
+      <div className="border-b border-stone-200 px-5 py-4">
+        <h2 className="text-sm font-black uppercase tracking-[0.18em] text-stone-500">
+          Recent business searches
+        </h2>
+        <p className="mt-1 text-xs text-stone-500">
+          Category, location, and sample businesses people searched for today.
+        </p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-left text-sm">
+          <thead className="bg-stone-50 text-xs uppercase tracking-[0.16em] text-stone-500">
+            <tr>
+              <th className="px-5 py-3">Time</th>
+              <th className="px-5 py-3">Search</th>
+              <th className="px-5 py-3">Area</th>
+              <th className="px-5 py-3">Results</th>
+              <th className="px-5 py-3">Sample businesses</th>
+            </tr>
+          </thead>
+          <tbody>
+            {searches.length > 0 ? (
+              searches.map((search) => (
+                <tr
+                  key={`${search.created_at}-${search.category}-${search.center_label}`}
+                  className="border-t border-stone-100"
+                >
+                  <td className="whitespace-nowrap px-5 py-3 text-stone-500">
+                    {formatTime(search.created_at)}
+                  </td>
+                  <td className="px-5 py-3 font-semibold text-ink">
+                    {search.category || "unknown"}
+                    <span className="mt-1 block text-xs font-medium text-stone-500">
+                      {search.paid_access ? "Paid access" : "Free preview"} ·{" "}
+                      {search.provider || "provider unknown"}
+                    </span>
+                  </td>
+                  <td className="max-w-xs px-5 py-3 text-stone-600">
+                    <span className="line-clamp-2">
+                      {search.center_label || search.location || "unknown"}
+                    </span>
+                    <span className="mt-1 block text-xs text-stone-400">
+                      Radius {search.radius_meters.toLocaleString()}m
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-5 py-3 text-stone-600">
+                    {search.result_count.toLocaleString()} shown
+                    <span className="mt-1 block text-xs text-stone-400">
+                      {search.total_available_estimate.toLocaleString()} est.
+                    </span>
+                  </td>
+                  <td className="max-w-sm px-5 py-3 text-stone-600">
+                    {search.result_names.length > 0
+                      ? search.result_names.join(", ")
+                      : "No sample names"}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td className="px-5 py-6 text-sm text-stone-500" colSpan={5}>
+                  No business searches logged today.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
@@ -435,6 +530,25 @@ export default function AnalyticsDashboardPage() {
               label="Drive uploads"
               value={usage?.drive_uploads ?? 0}
               hint={`Tokens issued in window: ${usage?.tokens_issued ?? 0}`}
+            />
+          </div>
+          <div className="mt-4 grid gap-4 lg:grid-cols-3">
+            <RankList
+              title="Top searched categories"
+              items={usage?.top_search_categories ?? []}
+            />
+            <RankList
+              title="Top searched locations"
+              items={usage?.top_search_locations ?? []}
+            />
+            <RankList
+              title="Top category + location"
+              items={usage?.top_business_searches ?? []}
+            />
+          </div>
+          <div className="mt-4">
+            <RecentBusinessSearches
+              searches={usage?.recent_business_searches ?? []}
             />
           </div>
         </section>

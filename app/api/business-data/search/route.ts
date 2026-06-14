@@ -11,6 +11,7 @@ import {
   ESTIMATED_COSTS_USD,
   getBusinessDataExportTokenCost,
   getWalletBalance,
+  logBusinessDataSearch,
   logUsageEvent,
 } from "@/lib/business-data-tokens";
 
@@ -437,7 +438,43 @@ export async function POST(request: Request) {
     }
 
     if (!apiKey) {
-      return NextResponse.json(demoResponse(location, category, radiusMeters));
+      const demo = demoResponse(location, category, radiusMeters);
+
+      await logUsageEvent({
+        userId: user?.id ?? null,
+        sessionKey: request.headers.get("x-trb-session"),
+        eventType: "preview_search",
+        tokensCharged: 0,
+        estimatedCostUsd: 0,
+        metadata: {
+          category,
+          location,
+          radius_meters: radiusMeters,
+          result_count: demo.results.length,
+          total_available_estimate: demo.totalAvailableEstimate,
+          paid_access: demo.paidAccess,
+          provider: "demo",
+          center_label: demo.center.label,
+          result_names: demo.results.map((result) => result.name).slice(0, 5)
+        }
+      });
+
+      await logBusinessDataSearch({
+        userId: user?.id ?? null,
+        sessionKey: request.headers.get("x-trb-session"),
+        category,
+        location,
+        centerLabel: demo.center.label,
+        radiusMeters,
+        resultCount: demo.results.length,
+        totalAvailableEstimate: demo.totalAvailableEstimate,
+        paidAccess: demo.paidAccess,
+        provider: "demo",
+        estimatedCostUsd: 0,
+        resultNames: demo.results.map((result) => result.name).slice(0, 5)
+      });
+
+      return NextResponse.json(demo);
     }
 
     const center = await resolveSearchCenter({ body, location, apiKey });
@@ -507,9 +544,31 @@ export async function POST(request: Request) {
       metadata: {
         category,
         location,
+        radius_meters: radiusMeters,
         result_count: results.length,
-        provider: "google_places"
+        total_available_estimate: totalAvailableEstimate,
+        paid_access: canExport,
+        provider: "google_places",
+        center_label: center.label,
+        result_names: results.map((result) => result.name).filter(Boolean).slice(0, 5)
       }
+    });
+
+    await logBusinessDataSearch({
+      userId: user?.id ?? null,
+      sessionKey: request.headers.get("x-trb-session"),
+      category,
+      location,
+      centerLabel: center.label,
+      centerLat: center.lat,
+      centerLng: center.lng,
+      radiusMeters,
+      resultCount: results.length,
+      totalAvailableEstimate,
+      paidAccess: canExport,
+      provider: "google_places",
+      estimatedCostUsd: ESTIMATED_COSTS_USD.previewSearch,
+      resultNames: results.map((result) => result.name).filter(Boolean).slice(0, 5)
     });
 
     return NextResponse.json({

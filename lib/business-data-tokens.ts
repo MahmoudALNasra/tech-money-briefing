@@ -199,6 +199,44 @@ export async function logUsageEvent(input: {
   }
 }
 
+export async function logBusinessDataSearch(input: {
+  userId?: string | null;
+  sessionKey?: string | null;
+  category: string;
+  location?: string | null;
+  centerLabel?: string | null;
+  centerLat?: number | null;
+  centerLng?: number | null;
+  radiusMeters?: number;
+  resultCount?: number;
+  totalAvailableEstimate?: number;
+  paidAccess?: boolean;
+  provider?: string;
+  estimatedCostUsd?: number;
+  resultNames?: string[];
+}) {
+  const { error } = await supabase.from("business_data_searches").insert({
+    user_id: input.userId ?? null,
+    session_key: input.sessionKey ?? null,
+    category: input.category,
+    location: input.location ?? null,
+    center_label: input.centerLabel ?? null,
+    center_lat: input.centerLat ?? null,
+    center_lng: input.centerLng ?? null,
+    radius_meters: input.radiusMeters ?? 0,
+    result_count: input.resultCount ?? 0,
+    total_available_estimate: input.totalAvailableEstimate ?? 0,
+    paid_access: input.paidAccess ?? false,
+    provider: input.provider ?? "google_places",
+    estimated_cost_usd: input.estimatedCostUsd ?? 0,
+    result_names: (input.resultNames ?? []).slice(0, 5)
+  });
+
+  if (error) {
+    console.error("[business-data-search]", error.message);
+  }
+}
+
 export async function getRecentLedger(userId: string, limit = 10) {
   const { data, error } = await supabase
     .from("business_data_token_ledger")

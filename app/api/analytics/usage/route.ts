@@ -17,12 +17,26 @@ type UsageRow = {
   tokens_charged: number;
   estimated_cost_usd: number | string;
   user_id: string | null;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
 };
 
 type LedgerRow = {
   delta: number;
   reason: string;
+  created_at: string;
+};
+
+type SearchRow = {
+  category: string;
+  location: string | null;
+  center_label: string | null;
+  radius_meters: number;
+  result_count: number;
+  total_available_estimate: number;
+  paid_access: boolean;
+  provider: string;
+  result_names: string[] | null;
   created_at: string;
 };
 
@@ -35,10 +49,18 @@ export async function GET(request: Request) {
   todayStart.setUTCHours(0, 0, 0, 0);
   const todayStartIso = todayStart.toISOString();
 
-  const [usageResult, ledgerResult, walletResult, apiCreditAccounts] = await Promise.all([
+  const [usageResult, searchResult, ledgerResult, walletResult, apiCreditAccounts] = await Promise.all([
     supabase
       .from("business_data_usage_events")
-      .select("event_type, tokens_charged, estimated_cost_usd, user_id, created_at")
+      .select("event_type, tokens_charged, estimated_cost_usd, user_id, metadata, created_at")
+      .gte("created_at", todayStartIso)
+      .order("created_at", { ascending: false })
+      .limit(5000),
+    supabase
+      .from("business_data_searches")
+      .select(
+        "category, location, center_label, radius_meters, result_count, total_available_estimate, paid_access, provider, result_names, created_at"
+      )
       .gte("created_at", todayStartIso)
       .order("created_at", { ascending: false })
       .limit(5000),
@@ -57,6 +79,7 @@ export async function GET(request: Request) {
   }
 
   const usageRows = (usageResult.data ?? []) as UsageRow[];
+  const searchRows = (searchResult.data ?? []) as SearchRow[];
   const ledgerRows = (ledgerResult.data ?? []) as LedgerRow[];
   const wallets = walletResult.data ?? [];
 
@@ -70,6 +93,54 @@ export async function GET(request: Request) {
     tokensConsumed += Number(row.tokens_charged ?? 0);
   }
 
+  const categoryCounts = new Map<string, number>();
+  const locationCounts = new Map<string, number>();
+  const searchCounts = new Map<string, number>();
+
+  const searchAnalyticsRows =
+    searchRows.length > 0
+      ? searchRows
+      : usageRows
+          .filter((row) => row.event_type === "preview_search")
+          .map((row) => {
+            const metadata = row.metadata ?? {};
+            return {
+              category: String(metadata.category ?? "").trim(),
+              location: String(metadata.location ?? "").trim() || null,
+              center_label: String(metadata.center_label ?? "").trim() || null,
+              radius_meters: Number(metadata.radius_meters ?? 0),
+              result_count: Number(metadata.result_count ?? 0),
+              total_available_estimate: Number(metadata.total_available_estimate ?? 0),
+              paid_access: Boolean(metadata.paid_access),
+              provider: String(metadata.provider ?? "").trim(),
+              result_names: Array.isArray(metadata.result_names)
+                ? metadata.result_names
+                    .map((name) => String(name ?? "").trim())
+                    .filter(Boolean)
+                    .slice(0, 5)
+                : [],
+              created_at: row.created_at
+            } satisfies SearchRow;
+          });
+
+  for (const row of searchAnalyticsRows) {
+    const category = String(row.category ?? "").trim();
+    const location = String(row.center_label ?? row.location ?? "").trim();
+
+    if (category) {
+      categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
+    }
+
+    if (location) {
+      locationCounts.set(location, (locationCounts.get(location) ?? 0) + 1);
+    }
+
+    if (category || location) {
+      const label = [category || "unknown category", location || "unknown location"].join(" in ");
+      searchCounts.set(label, (searchCounts.get(label) ?? 0) + 1);
+    }
+  }
+
   const tokensIssued = ledgerRows
     .filter((row) => row.delta > 0)
     .reduce((sum, row) => sum + row.delta, 0);
@@ -81,7 +152,10 @@ export async function GET(request: Request) {
     estimatedRevenueUsd > 0 ? estimatedRevenueUsd - totalEstimatedCost : 0;
   const estimatedMarginPct =
     estimatedRevenueUsd > 0 ? (estimatedMarginUsd / estimatedRevenueUsd) * 100 : 0;
-  const freePreviews = eventCounts.get("preview_search") ?? 0;
+  const freePreviews =
+    searchRows.length > 0
+      ? searchRows.length
+      : eventCounts.get("preview_search") ?? 0;
   const freePreviewEstimatedCost = usageRows
     .filter((row) => row.event_type === "preview_search")
     .reduce((sum, row) => sum + Number(row.estimated_cost_usd ?? 0), 0);
@@ -95,6 +169,39 @@ export async function GET(request: Request) {
     .map(([label, count]) => ({ label, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 12);
+  const topSearchCategories = [...categoryCounts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 12);
+  const topSearchLocations = [...locationCounts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 12);
+  const topBusinessSearches = [...searchCounts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 12);
+  const recentBusinessSearches = searchAnalyticsRows.slice(0, 20).map((row) => {
+    const resultNames = Array.isArray(row.result_names)
+      ? row.result_names
+          .map((name) => String(name ?? "").trim())
+          .filter(Boolean)
+          .slice(0, 5)
+      : [];
+
+    return {
+      created_at: row.created_at,
+      category: String(row.category ?? "").trim(),
+      location: String(row.location ?? "").trim(),
+      center_label: String(row.center_label ?? "").trim(),
+      radius_meters: Number(row.radius_meters ?? 0),
+      result_count: Number(row.result_count ?? 0),
+      total_available_estimate: Number(row.total_available_estimate ?? 0),
+      paid_access: Boolean(row.paid_access),
+      provider: String(row.provider ?? "").trim(),
+      result_names: resultNames
+    };
+  });
 
   return NextResponse.json({
     generated_at: new Date().toISOString(),
@@ -117,6 +224,10 @@ export async function GET(request: Request) {
     estimated_margin_usd: Number(estimatedMarginUsd.toFixed(2)),
     estimated_margin_pct: Number(estimatedMarginPct.toFixed(1)),
     top_events: topEvents,
+    top_search_categories: topSearchCategories,
+    top_search_locations: topSearchLocations,
+    top_business_searches: topBusinessSearches,
+    recent_business_searches: recentBusinessSearches,
     unit_costs_usd: ESTIMATED_COSTS_USD,
     api_credit_accounts: apiCreditAccounts
   });
