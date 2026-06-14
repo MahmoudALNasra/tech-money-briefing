@@ -21,52 +21,6 @@ const introMessages: ChatMessage[] = [
   }
 ];
 
-function getReply(message: string) {
-  const text = message.toLowerCase();
-
-  if (text.includes("mahmoud")) {
-    return "Mahmoud is the person trying to turn a lot of ideas into actual working pages. Brave? Yes. Tired? Also yes. But the project is moving.";
-  }
-
-  if (text.includes("what") && text.includes("project")) {
-    return "The project is Tech Revenue Brief. It mixes articles, free tools, software comparisons, and a local business data tool for people trying to make smarter online business decisions.";
-  }
-
-  if (text.includes("lead") || text.includes("business data") || text.includes("google maps")) {
-    return "The lead tool helps find local businesses by category and location, then turns the results into something more useful than manual searching. Basically: less copy-paste pain, more organized data.";
-  }
-
-  if (text.includes("article") || text.includes("blog")) {
-    return "The articles are meant to be practical, not robotic summaries. Mahmoud wants them to feel more human: honest opinion, examples, warnings, and a clear reason why the topic matters.";
-  }
-
-  if (text.includes("money") || text.includes("adsense") || text.includes("revenue")) {
-    return "The money side is a mix of useful tools, traffic, ads, referrals, and eventually better partnerships. Not magic internet money. More like: solve a real problem, earn trust, then monetize carefully.";
-  }
-
-  if (text.includes("cursor") || text.includes("code") || text.includes("coding")) {
-    return "Cursor helped Mahmoud move from ideas to actual working projects faster. The funny part is it saves time, then somehow creates more ideas, so now there are even more projects.";
-  }
-
-  if (text.includes("push") || text.includes("commit") || text.includes("link")) {
-    return "Yes, Mahmoud said you would say that. Push, commit changes, and give me the link. Very professional. Very dramatic. Very on brand.";
-  }
-
-  if (text.includes("funny") || text.includes("joke")) {
-    return "The joke is that this page expires in 20 minutes, which is still longer than some startup ideas survive after checking the budget.";
-  }
-
-  if (text.includes("time") || text.includes("expire") || text.includes("stop")) {
-    return "This chat is temporary for 20 minutes. After that, I stop answering and pretend I have an important meeting with the database.";
-  }
-
-  if (text.includes("hello") || text.includes("hi") || text.includes("hey")) {
-    return "Hey Abeer. Welcome to the tiny secret project corner. Please ask responsibly. I only have 20 minutes and one personality.";
-  }
-
-  return "Good question. The short version: this project is about using useful tools and practical articles to save time, find opportunities, and make online business less confusing. Mahmoud would probably add: 'and yes, we pushed it.'";
-}
-
 function formatRemaining(ms: number) {
   const safeMs = Math.max(0, ms);
   const minutes = Math.floor(safeMs / 60000);
@@ -80,6 +34,7 @@ export function AbeerChat() {
   const [input, setInput] = useState("");
   const [remainingMs, setRemainingMs] = useState(SESSION_LENGTH_MS);
   const [isExpired, setIsExpired] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const expiresAt = useMemo(() => {
@@ -108,21 +63,64 @@ export function AbeerChat() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const trimmed = input.trim();
 
-    if (!trimmed || isExpired) {
+    if (!trimmed || isExpired || isSending) {
       return;
     }
 
-    setMessages((current) => [
-      ...current,
-      { role: "user", text: trimmed },
-      { role: "bot", text: getReply(trimmed) }
-    ]);
+    const nextMessages: ChatMessage[] = [
+      ...messages,
+      { role: "user", text: trimmed }
+    ];
+
+    setMessages(nextMessages);
     setInput("");
+    setIsSending(true);
+
+    try {
+      const response = await fetch("/api/abeer-chat", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          message: trimmed,
+          history: messages.slice(-8).map((message) => ({
+            role: message.role === "bot" ? "assistant" : "user",
+            content: message.text
+          }))
+        })
+      });
+      const data = (await response.json()) as { reply?: string; error?: string };
+
+      if (!response.ok) {
+        throw new Error(data.error || "Chat unavailable.");
+      }
+
+      setMessages((current) => [
+        ...current,
+        {
+          role: "bot",
+          text:
+            data.reply ||
+            "I had a thought, then it ran away. Very rude. Ask me again."
+        }
+      ]);
+    } catch {
+      setMessages((current) => [
+        ...current,
+        {
+          role: "bot",
+          text: "My live brain is unavailable for a second. Mahmoud probably forgot to feed the server coffee. Try again."
+        }
+      ]);
+    } finally {
+      setIsSending(false);
+    }
   }
 
   return (
@@ -170,6 +168,13 @@ export function AbeerChat() {
               Time is up. Mahmoud said 20 minutes, and for once the deadline was respected.
             </div>
           ) : null}
+          {isSending ? (
+            <div className="flex justify-start">
+              <div className="rounded-3xl bg-white px-5 py-3 text-sm font-black leading-6 text-stone-900 shadow-lg">
+                Thinking of something funny...
+              </div>
+            </div>
+          ) : null}
           <div ref={bottomRef} />
         </div>
 
@@ -181,7 +186,7 @@ export function AbeerChat() {
             <input
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              disabled={isExpired}
+              disabled={isExpired || isSending}
               placeholder={
                 isExpired
                   ? "This chat is closed now."
@@ -191,10 +196,10 @@ export function AbeerChat() {
             />
             <button
               type="submit"
-              disabled={isExpired}
+              disabled={isExpired || isSending}
               className="rounded-2xl bg-emerald-300 px-5 py-3 text-sm font-black text-stone-950 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:bg-stone-400"
             >
-              Send
+              {isSending ? "Wait" : "Send"}
             </button>
           </div>
         </form>
