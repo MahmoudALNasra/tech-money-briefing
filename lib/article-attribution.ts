@@ -22,9 +22,12 @@ export const OWNER_VOICE_REWRITE_GUIDE = [
   "Avoid generic AI hype. Make the article useful by explaining when a tool helps, when it does not, what can go wrong, and what the reader should check before spending time or money.",
   "Do not copy outside articles. Use the old article only as topic context and rebuild the body in an original Tech Revenue Brief voice.",
   "Avoid common AI article phrases like 'in today's digital landscape', 'game changer', 'unlock', 'leverage', 'seamlessly', 'robust', 'delve', 'landscape', 'crucial', and 'it depends' unless the wording is genuinely needed.",
+  "Also avoid polished tutorial openings like 'isn't just a creative exercise', 'strategic move', 'with so many businesses vying for attention', 'enter AI tools', 'before diving in', and 'pitfalls to avoid'. These phrases are detector magnets.",
   "Do not use the same article skeleton every time. Vary the order based on the topic: sometimes start with a personal buying question, sometimes a mistake, sometimes a practical example.",
   "Use specific, slightly imperfect human phrasing where natural, but do not add fake typos. The goal is original thinking, not bad grammar.",
   "Include at least one concrete example or mini-scenario that was not in the old article.",
+  "Avoid generic numbered workflows unless the topic truly needs numbered steps. If a list is needed, make each item opinionated and specific, not textbook instructions.",
+  "Write as if the author has actually used tools, wasted time, compared options, and is warning a friend what to check before spending effort or money.",
   "Keep paragraphs short. Use clear ## headings, a Quick Answer, practical decision points, and FAQ when useful."
 ];
 

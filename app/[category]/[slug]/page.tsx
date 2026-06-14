@@ -7,9 +7,7 @@ import { Fragment } from "react";
 import { ArticleReadTracker } from "@/components/analytics/ArticleReadTracker";
 import { ArticleHumanLayer } from "@/components/articles/ArticleHumanLayer";
 import { ArticleShareToolbar } from "@/components/articles/ArticleShareToolbar";
-import { ArticleInlineMedia } from "@/components/articles/ArticleInlineMedia";
 import { ArticleReferralLinks } from "@/components/articles/ArticleReferralLinks";
-import { ArticleVideoSection } from "@/components/articles/ArticleVideoSection";
 import { RelatedArticles } from "@/components/articles/RelatedArticles";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { MonetizationRail } from "@/components/monetization/MonetizationRail";
@@ -39,7 +37,6 @@ import {
 import { siteConfig } from "@/lib/site";
 import { normalizeCategory } from "@/lib/slug";
 import { calculateReadingTime } from "@/lib/utils";
-import type { ArticleMedia } from "@/lib/types";
 
 type ArticlePageProps = {
   params: Promise<{
@@ -99,35 +96,6 @@ function ArticleVisualBreak({
         </p>
       </div>
     </aside>
-  );
-}
-
-function ArticleExternalImage({ media }: { media: ArticleMedia }) {
-  return (
-    <figure className="not-prose my-8 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
-      <img
-        src={media.url}
-        alt={media.alt_text || media.title}
-        loading="lazy"
-        className="mx-auto block h-auto max-h-[32rem] w-full bg-stone-50 object-contain"
-      />
-      <figcaption className="border-t border-stone-200 bg-stone-50 px-5 py-3 text-xs font-semibold leading-5 text-stone-600">
-        {media.caption || media.title}
-        {media.source_url ? (
-          <>
-            {" "}
-            <a
-              href={media.source_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-black text-ink underline decoration-stone-300 underline-offset-4"
-            >
-              Source
-            </a>
-          </>
-        ) : null}
-      </figcaption>
-    </figure>
   );
 }
 
@@ -191,13 +159,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   const articleMedia = await getArticleMedia(article.id);
-  const inlineVideos = articleMedia
-    .filter((item) => item.provider === "youtube")
-    .slice(0, 2);
   const inlineImages = articleMedia
     .filter((item) => item.provider === "image")
     .slice(0, 3);
-  const prefersVideoMedia = inlineVideos.length > 0;
   const heroImageUrl = await resolveArticleHeroImage({
     image_url: article.image_url,
     media: articleMedia
@@ -402,16 +366,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             {contentBlocks.map((block, index) => (
               <Fragment key={`${block}-${index}`}>
                 {renderArticleBlock(block)}
-                {index === 2 && inlineVideos[0] ? (
-                  <ArticleInlineMedia
-                    media={inlineVideos[0]}
-                    label="Related Watch"
-                  />
-                ) : null}
-                {index === 3 && inlineImages[0] ? (
-                  <ArticleExternalImage media={inlineImages[0]} />
-                ) : null}
-                {index === 4 && article.key_takeaways[0] && !prefersVideoMedia ? (
+                {index === 4 && article.key_takeaways[0] ? (
                   <ArticleVisualBreak
                     label="Key Takeaway"
                     title={article.title}
@@ -419,19 +374,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     category={article.category}
                   />
                 ) : null}
-                {index === 7 && inlineVideos[1] ? (
-                  <ArticleInlineMedia
-                    media={inlineVideos[1]}
-                    label="More Context"
-                  />
-                ) : null}
-                {index === 8 && inlineImages[1] ? (
-                  <ArticleExternalImage media={inlineImages[1]} />
-                ) : null}
-                {index === 12 && inlineImages[2] ? (
-                  <ArticleExternalImage media={inlineImages[2]} />
-                ) : null}
-                {index === 10 && article.key_takeaways[1] && inlineVideos.length < 2 ? (
+                {index === 10 && article.key_takeaways[1] ? (
                   <ArticleVisualBreak
                     label="Operator Note"
                     title="What to remember"
@@ -442,8 +385,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               </Fragment>
             ))}
           </div>
-
-          <ArticleVideoSection media={articleMedia} />
 
           <ArticleHumanLayer article={article} variant="full" />
 

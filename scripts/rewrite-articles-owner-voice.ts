@@ -148,8 +148,11 @@ async function rewriteArticle(article: ArticleRow): Promise<RewrittenArticle> {
             "Internal links must use root-relative paths only and should be attached to meaningful anchor text, not generic text like 'click here' or 'read more'.",
             "Use bold words for important decision points, warnings, and money/time trade-offs, but do not bold full paragraphs.",
             "Use markdown only. Do not include an H1 because the title is stored separately.",
-            "Use a direct opening paragraph, ## Quick Answer, practical sections, and ## FAQ with 3-4 questions, but vary the middle sections so every article does not feel like the same template.",
+            "Use a direct opening paragraph and ## Quick Answer, but do not write a generic textbook 'Step-by-Step Process' unless the article absolutely needs it.",
+            "Vary the middle sections so every article does not feel like the same template. Prefer headings that sound specific to the topic, not generic headings like 'Common Pitfalls to Avoid'.",
             "Avoid generic AI detector trigger phrasing and repeated internet wording. Prefer specific, opinionated, practical sentences that sound like a real site owner thinking through the topic.",
+            "For startup-name/tool articles specifically: do not start with 'naming your startup is not just...' or 'with so many businesses vying for attention'. Start with a practical concern like whether the name is memorable, available, easy to say, and not embarrassing to use in public.",
+            "Do not present every paragraph as a neutral instruction. Include personal judgment, objections, and trade-offs.",
             "Aim for 850-1200 words. Prefer clarity and usefulness over length.",
             "Generate exactly 3 key_takeaways as short, useful strings.",
             "Generate a meta_description between 120 and 155 characters when possible."
