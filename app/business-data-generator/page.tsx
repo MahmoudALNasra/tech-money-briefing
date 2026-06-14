@@ -7,6 +7,7 @@ import { absoluteUrl, siteConfig } from "@/lib/site";
 const pageTitle = "Local Lead Generator";
 const pageDescription =
   "Find local businesses, competitors, phone numbers, websites, ratings, emails, and outreach recommendations. Export lead reports to Excel or Google Drive.";
+const pageImage = absoluteUrl("/og-business-data-generator.png");
 
 export const metadata: Metadata = {
   title: pageTitle,
@@ -37,9 +38,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: absoluteUrl("/og-default-v3.png"),
-        width: 1200,
-        height: 630,
+        url: pageImage,
+        width: 1024,
+        height: 568,
         alt: pageTitle
       }
     ]
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: pageTitle,
     description: pageDescription,
-    images: [absoluteUrl("/og-default-v3.png")]
+    images: [pageImage]
   },
   robots: {
     index: true,
