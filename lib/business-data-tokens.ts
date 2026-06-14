@@ -207,6 +207,9 @@ export async function logBusinessDataSearch(input: {
   centerLabel?: string | null;
   centerLat?: number | null;
   centerLng?: number | null;
+  visitorCountry?: string | null;
+  visitorRegion?: string | null;
+  visitorCity?: string | null;
   radiusMeters?: number;
   resultCount?: number;
   totalAvailableEstimate?: number;
@@ -223,6 +226,9 @@ export async function logBusinessDataSearch(input: {
     center_label: input.centerLabel ?? null,
     center_lat: input.centerLat ?? null,
     center_lng: input.centerLng ?? null,
+    visitor_country: input.visitorCountry ?? null,
+    visitor_region: input.visitorRegion ?? null,
+    visitor_city: input.visitorCity ?? null,
     radius_meters: input.radiusMeters ?? 0,
     result_count: input.resultCount ?? 0,
     total_available_estimate: input.totalAvailableEstimate ?? 0,

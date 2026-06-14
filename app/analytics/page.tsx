@@ -63,6 +63,9 @@ type BusinessDataSearch = {
   category: string;
   location: string;
   center_label: string;
+  visitor_country: string;
+  visitor_region: string;
+  visitor_city: string;
   radius_meters: number;
   result_count: number;
   total_available_estimate: number;
@@ -193,7 +196,7 @@ function RecentBusinessSearches({
           Recent business searches
         </h2>
         <p className="mt-1 text-xs text-stone-500">
-          Category, location, and sample businesses people searched for today.
+          Category, searched area, searcher location, and sample businesses from today.
         </p>
       </div>
       <div className="overflow-x-auto">
@@ -202,6 +205,7 @@ function RecentBusinessSearches({
             <tr>
               <th className="px-5 py-3">Time</th>
               <th className="px-5 py-3">Search</th>
+              <th className="px-5 py-3">Searcher location</th>
               <th className="px-5 py-3">Area</th>
               <th className="px-5 py-3">Results</th>
               <th className="px-5 py-3">Sample businesses</th>
@@ -223,6 +227,13 @@ function RecentBusinessSearches({
                       {search.paid_access ? "Paid access" : "Free preview"} ·{" "}
                       {search.provider || "provider unknown"}
                     </span>
+                  </td>
+                  <td className="whitespace-nowrap px-5 py-3 text-stone-600">
+                    {search.visitor_city || search.visitor_region || search.visitor_country
+                      ? [search.visitor_city, search.visitor_region, search.visitor_country]
+                          .filter(Boolean)
+                          .join(", ")
+                      : "unknown"}
                   </td>
                   <td className="max-w-xs px-5 py-3 text-stone-600">
                     <span className="line-clamp-2">
@@ -247,7 +258,7 @@ function RecentBusinessSearches({
               ))
             ) : (
               <tr>
-                <td className="px-5 py-6 text-sm text-stone-500" colSpan={5}>
+                <td className="px-5 py-6 text-sm text-stone-500" colSpan={6}>
                   No business searches logged today.
                 </td>
               </tr>

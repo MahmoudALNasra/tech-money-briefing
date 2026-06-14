@@ -70,6 +70,26 @@ function cleanText(value: unknown, maxLength: number) {
     .slice(0, maxLength);
 }
 
+function cleanHeaderText(value: string | null, maxLength: number) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return cleanText(decodeURIComponent(value), maxLength) || null;
+  } catch {
+    return cleanText(value, maxLength) || null;
+  }
+}
+
+function getVisitorGeo(request: Request) {
+  return {
+    country: cleanHeaderText(request.headers.get("x-vercel-ip-country"), 8),
+    region: cleanHeaderText(request.headers.get("x-vercel-ip-country-region"), 32),
+    city: cleanHeaderText(request.headers.get("x-vercel-ip-city"), 80)
+  };
+}
+
 function clampRadius(value: unknown) {
   const radius = Number(value);
 
@@ -391,6 +411,7 @@ export async function POST(request: Request) {
     const canExport = tokenBalance >= minReportTokenCost;
     const previewLimit = canExport ? paidPreviewLimit : freePreviewLimit;
     const resultLimit = previewLimit;
+    const visitorGeo = getVisitorGeo(request);
 
     if (!canExport && radiusMeters > freeRadiusLimitMeters) {
       return NextResponse.json(
@@ -455,6 +476,9 @@ export async function POST(request: Request) {
           paid_access: demo.paidAccess,
           provider: "demo",
           center_label: demo.center.label,
+          visitor_country: visitorGeo.country,
+          visitor_region: visitorGeo.region,
+          visitor_city: visitorGeo.city,
           result_names: demo.results.map((result) => result.name).slice(0, 5)
         }
       });
@@ -465,6 +489,9 @@ export async function POST(request: Request) {
         category,
         location,
         centerLabel: demo.center.label,
+        visitorCountry: visitorGeo.country,
+        visitorRegion: visitorGeo.region,
+        visitorCity: visitorGeo.city,
         radiusMeters,
         resultCount: demo.results.length,
         totalAvailableEstimate: demo.totalAvailableEstimate,
@@ -550,6 +577,9 @@ export async function POST(request: Request) {
         paid_access: canExport,
         provider: "google_places",
         center_label: center.label,
+        visitor_country: visitorGeo.country,
+        visitor_region: visitorGeo.region,
+        visitor_city: visitorGeo.city,
         result_names: results.map((result) => result.name).filter(Boolean).slice(0, 5)
       }
     });
@@ -562,6 +592,9 @@ export async function POST(request: Request) {
       centerLabel: center.label,
       centerLat: center.lat,
       centerLng: center.lng,
+      visitorCountry: visitorGeo.country,
+      visitorRegion: visitorGeo.region,
+      visitorCity: visitorGeo.city,
       radiusMeters,
       resultCount: results.length,
       totalAvailableEstimate,

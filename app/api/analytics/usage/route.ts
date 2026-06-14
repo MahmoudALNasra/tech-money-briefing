@@ -31,6 +31,9 @@ type SearchRow = {
   category: string;
   location: string | null;
   center_label: string | null;
+  visitor_country: string | null;
+  visitor_region: string | null;
+  visitor_city: string | null;
   radius_meters: number;
   result_count: number;
   total_available_estimate: number;
@@ -59,7 +62,7 @@ export async function GET(request: Request) {
     supabase
       .from("business_data_searches")
       .select(
-        "category, location, center_label, radius_meters, result_count, total_available_estimate, paid_access, provider, result_names, created_at"
+        "category, location, center_label, visitor_country, visitor_region, visitor_city, radius_meters, result_count, total_available_estimate, paid_access, provider, result_names, created_at"
       )
       .gte("created_at", todayStartIso)
       .order("created_at", { ascending: false })
@@ -108,6 +111,9 @@ export async function GET(request: Request) {
               category: String(metadata.category ?? "").trim(),
               location: String(metadata.location ?? "").trim() || null,
               center_label: String(metadata.center_label ?? "").trim() || null,
+              visitor_country: String(metadata.visitor_country ?? "").trim() || null,
+              visitor_region: String(metadata.visitor_region ?? "").trim() || null,
+              visitor_city: String(metadata.visitor_city ?? "").trim() || null,
               radius_meters: Number(metadata.radius_meters ?? 0),
               result_count: Number(metadata.result_count ?? 0),
               total_available_estimate: Number(metadata.total_available_estimate ?? 0),
@@ -194,6 +200,9 @@ export async function GET(request: Request) {
       category: String(row.category ?? "").trim(),
       location: String(row.location ?? "").trim(),
       center_label: String(row.center_label ?? "").trim(),
+      visitor_country: String(row.visitor_country ?? "").trim(),
+      visitor_region: String(row.visitor_region ?? "").trim(),
+      visitor_city: String(row.visitor_city ?? "").trim(),
       radius_meters: Number(row.radius_meters ?? 0),
       result_count: Number(row.result_count ?? 0),
       total_available_estimate: Number(row.total_available_estimate ?? 0),
