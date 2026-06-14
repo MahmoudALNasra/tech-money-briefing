@@ -4,6 +4,11 @@ import {
   type EditorialTopic
 } from "@/data/editorial-topics";
 
+import {
+  ARTICLE_EDITORIAL_SOURCE_NAME,
+  ARTICLE_ORIGINALITY_INSTRUCTIONS,
+  stripGeneratedSourceFooter
+} from "./article-attribution";
 import { normalizeArticleContent } from "./article-markdown";
 import { syncLocalizedArticleHeroImage } from "./article-hero-localization";
 import { enrichArticleMedia } from "./article-media";
@@ -27,7 +32,7 @@ import {
 } from "./tool-recommendations";
 import { runKeywordResearch } from "./keyword-research";
 
-export const EDITORIAL_SOURCE_NAME = "Tech Revenue Brief Editorial";
+export const EDITORIAL_SOURCE_NAME = ARTICLE_EDITORIAL_SOURCE_NAME;
 const AUTO_TOPIC_ID_PREFIX = "auto-";
 
 type EditorialArticle = {
@@ -429,7 +434,7 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
             "Internal markdown links must use root-relative paths only. Never use example.com or placeholder absolute URLs.",
             "When discussing Substack, Zoho, Google Workspace, Google Ads, Cursor, DigitalOcean, or Shopify, mention that Tech Revenue Brief may provide a relevant referral link or referral guide on the page and keep the recommendation balanced.",
             "Do not cite fake statistics or fabricated quotes.",
-            "End content with: Source: Tech Revenue Brief Editorial.",
+            ...ARTICLE_ORIGINALITY_INSTRUCTIONS,
             "Generate exactly 3 actionable key_takeaways.",
             "meta_description: exactly 2 sentences, under 160 characters total if possible."
           ],
@@ -487,11 +492,8 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
   );
 
   const sections = [contentBody, toolsSection, internalLinks].filter(Boolean);
-  const sourceCitation = `Source: ${EDITORIAL_SOURCE_NAME}.`;
   const body = sections.join("\n\n");
-  const content = normalizeArticleContent(
-    body.includes(sourceCitation) ? body : `${body}\n\n${sourceCitation}`
-  );
+  const content = normalizeArticleContent(stripGeneratedSourceFooter(body));
 
   return {
     title,

@@ -19,6 +19,7 @@ import { BackButton } from "@/components/navigation/BackButton";
 import { ScrollNewsletter } from "@/components/newsletter/ScrollNewsletter";
 import { ToolAssistant } from "@/components/tools/ToolAssistant";
 import { articleRobotsForAdsense } from "@/lib/adsense-readiness";
+import { ARTICLE_EDITORIAL_SOURCE_NAME } from "@/lib/article-attribution";
 import { shouldBypassArticleImageOptimization } from "@/lib/article-image-optimization";
 import { getArticleMedia } from "@/lib/article-media";
 import { resolveArticleHeroImage } from "@/lib/article-images";
@@ -325,7 +326,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   </nav>
                 ) : (
                   <p className="mt-4 text-sm leading-6 text-stone-100">
-                    Scroll for the main answer, source context, and related tools.
+                    Scroll for the main answer, practical context, and related tools.
                   </p>
                 )}
               </div>
@@ -335,17 +336,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <ArticleHumanLayer article={article} variant="intro" />
 
           <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-500">
-            <li>
-              Source:{" "}
-              <a
-                href={article.source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-ink underline decoration-stone-300 underline-offset-4 hover:decoration-ink"
-              >
-                {article.source_name}
-              </a>
-            </li>
+            <li>{ARTICLE_EDITORIAL_SOURCE_NAME}</li>
             {publishedLabel ? (
               <li>
                 <time dateTime={article.published_at!}>{publishedLabel}</time>
@@ -369,7 +360,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 Trust Cue
               </p>
               <p className="mt-2 text-sm font-semibold text-ink">
-                Source linked for verification
+                Original editor review
               </p>
             </div>
             <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
@@ -466,23 +457,17 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
           <aside className="mt-10 rounded-3xl border border-stone-200 bg-stone-50 p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">
-              Source Attribution
+              Editorial Note
             </p>
             <h2 className="mt-3 text-xl font-black tracking-tight text-ink">
-              Original source
+              Written for Tech Revenue Brief readers
             </h2>
             <p className="mt-3 text-sm leading-6 text-stone-600">
-              This briefing cites and links back to the original publisher for
-              transparency and reader verification.
+              This article is prepared by Tech Revenue Brief Editors with a focus
+              on practical business value, tool decisions, and monetization
+              context. Outside feeds may help us spot topics, but the article is
+              written for this site rather than republished from another outlet.
             </p>
-            <a
-              href={article.source_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex rounded-full bg-ink px-5 py-3 text-sm font-bold text-white transition hover:bg-stone-700"
-            >
-              Visit {article.source_name}
-            </a>
           </aside>
         </article>
 

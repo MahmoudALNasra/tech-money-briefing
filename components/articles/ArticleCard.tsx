@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { shouldBypassArticleImageOptimization } from "@/lib/article-image-optimization";
+import { ARTICLE_EDITORIAL_SOURCE_NAME } from "@/lib/article-attribution";
 import { formatCategory } from "@/lib/format";
 import { articleImageAlt } from "@/lib/seo";
 import type { ArticleSummary } from "@/lib/types";
@@ -100,14 +101,7 @@ export function ArticleCard({
               {formatCategory(article.category)}
             </Link>
             {publishedLabel ? <span>{publishedLabel}</span> : null}
-            <a
-              href={article.source_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-ink"
-            >
-              Source: {article.source_name}
-            </a>
+            <span>{ARTICLE_EDITORIAL_SOURCE_NAME}</span>
           </div>
 
           <Link href={`/${article.category}/${article.slug}`} className="group">

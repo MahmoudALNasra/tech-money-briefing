@@ -1,4 +1,5 @@
 import type { Article } from "@/lib/types";
+import { ARTICLE_EDITORIAL_SOURCE_NAME } from "@/lib/article-attribution";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export function articleUrl(article: Pick<Article, "category" | "slug">) {
@@ -48,12 +49,10 @@ export function newsArticleJsonLd(
     dateModified: article.updated_at ?? publishedAt,
     mainEntityOfPage: articleUrl(article),
     articleSection: article.category,
-    isBasedOn: article.source_url,
-    citation: article.source_url,
     author: {
       "@type": "Organization",
-      name: article.source_name,
-      url: article.source_url
+      name: ARTICLE_EDITORIAL_SOURCE_NAME,
+      url: siteConfig.url
     },
     publisher: {
       "@type": "Organization",

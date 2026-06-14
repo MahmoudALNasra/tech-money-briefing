@@ -5,7 +5,7 @@ import { InfoPage } from "@/components/layout/InfoPage";
 export const metadata: Metadata = {
   title: "Editorial Policy",
   description:
-    "Learn how Tech Revenue Brief sources articles, uses AI assistance, preserves attribution, handles corrections, and separates advertising."
+    "Learn how Tech Revenue Brief discovers topics, uses AI assistance, handles corrections, and separates advertising."
 };
 
 export default function EditorialPolicyPage() {
@@ -13,12 +13,13 @@ export default function EditorialPolicyPage() {
     <InfoPage
       eyebrow="Editorial Policy"
       title="Editorial Policy"
-      description="How we source, summarize, and review tech monetization briefings."
+      description="How we discover topics, write original briefings, and review tech monetization content."
     >
       <h2>Our Scope</h2>
       <p>
-        We monitor public RSS feeds from technology, online business,
-        marketing, ecommerce, fintech, startup, and creator economy sources.
+        We monitor public feeds, trends, search demand, and product updates from
+        technology, online business, marketing, ecommerce, fintech, startup, and
+        creator economy sources.
       </p>
       <p>
         Coverage is selected for relevance to the Tech Revenue Brief thesis:
@@ -27,10 +28,10 @@ export default function EditorialPolicyPage() {
       </p>
       <h2>Use of AI</h2>
       <p>
-        AI assistance is used to summarize source material, identify
-        monetization implications, and produce concise takeaways. We preserve
-        source attribution and avoid presenting source claims as original
-        reporting.
+        AI assistance may be used to organize drafts, research angles, identify
+        monetization implications, and produce concise takeaways. Feeds and
+        outside articles are used mainly for topic discovery, not for copying
+        article structure or wording.
       </p>
       <p>
         AI-generated summaries are structured to add analysis, context, and
@@ -40,23 +41,25 @@ export default function EditorialPolicyPage() {
       </p>
       <h2>Human Review</h2>
       <p>
-        Briefings are reviewed for source attribution, topical fit, readable
-        structure, and practical usefulness before publication. Pages that are
+        Briefings are reviewed for originality, topical fit, readable structure,
+        and practical usefulness before publication. Pages that are
         off-topic, overly thin, duplicated, or low-value are not published.
       </p>
       <p>
         We also maintain original tools, comparison pages, and editorial guides
         that provide standalone value beyond automated summaries.
       </p>
-      <h2>Source Attribution</h2>
+      <h2>Topic Discovery and Attribution</h2>
       <p>
         Articles should fit the site thesis: helping readers understand how
         technology affects revenue, distribution, operations, and online
         business opportunities.
       </p>
       <p>
-        Each briefing identifies the original source. Readers should visit the
-        original source for full context, quotes, images, and complete reporting.
+        When an article relies on a specific quote, statistic, official claim,
+        or source-only fact, we may cite or link to the relevant source. When a
+        feed only helps us notice a topic, the finished article is written as an
+        original Tech Revenue Brief editorial piece.
       </p>
       <h2>Corrections</h2>
       <p>

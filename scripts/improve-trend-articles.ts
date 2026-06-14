@@ -1,4 +1,8 @@
 import { loadLocalEnv } from "../lib/load-env";
+import {
+  ARTICLE_ORIGINALITY_INSTRUCTIONS,
+  stripGeneratedSourceFooter
+} from "../lib/article-attribution";
 import { enrichArticleMedia } from "../lib/article-media";
 import { getOpenAIClient } from "../lib/openai";
 import { revalidateSiteCache } from "../lib/revalidate-site";
@@ -82,7 +86,6 @@ async function loadArticles() {
     )
     .eq("category", "others")
     .eq("status", "published")
-    .ilike("source_name", "Google Trends%")
     .order("published_at", { ascending: false });
 
   query = slug ? query.eq("slug", slug) : query.limit(limit);
@@ -143,7 +146,7 @@ async function improveArticle(article: ArticleRow): Promise<ImprovedArticle> {
             "Include these sections where they fit: ## Quick Answer, ## Why Searches Are Spiking, ## What Readers Should Know, ## How To Verify Details, ## What To Watch Next, ## FAQ.",
             "Under ## FAQ include 3-4 question-style ### headings with concise answers.",
             "Use related search phrases naturally in headings and answers, not as a keyword list.",
-            "End content with exactly: Source: Google Trends.",
+            ...ARTICLE_ORIGINALITY_INSTRUCTIONS,
             "Generate exactly 3 key_takeaways."
           ],
           targetQuery,
@@ -179,7 +182,7 @@ async function improveArticle(article: ArticleRow): Promise<ImprovedArticle> {
 
   return {
     title: parsed.title.trim(),
-    content: parsed.content.trim(),
+    content: stripGeneratedSourceFooter(parsed.content),
     meta_description: parsed.meta_description.trim(),
     key_takeaways: parsed.key_takeaways.map((takeaway) => takeaway.trim())
   };

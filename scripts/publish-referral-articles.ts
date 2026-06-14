@@ -1,4 +1,5 @@
 import { REFERRAL_OFFERS } from "../lib/referral-offers";
+import { stripGeneratedSourceFooter } from "../lib/article-attribution";
 import { loadLocalEnv } from "../lib/load-env";
 import { runKeywordResearch } from "../lib/keyword-research";
 import { getOpenAIClient } from "../lib/openai";
@@ -551,7 +552,7 @@ async function upsertReferralArticle(article: ReferralArticle) {
       .from("articles")
       .update({
         title: rewritten.title,
-        content: rewritten.content,
+        content: stripGeneratedSourceFooter(rewritten.content),
         meta_description: rewritten.meta_description,
         key_takeaways: rewritten.key_takeaways,
         category: article.category,
@@ -576,7 +577,7 @@ async function upsertReferralArticle(article: ReferralArticle) {
     .insert({
       title: rewritten.title,
       slug,
-      content: rewritten.content,
+      content: stripGeneratedSourceFooter(rewritten.content),
       meta_description: rewritten.meta_description,
       key_takeaways: rewritten.key_takeaways,
       category: article.category,
@@ -653,7 +654,7 @@ async function rewriteReferralArticleWithKeywords(input: {
             "Add a clear disclosure near the top: the link is a referral link.",
             "meta_description must be between 120 and 155 characters and must include the primary keyword.",
             "Generate exactly 3 actionable key_takeaways.",
-            "End content with: Source: Tech Revenue Brief Referral Guide."
+            "Do not add a Source footer. Keep the disclosure, referral link, and practical comparison advice inside the article body."
           ],
           currentDraft: {
             title: input.article.title,

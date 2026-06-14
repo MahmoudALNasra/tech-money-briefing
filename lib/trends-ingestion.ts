@@ -2,6 +2,11 @@ import Parser from "rss-parser";
 
 import { isAdsenseReviewMode } from "./adsense-readiness";
 import { syncLocalizedArticleHeroImage } from "./article-hero-localization";
+import {
+  ARTICLE_EDITORIAL_SOURCE_NAME,
+  ARTICLE_ORIGINALITY_INSTRUCTIONS,
+  stripGeneratedSourceFooter
+} from "./article-attribution";
 import { normalizeArticleContent } from "./article-markdown";
 import { enrichArticleMedia } from "./article-media";
 import { fetchOpenGraphImage } from "./ingestion";
@@ -192,10 +197,7 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
           meta_description: article.meta_description,
           key_takeaways: article.key_takeaways,
           category: TREND_CATEGORY,
-          source_name:
-            hydratedSeed.sourceName === GOOGLE_TRENDS_SOURCE
-              ? GOOGLE_TRENDS_SOURCE
-              : `${GOOGLE_TRENDS_SOURCE} / ${hydratedSeed.sourceName}`,
+          source_name: ARTICLE_EDITORIAL_SOURCE_NAME,
           source_url: hydratedSeed.sourceUrl,
           image_url: imageUrl,
           share_id: shareId,
@@ -692,7 +694,7 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
             "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
             "Use this keyword research plan to cover variants and common misspellings naturally (misspellings only in FAQ or a short note):",
             JSON.stringify(keywordPlan),
-            `End content with this exact source note: Source: ${GOOGLE_TRENDS_SOURCE}.`
+            ...ARTICLE_ORIGINALITY_INSTRUCTIONS
           ],
           searchIntent,
           trend: seed.title,
@@ -733,7 +735,6 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
     throw new Error("OpenAI trends response must include exactly 3 takeaways");
   }
 
-  const sourceCitation = `Source: ${GOOGLE_TRENDS_SOURCE}.`;
   const recommendedTools = getRecommendedToolsForTrend(
     seed.title,
     seed.newsTitles
@@ -742,11 +743,7 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
   const bodyWithTools = toolsSection
     ? `${contentBody}\n\n${toolsSection}`
     : contentBody;
-  const content = normalizeArticleContent(
-    bodyWithTools.includes(sourceCitation)
-      ? bodyWithTools
-      : `${bodyWithTools}\n\n${sourceCitation}`
-  );
+  const content = normalizeArticleContent(stripGeneratedSourceFooter(bodyWithTools));
 
   return {
     title,

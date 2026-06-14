@@ -1,6 +1,11 @@
 import Parser from "rss-parser";
 
 import { syncLocalizedArticleHeroImage } from "./article-hero-localization";
+import {
+  ARTICLE_EDITORIAL_SOURCE_NAME,
+  ARTICLE_ORIGINALITY_INSTRUCTIONS,
+  stripGeneratedSourceFooter
+} from "./article-attribution";
 import { normalizeArticleContent } from "./article-markdown";
 import { enrichArticleMedia } from "./article-media";
 import { getOpenAIClient } from "./openai";
@@ -173,7 +178,7 @@ async function ingestSource(
             meta_description: rewritten.meta_description,
             key_takeaways: rewritten.key_takeaways,
             category: normalizeCategory(source.category),
-            source_name: source.name,
+            source_name: ARTICLE_EDITORIAL_SOURCE_NAME,
             source_url: sourceUrl,
             image_url: imageUrl,
             share_id: shareId,
@@ -446,9 +451,9 @@ async function rewriteArticle(input: {
             "Internal markdown links must use root-relative paths only. Never use example.com or placeholder absolute URLs.",
             "When discussing Substack, Zoho, Google Workspace, Google Ads, Cursor, DigitalOcean, or Shopify, mention that Tech Revenue Brief may provide a relevant referral link or referral guide on the page and keep the recommendation balanced.",
             "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
+            ...ARTICLE_ORIGINALITY_INSTRUCTIONS,
             "Use this keyword research plan to cover variants and common misspellings naturally (misspellings only in FAQ or a short note):",
             JSON.stringify(keywordPlan),
-            `Cite the original source clearly at the bottom of content with this exact format: Source: ${input.sourceName}.`,
             "For relevant articles, set is_relevant true and return complete title, content, meta_description, and key_takeaways fields."
           ],
           sourceName: input.sourceName,
@@ -496,12 +501,7 @@ async function rewriteArticle(input: {
     throw new Error("OpenAI rewrite response must include exactly 3 takeaways");
   }
 
-  const sourceCitation = `Source: ${input.sourceName}.`;
-  const content = normalizeArticleContent(
-    contentBody.includes(sourceCitation)
-      ? contentBody
-      : `${contentBody}\n\n${sourceCitation}`
-  );
+  const content = normalizeArticleContent(stripGeneratedSourceFooter(contentBody));
 
   return {
     title,
