@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { ArticleFeed } from "@/components/articles/ArticleFeed";
 import { PaginationControls } from "@/components/articles/PaginationControls";
@@ -38,6 +38,17 @@ export async function generateMetadata({
 }: CategoryPageProps): Promise<Metadata> {
   const { category } = await params;
   const normalizedCategory = normalizeCategory(category);
+
+  if (!isCoreCategory(normalizedCategory)) {
+    return {
+      title: "Not Found",
+      robots: {
+        index: false,
+        follow: false
+      }
+    };
+  }
+
   const page = parsePageParam((await searchParams)?.page);
   const label = formatCategory(normalizedCategory);
   const title =
@@ -91,10 +102,16 @@ export default async function CategoryPage({
 }: CategoryPageProps) {
   const { category } = await params;
   const normalizedCategory = normalizeCategory(category);
+
+  if (!isCoreCategory(normalizedCategory)) {
+    notFound();
+  }
+
   const page = parsePageParam((await searchParams)?.page);
-  const paginatedArticles = isCoreCategory(normalizedCategory)
-    ? await getPaginatedArticlesByCategory(normalizedCategory, page)
-    : null;
+  const paginatedArticles = await getPaginatedArticlesByCategory(
+    normalizedCategory,
+    page
+  );
 
   if (
     paginatedArticles &&
