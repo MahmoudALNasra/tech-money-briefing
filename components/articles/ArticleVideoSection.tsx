@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 
 import type { ArticleMedia } from "@/lib/types";
@@ -13,30 +12,60 @@ type ArticleVideoSectionProps = {
   media: ArticleMedia[];
 };
 
+function isLowQualityVideo(video: ArticleMedia) {
+  const title = video.title.toLowerCase();
+
+  return (
+    title.includes("#shorts") ||
+    title.includes(" #drawing") ||
+    title.includes("draw a social media chart")
+  );
+}
+
 function youtubeEmbedUrl(videoId: string) {
   return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
 }
 
 function VideoThumbnail({ video }: { video: ArticleMedia }) {
   const [thumbnailSrc, setThumbnailSrc] = useState(
-    highQualityYouTubeThumbnail(video.provider_id)
+    video.thumbnail_url || highQualityYouTubeThumbnail(video.provider_id)
   );
+  const [hasFallbackFailed, setHasFallbackFailed] = useState(false);
+
+  if (hasFallbackFailed) {
+    return (
+      <div className="grid h-full w-full place-items-center bg-gradient-to-br from-sky-100 via-white to-stone-200">
+        <span className="rounded-full bg-white px-4 py-2 text-sm font-black text-ink shadow-lg">
+          Play
+        </span>
+      </div>
+    );
+  }
 
   return (
-    <Image
+    <img
       src={thumbnailSrc}
-      alt={`${video.title} related video thumbnail`}
-      fill
-      sizes="(min-width: 640px) 180px, 100vw"
+      alt=""
       loading="lazy"
-      onError={() => setThumbnailSrc(fallbackYouTubeThumbnail(video.provider_id))}
-      className="object-cover transition duration-300 group-hover:scale-[1.03]"
+      onError={() => {
+        const fallback = fallbackYouTubeThumbnail(video.provider_id);
+
+        if (thumbnailSrc === fallback) {
+          setHasFallbackFailed(true);
+          return;
+        }
+
+        setThumbnailSrc(fallback);
+      }}
+      className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
     />
   );
 }
 
 export function ArticleVideoSection({ media }: ArticleVideoSectionProps) {
-  const videos = media.filter((item) => item.provider === "youtube").slice(0, 3);
+  const videos = media
+    .filter((item) => item.provider === "youtube" && !isLowQualityVideo(item))
+    .slice(0, 2);
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
 
   if (videos.length === 0) {
@@ -79,9 +108,9 @@ export function ArticleVideoSection({ media }: ArticleVideoSectionProps) {
                 <button
                   type="button"
                   onClick={() => setActiveVideoId(video.provider_id)}
-                  className="group grid w-full gap-0 text-left sm:grid-cols-[180px_1fr]"
+                  className="group grid w-full gap-0 text-left sm:grid-cols-[220px_1fr]"
                 >
-                  <div className="relative aspect-video overflow-hidden bg-stone-200 sm:aspect-[16/10]">
+                  <div className="relative aspect-video overflow-hidden bg-stone-200">
                     <VideoThumbnail video={video} />
                     <span className="absolute inset-0 grid place-items-center bg-stone-950/20">
                       <span className="rounded-full bg-white px-4 py-2 text-sm font-black text-ink shadow-lg">
