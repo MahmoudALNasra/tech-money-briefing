@@ -1,3 +1,6 @@
+import { existsSync } from "fs";
+import { resolve } from "path";
+
 import { getArticleMedia } from "./article-media";
 import { supabase } from "./supabase";
 import type { ArticleMedia } from "./types";
@@ -13,8 +16,12 @@ export async function isImageUrlUsable(url: string | null | undefined) {
 
   const normalized = url.trim();
 
-  if (isSiteHostedArticleImage(normalized)) {
+  if (isMediaArticlesPath(normalized)) {
     return true;
+  }
+
+  if (isGeneratedArticlePath(normalized)) {
+    return isLocalPublicAssetAvailable(normalized);
   }
 
   if (usableCache.has(normalized)) {
@@ -65,13 +72,27 @@ export function isGeneratedHeroImage(url: string | null | undefined) {
   return Boolean(url && url.includes("/generated/article-"));
 }
 
+function isMediaArticlesPath(url: string) {
+  return url.startsWith("/media/articles/") || url.includes("/media/articles/");
+}
+
+function isGeneratedArticlePath(url: string) {
+  return url.includes("/generated/article-");
+}
+
 function isSiteHostedArticleImage(url: string | null | undefined) {
   return Boolean(
-    url &&
-      (url.startsWith("/media/articles/") ||
-        url.includes("/media/articles/") ||
-        url.includes("/generated/article-"))
+    url && (isMediaArticlesPath(url) || isGeneratedArticlePath(url))
   );
+}
+
+function isLocalPublicAssetAvailable(url: string) {
+  if (!url.startsWith("/")) {
+    return false;
+  }
+
+  const filePath = resolve(process.cwd(), "public", url.replace(/^\//, ""));
+  return existsSync(filePath);
 }
 
 export async function resolveArticleHeroImage(input: {

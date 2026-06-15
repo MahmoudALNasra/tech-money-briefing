@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 import type { ArticleMedia } from "@/lib/types";
@@ -22,12 +23,14 @@ function VideoThumbnail({ video }: { video: ArticleMedia }) {
   );
 
   return (
-    <img
+    <Image
       src={thumbnailSrc}
       alt={`${video.title} related video thumbnail`}
+      fill
+      sizes="(min-width: 640px) 180px, 100vw"
       loading="lazy"
       onError={() => setThumbnailSrc(fallbackYouTubeThumbnail(video.provider_id))}
-      className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+      className="object-cover transition duration-300 group-hover:scale-[1.03]"
     />
   );
 }

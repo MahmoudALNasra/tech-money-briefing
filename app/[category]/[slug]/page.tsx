@@ -5,9 +5,11 @@ import { notFound } from "next/navigation";
 import { Fragment } from "react";
 
 import { ArticleReadTracker } from "@/components/analytics/ArticleReadTracker";
-import { ArticleHumanLayer } from "@/components/articles/ArticleHumanLayer";
+import { ArticleInternalLinks } from "@/components/articles/ArticleInternalLinks";
 import { ArticleShareToolbar } from "@/components/articles/ArticleShareToolbar";
 import { ArticleReferralLinks } from "@/components/articles/ArticleReferralLinks";
+import { ArticleToolRecommendations } from "@/components/articles/ArticleToolRecommendations";
+import { ArticleVideoSection } from "@/components/articles/ArticleVideoSection";
 import { RelatedArticles } from "@/components/articles/RelatedArticles";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { MonetizationRail } from "@/components/monetization/MonetizationRail";
@@ -64,38 +66,53 @@ function articleKeywords(article: Awaited<ReturnType<typeof getArticleBySlug>>) 
     .slice(0, 8);
 }
 
-function ArticleVisualBreak({
-  label,
-  title,
-  takeaway,
-  category
+function ArticleInlineImage({
+  image,
+  priority = false
 }: {
-  label: string;
-  title: string;
-  takeaway: string;
-  category: string;
+  image: Awaited<ReturnType<typeof getArticleMedia>>[number];
+  priority?: boolean;
 }) {
+  const imageSrc = image.url || image.thumbnail_url;
+
+  if (!imageSrc) {
+    return null;
+  }
+
   return (
-    <aside className="not-prose my-8 overflow-hidden rounded-3xl border border-emerald-200 bg-white shadow-sm">
-      <div className="border-b border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-stone-50 p-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-800">
-            {label}
-          </p>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-stone-500">
-            {formatCategory(category)}
-          </p>
-        </div>
-        <h3 className="mt-4 text-xl font-black leading-tight tracking-tight text-ink sm:text-2xl">
-          {title}
-        </h3>
-      </div>
-      <div className="bg-white p-5">
-        <p className="text-base font-semibold leading-7 text-stone-800">
-          {takeaway}
-        </p>
-      </div>
-    </aside>
+    <figure className="not-prose my-10 overflow-hidden rounded-3xl border border-stone-200 bg-stone-50 shadow-sm">
+      <Image
+        src={imageSrc}
+        alt={image.alt_text ?? image.title}
+        width={1200}
+        height={800}
+        priority={priority}
+        quality={75}
+        unoptimized={shouldBypassArticleImageOptimization(imageSrc)}
+        sizes="(min-width: 768px) 768px, 100vw"
+        className="h-auto max-h-[30rem] w-full object-contain"
+      />
+      {image.caption || image.source_name ? (
+        <figcaption className="border-t border-stone-200 px-5 py-3 text-xs leading-5 text-stone-600">
+          {image.caption ? <span>{image.caption}</span> : null}
+          {image.source_url && image.source_name ? (
+            <>
+              {" "}
+              <a
+                href={image.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold underline"
+              >
+                Source: {image.source_name}
+              </a>
+            </>
+          ) : image.source_name ? (
+            <span> Source: {image.source_name}</span>
+          ) : null}
+        </figcaption>
+      ) : null}
+    </figure>
   );
 }
 
@@ -159,13 +176,20 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   const articleMedia = await getArticleMedia(article.id);
-  const inlineImages = articleMedia
-    .filter((item) => item.provider === "image")
-    .slice(0, 3);
   const heroImageUrl = await resolveArticleHeroImage({
     image_url: article.image_url,
     media: articleMedia
   });
+  const inlineImages = articleMedia
+    .filter((item) => {
+      if (item.provider !== "image") {
+        return false;
+      }
+
+      const imageSrc = item.url || item.thumbnail_url;
+      return Boolean(imageSrc && imageSrc !== heroImageUrl);
+    })
+    .slice(0, 3);
   const jsonLd = newsArticleJsonLd(
     article,
     heroImageUrl,
@@ -295,8 +319,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </div>
           </section>
 
-          <ArticleHumanLayer article={article} variant="intro" />
-
           <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-500">
             <li>{ARTICLE_EDITORIAL_SOURCE_NAME}</li>
             {publishedLabel ? (
@@ -363,31 +385,30 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
 
           <div className="article-content prose prose-lg mt-10 max-w-none scroll-mt-24 prose-headings:scroll-mt-24 prose-headings:text-ink prose-a:text-ink prose-strong:text-ink prose-li:marker:text-emerald-600">
-            {contentBlocks.map((block, index) => (
-              <Fragment key={`${block}-${index}`}>
-                {renderArticleBlock(block)}
-                {index === 4 && article.key_takeaways[0] ? (
-                  <ArticleVisualBreak
-                    label="Key Takeaway"
-                    title={article.title}
-                    takeaway={article.key_takeaways[0]}
-                    category={article.category}
-                  />
-                ) : null}
-                {index === 10 && article.key_takeaways[1] ? (
-                  <ArticleVisualBreak
-                    label="Operator Note"
-                    title="What to remember"
-                    takeaway={article.key_takeaways[1]}
-                    category={article.category}
-                  />
-                ) : null}
-              </Fragment>
-            ))}
+            {contentBlocks.map((block, index) => {
+              const imageIndex = Math.floor(index / 3);
+              const inlineImage =
+                index > 0 && index % 3 === 0
+                  ? inlineImages[imageIndex - 1]
+                  : null;
+
+              return (
+                <Fragment key={`${block}-${index}`}>
+                  {renderArticleBlock(block)}
+                  {inlineImage ? (
+                    <ArticleInlineImage
+                      image={inlineImage}
+                      priority={imageIndex === 1}
+                    />
+                  ) : null}
+                </Fragment>
+              );
+            })}
           </div>
 
-          <ArticleHumanLayer article={article} variant="full" />
-
+          <ArticleVideoSection media={articleMedia} />
+          <ArticleToolRecommendations article={article} />
+          <ArticleInternalLinks article={article} />
           <ArticleReferralLinks article={article} />
 
           <aside className="mt-10 rounded-3xl border border-stone-200 bg-stone-50 p-6">

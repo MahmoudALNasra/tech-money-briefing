@@ -3,6 +3,50 @@ import type { ReactNode } from "react";
 
 const CALLOUT_PREFIX = /^>>\s+/;
 
+type AutoLinkRule = {
+  href: string;
+  pattern: RegExp;
+};
+
+const AUTO_LINK_RULES: AutoLinkRule[] = [
+  { href: "/adsense-revenue-calculator", pattern: /\b(?:AdSense revenue calculator|AdSense RPM calculator|RPM calculator)\b/i },
+  { href: "/adsense-ctr-calculator", pattern: /\b(?:AdSense CTR calculator|CTR calculator)\b/i },
+  { href: "/cpm-rpm-calculator", pattern: /\b(?:CPM calculator|RPM calculator|CPM and RPM calculator)\b/i },
+  { href: "/utm-builder", pattern: /\b(?:UTM builder|UTM link builder|UTM parameters?)\b/i },
+  { href: "/keyword-cluster-tool", pattern: /\b(?:keyword cluster tool|keyword clustering)\b/i },
+  { href: "/content-brief-generator", pattern: /\b(?:content brief generator|SEO content brief)\b/i },
+  { href: "/meta-description-generator", pattern: /\b(?:meta description generator|meta descriptions?)\b/i },
+  { href: "/blog-title-generator", pattern: /\b(?:blog title generator|blog titles?)\b/i },
+  { href: "/youtube-title-generator", pattern: /\b(?:YouTube title generator|YouTube titles?)\b/i },
+  { href: "/youtube-thumbnail-maker", pattern: /\b(?:YouTube thumbnail maker|YouTube thumbnails?)\b/i },
+  { href: "/newsletter-revenue-calculator", pattern: /\b(?:newsletter revenue calculator|newsletter revenue)\b/i },
+  { href: "/newsletter-subject-line-generator", pattern: /\b(?:newsletter subject line generator|subject lines?)\b/i },
+  { href: "/image-compressor", pattern: /\b(?:image compressor|Core Web Vitals|LCP)\b/i },
+  { href: "/business-data-generator", pattern: /\b(?:business data generator|local lead list|competitor research)\b/i },
+  { href: "/serp-intent-analyzer", pattern: /\b(?:SERP intent analyzer|SERP intent)\b/i },
+  { href: "/content-gap-finder", pattern: /\b(?:content gap finder|content gaps?)\b/i },
+  { href: "https://chatgpt.com/", pattern: /\bChatGPT\b/i },
+  { href: "https://claude.ai/", pattern: /\bClaude\b/i },
+  { href: "https://gemini.google.com/", pattern: /\bGemini\b/i },
+  { href: "https://www.perplexity.ai/", pattern: /\bPerplexity\b/i },
+  { href: "https://www.midjourney.com/", pattern: /\bMidjourney\b/i },
+  { href: "https://cursor.com/", pattern: /\bCursor\b/i },
+  { href: "https://github.com/features/copilot", pattern: /\bGitHub Copilot\b/i },
+  { href: "https://analytics.google.com/", pattern: /\b(?:Google Analytics|GA4)\b/i },
+  { href: "https://search.google.com/search-console", pattern: /\bGoogle Search Console\b/i },
+  { href: "https://www.google.com/business/", pattern: /\bGoogle Business Profile\b/i },
+  { href: "https://pagespeed.web.dev/", pattern: /\b(?:PageSpeed Insights|Lighthouse)\b/i },
+  { href: "https://www.notion.com/product/ai", pattern: /\bNotion AI\b/i },
+  { href: "https://supabase.com/", pattern: /\bSupabase\b/i },
+  { href: "https://www.shopify.com/", pattern: /\bShopify\b/i },
+  { href: "https://woocommerce.com/", pattern: /\bWooCommerce\b/i },
+  { href: "https://substack.com/", pattern: /\bSubstack\b/i },
+  { href: "https://www.beehiiv.com/", pattern: /\bBeehiiv\b/i },
+  { href: "https://ahrefs.com/", pattern: /\bAhrefs\b/i },
+  { href: "https://moz.com/", pattern: /\bMoz\b/i },
+  { href: "https://www.semrush.com/", pattern: /\bSemrush\b/i }
+];
+
 function normalizeArticleHref(href: string) {
   if (href.startsWith("/")) {
     return href;
@@ -19,6 +63,78 @@ function normalizeArticleHref(href: string) {
   }
 
   return href;
+}
+
+function renderAutoLinkedText(text: string, keyPrefix: string) {
+  const nodes: ReactNode[] = [];
+  const usedHrefs = new Set<string>();
+  let cursor = 0;
+  let linkIndex = 0;
+
+  while (cursor < text.length) {
+    const rest = text.slice(cursor);
+    let best:
+      | {
+          rule: AutoLinkRule;
+          index: number;
+          text: string;
+        }
+      | null = null;
+
+    for (const rule of AUTO_LINK_RULES) {
+      if (usedHrefs.has(rule.href)) {
+        continue;
+      }
+
+      const match = rest.match(rule.pattern);
+
+      if (!match || match.index === undefined) {
+        continue;
+      }
+
+      if (!best || match.index < best.index || (match.index === best.index && match[0].length > best.text.length)) {
+        best = { rule, index: match.index, text: match[0] };
+      }
+    }
+
+    if (!best) {
+      nodes.push(rest);
+      break;
+    }
+
+    if (best.index > 0) {
+      nodes.push(rest.slice(0, best.index));
+    }
+
+    const href = best.rule.href;
+    const key = `${keyPrefix}-auto-${linkIndex}`;
+
+    if (href.startsWith("/")) {
+      nodes.push(
+        <Link key={key} href={href} className="font-semibold underline">
+          {best.text}
+        </Link>
+      );
+    } else {
+      nodes.push(
+        <a
+          key={key}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold underline"
+        >
+          {best.text}
+        </a>
+      );
+    }
+
+    usedHrefs.add(href);
+    cursor += best.index + best.text.length;
+    linkIndex += 1;
+  }
+
+  return nodes;
 }
 
 function normalizeInlineHeadingLists(line: string) {
@@ -125,7 +241,7 @@ function renderTextSegment(text: string, keyPrefix: string) {
 
   while ((match = combined.exec(text)) !== null) {
     if (match.index > cursor) {
-      nodes.push(text.slice(cursor, match.index));
+      nodes.push(...renderAutoLinkedText(text.slice(cursor, match.index), `${keyPrefix}-plain-${partIndex}`));
     }
 
     const token = match[0];
@@ -181,7 +297,7 @@ function renderTextSegment(text: string, keyPrefix: string) {
   }
 
   if (cursor < text.length) {
-    nodes.push(text.slice(cursor));
+    nodes.push(...renderAutoLinkedText(text.slice(cursor), `${keyPrefix}-plain-end`));
   }
 
   return nodes;

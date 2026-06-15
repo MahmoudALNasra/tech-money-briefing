@@ -4,7 +4,7 @@ import {
   isImageUrlUsable,
   resolveArticleHeroImage
 } from "../lib/article-images";
-import { importArticleImageToPublic } from "../lib/article-public-image-files";
+import { importArticleImageToSite } from "../lib/article-local-images";
 import type { ArticleMedia } from "../lib/types";
 import { getSupabaseClient } from "../lib/supabase";
 import { revalidateSiteCache } from "../lib/revalidate-site";
@@ -32,6 +32,7 @@ async function run() {
   const slug = getStringArg("slug");
   const category = getStringArg("category");
   const since = getStringArg("since");
+  const forceFix = Boolean(slug) && localizeAll;
   const supabase = getSupabaseClient();
 
   let query = supabase
@@ -83,7 +84,8 @@ async function run() {
         currentUsable &&
         !shouldPreferMedia &&
         !shouldReplaceGeneratedHero &&
-        !shouldLocalizeCurrent
+        !shouldLocalizeCurrent &&
+        !forceFix
       ) {
         result.skipped += 1;
         continue;
@@ -109,14 +111,14 @@ async function run() {
         let thumbnailUrl = row.thumbnail_url ? String(row.thumbnail_url) : null;
 
         if (provider === "image" && mediaUrl) {
-          const localizedUrl = await importArticleImageToPublic({
+          const localizedUrl = await importArticleImageToSite({
             imageUrl: mediaUrl,
             slug: String(article.slug),
             title: String(row.title ?? article.title),
             publishedAt: article.published_at ? String(article.published_at) : null
           });
           const localizedThumbnail = thumbnailUrl
-            ? await importArticleImageToPublic({
+            ? await importArticleImageToSite({
                 imageUrl: thumbnailUrl,
                 slug: `${String(article.slug)}-thumb`,
                 title: String(row.title ?? article.title),
@@ -164,7 +166,7 @@ async function run() {
         media: localizedMedia,
         preferMedia: shouldPreferMedia
       });
-      const resolved = await importArticleImageToPublic({
+      const resolved = await importArticleImageToSite({
         imageUrl: resolvedRemote,
         slug: String(article.slug),
         title: String(article.title),

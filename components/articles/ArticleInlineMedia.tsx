@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 import type { ArticleMedia } from "@/lib/types";
@@ -56,14 +57,16 @@ export function ArticleInlineMedia({ media, label }: ArticleInlineMediaProps) {
         >
           <div className="relative aspect-video overflow-hidden bg-stone-200">
             {thumbnailSrc ? (
-              <img
+              <Image
                 src={thumbnailSrc}
                 alt={`${media.title} related video thumbnail`}
+                fill
+                sizes="(min-width: 768px) 768px, 100vw"
                 loading="lazy"
                 onError={() =>
                   setThumbnailSrc(fallbackYouTubeThumbnail(media.provider_id))
                 }
-                className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                className="object-cover transition duration-300 group-hover:scale-[1.03]"
               />
             ) : (
               <div className="h-full w-full bg-gradient-to-br from-sky-100 via-stone-100 to-stone-200" />
