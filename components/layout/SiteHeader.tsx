@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { AuthNavLink } from "@/components/auth/AuthNavLink";
 import { SearchForm } from "@/components/search/SearchForm";
@@ -24,6 +24,17 @@ const primaryLinks = [
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" }
 ];
+
+function AuthNavFallback() {
+  return (
+    <Link
+      href="/login"
+      className="inline-flex whitespace-nowrap rounded-[3px] border border-white/[0.06] bg-white/[0.03] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] transition hover:-translate-y-0.5 hover:border-[var(--border-accent)] hover:text-[var(--text-primary)]"
+    >
+      Sign in
+    </Link>
+  );
+}
 
 const topicMeta: Record<
   string,
@@ -326,7 +337,9 @@ export function SiteHeader({
               </div>
 
               <div className="hidden md:block">
-                <AuthNavLink />
+                <Suspense fallback={<AuthNavFallback />}>
+                  <AuthNavLink />
+                </Suspense>
               </div>
 
               <div className="hidden items-center gap-2 md:flex lg:hidden">
@@ -413,7 +426,9 @@ export function SiteHeader({
                       ) : null}
                     </Link>
                   ))}
-                  <AuthNavLink />
+                  <Suspense fallback={<AuthNavFallback />}>
+                    <AuthNavLink />
+                  </Suspense>
                 </nav>
 
                 <div className="my-3 h-px bg-white/[0.06]" />
