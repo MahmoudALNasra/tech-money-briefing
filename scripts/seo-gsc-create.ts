@@ -1,3 +1,5 @@
+import { spawn } from "child_process";
+
 import { loadLocalEnv } from "../lib/load-env";
 import {
   attachSuggestedTopics,
@@ -8,6 +10,33 @@ import { revalidateSiteCache } from "../lib/revalidate-site";
 
 loadLocalEnv();
 
+function runNpmScript(scriptArgs: string[], label: string) {
+  const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+  const args = ["run", ...scriptArgs];
+
+  return new Promise<void>((resolvePromise, reject) => {
+    console.log(`\n[gsc-create] >>> ${label}`);
+
+    const child = spawn(npmCmd, args, {
+      cwd: process.cwd(),
+      stdio: "inherit",
+      shell: process.platform === "win32",
+      env: process.env
+    });
+
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolvePromise();
+        return;
+      }
+
+      reject(new Error(`${label} exited with code ${code}`));
+    });
+
+    child.on("error", reject);
+  });
+}
+
 function getNumberArg(name: string, fallback: number) {
   const prefix = `--${name}=`;
   const arg = process.argv.find((value) => value.startsWith(prefix));
@@ -17,7 +46,9 @@ function getNumberArg(name: string, fallback: number) {
 }
 
 async function run() {
+  const startedAt = new Date(Date.now() - 5000).toISOString();
   const dryRun = process.argv.includes("--dry-run");
+  const skipOwnerVoice = process.argv.includes("--skip-owner-voice");
   const limit = getNumberArg("limit", 3);
   const days = getNumberArg("days", Number(process.env.GSC_LOOKBACK_DAYS ?? 28));
 
@@ -63,6 +94,30 @@ async function run() {
   });
 
   if (result.inserted > 0) {
+    if (!skipOwnerVoice) {
+      await runNpmScript(
+        [
+          "articles:rewrite-owner-voice",
+          "--",
+          "--all",
+          "--draft-on-fail",
+          `--since=${startedAt}`
+        ],
+        "Owner-voice rewrite"
+      );
+      await runNpmScript(
+        [
+          "articles:rewrite-owner-voice",
+          "--",
+          "--all",
+          "--others-only",
+          "--draft-on-fail",
+          `--since=${startedAt}`
+        ],
+        "Owner-voice rewrite (others)"
+      );
+    }
+
     try {
       const categories = new Set(
         result.topics

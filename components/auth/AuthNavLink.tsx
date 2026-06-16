@@ -56,7 +56,7 @@ export function AuthNavLink() {
   return (
     <Link
       href={`/login?next=${encodeURIComponent(nextPath)}`}
-      className="inline-flex whitespace-nowrap rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-700 transition hover:-translate-y-0.5 hover:border-ink hover:text-ink"
+      className="inline-flex whitespace-nowrap rounded-[3px] border border-white/[0.06] bg-white/[0.03] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] transition hover:-translate-y-0.5 hover:border-[var(--border-accent)] hover:text-[var(--text-primary)]"
     >
       Sign in
     </Link>

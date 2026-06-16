@@ -358,12 +358,27 @@ async function generateAutomatedTopics(input: {
   return generatedTopics;
 }
 
+function sanitizeTopicTitle(title: string): string {
+  return title
+    .replace(/\bgame[- ]changer(s)?\b/gi, "tools")
+    .replace(/\bnavigating the\b/gi, "understanding")
+    .replace(/\bunlock(ing)?\b/gi, "using")
+    .replace(/\bleverage\b/gi, "use")
+    .replace(/\bstreamline\b/gi, "simplify")
+    .replace(/\btransform(ing|ative)?\b/gi, "change")
+    .replace(/\bpivotal\b/gi, "important")
+    .replace(/\bin today['']s fast-paced\b[^,.]*/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialArticle> {
+  const workingTitle = sanitizeTopicTitle(topic.title);
   const keywordPlan = await runKeywordResearch({
-    seed: topic.title,
+    seed: workingTitle,
     category: topic.category,
     hints: {
-      brand: topic.title.split(" ")[0],
+      brand: workingTitle.split(" ")[0],
       isReferral: false
     }
   });
@@ -431,7 +446,7 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
             "meta_description: exactly 2 sentences, under 160 characters total if possible."
           ],
           topic: {
-            workingTitle: topic.title,
+            workingTitle,
             category: topic.category,
             angle: topic.angle,
             referenceUrls: topic.referenceUrls ?? []

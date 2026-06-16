@@ -14,7 +14,7 @@ export function BusinessDataPromoCard({
   title = "Need real competitor data, not just a free tool?",
   copy = "Use the business data generator to find local competitors, map nearby businesses, and export polished Excel reports with website signals and outreach notes."
 }: BusinessDataPromoCardProps) {
-  const href = `/business-data-generator?source=${encodeURIComponent(source)}`;
+  const href = `/leads?source=${encodeURIComponent(source)}`;
 
   return (
     <aside

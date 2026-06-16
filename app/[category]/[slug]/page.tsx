@@ -221,7 +221,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         categories={getPublicNavCategories()}
         activeCategory={article.category}
       />
-      <main className="bg-white">
+      <main className="bg-[var(--bg-base)]">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -241,7 +241,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <ScrollNewsletter />
         ) : null}
 
-        <article className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
+        <article className="mx-auto max-w-[840px] px-5 py-10 sm:px-8">
           <div className="mb-5">
             <BackButton
               fallbackHref={`/${article.category}`}
@@ -251,22 +251,22 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
           <Link
             href={`/${article.category}`}
-            className="inline-flex rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-stone-700"
+            className="badge badge-ai inline-flex"
           >
             {formatCategory(article.category)}
           </Link>
 
-          <h1 className="mt-5 text-4xl font-black leading-tight tracking-tight text-ink sm:text-5xl">
+          <h1 className="mt-5 font-serif text-4xl font-bold leading-tight tracking-tight text-[var(--text-primary)] sm:text-5xl">
             {article.title}
           </h1>
 
-          <p className="mt-5 text-lg leading-8 text-muted">
+          <p className="mt-5 text-lg leading-8 text-[var(--text-muted)]">
             {article.meta_description}
           </p>
 
           <ArticleShareToolbar title={article.title} url={url} />
 
-          <section className="mt-8 overflow-hidden rounded-3xl border border-stone-200 bg-gradient-to-br from-stone-950 via-stone-900 to-stone-800 text-white shadow-xl shadow-stone-950/10">
+          <section className="mt-8 overflow-hidden rounded-md border border-white/[0.06] bg-[var(--bg-surface)] text-white shadow-xl shadow-black/20">
             <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
               <div className="p-6 sm:p-8">
                 <p className="text-xs font-bold uppercase tracking-[0.24em] text-stone-300">
@@ -292,7 +292,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 )}
               </div>
 
-              <div className="border-t border-white/10 bg-white/5 p-6 sm:p-8 lg:border-l lg:border-t-0">
+              <div className="tldr-action-panel border-t border-white/10 bg-white/5 p-6 sm:p-8 lg:border-l lg:border-t-0">
                 <p className="text-xs font-bold uppercase tracking-[0.24em] text-stone-300">
                   In This Briefing
                 </p>
@@ -302,7 +302,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                       <a
                         key={heading.id}
                         href={`#${heading.id}`}
-                        className={`rounded-2xl px-3 py-2 text-sm font-semibold text-stone-100 transition hover:bg-white/10 ${
+                        className={`tldr-nav-link rounded-[3px] px-3 py-2 text-sm font-semibold text-stone-100 transition hover:bg-white/10 ${
                           heading.level >= 3 ? "ml-3 text-stone-300" : ""
                         }`}
                       >
@@ -319,7 +319,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </div>
           </section>
 
-          <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-500">
+          <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm text-[var(--text-dim)]">
             <li>{ARTICLE_EDITORIAL_SOURCE_NAME}</li>
             {publishedLabel ? (
               <li>
@@ -331,33 +331,33 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </ul>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-stone-500">
+            <div className="rounded-md border border-white/[0.06] bg-[var(--bg-surface)] p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--text-dim)]">
                 Scan Path
               </p>
-              <p className="mt-2 text-sm font-semibold text-ink">
+              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
                 Answer first, details second
               </p>
             </div>
-            <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-stone-500">
+            <div className="rounded-md border border-white/[0.06] bg-[var(--bg-surface)] p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--text-dim)]">
                 Trust Cue
               </p>
-              <p className="mt-2 text-sm font-semibold text-ink">
+              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
                 Original editor review
               </p>
             </div>
-            <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-stone-500">
+            <div className="rounded-md border border-white/[0.06] bg-[var(--bg-surface)] p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--text-dim)]">
                 Time Cost
               </p>
-              <p className="mt-2 text-sm font-semibold text-ink">
+              <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
                 {readingTime} min read
               </p>
             </div>
           </div>
 
-          <div className="mt-8 overflow-hidden rounded-3xl border border-stone-200 bg-stone-100">
+          <div className="mt-8 overflow-hidden rounded-md border border-white/[0.06] bg-[var(--bg-surface)]">
             {heroImageUrl ? (
               <Image
                 src={heroImageUrl}
@@ -384,7 +384,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             )}
           </div>
 
-          <div className="article-content prose prose-lg mt-10 max-w-none scroll-mt-24 prose-headings:scroll-mt-24 prose-headings:text-ink prose-a:text-ink prose-strong:text-ink prose-li:marker:text-emerald-600">
+          <div className="article-content prose prose-invert prose-lg mt-10 max-w-none scroll-mt-24 prose-headings:scroll-mt-24 prose-strong:text-[var(--text-primary)] prose-li:marker:text-[var(--accent-blue)]">
             {contentBlocks.map((block, index) => {
               const imageIndex = Math.floor(index / 3);
               const inlineImage =
@@ -411,14 +411,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <ArticleInternalLinks article={article} />
           <ArticleReferralLinks article={article} />
 
-          <aside className="mt-10 rounded-3xl border border-stone-200 bg-stone-50 p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">
+          <aside className="mt-10 rounded-md border border-white/[0.06] bg-[var(--bg-surface)] p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--text-dim)]">
               Editorial Note
             </p>
-            <h2 className="mt-3 text-xl font-black tracking-tight text-ink">
+            <h2 className="mt-3 font-serif text-xl font-bold tracking-tight text-[var(--text-primary)]">
               Written for Tech Revenue Brief readers
             </h2>
-            <p className="mt-3 text-sm leading-6 text-stone-600">
+            <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
               This article is prepared by Tech Revenue Brief Editors with a focus
               on practical business value, tool decisions, and monetization
               context. Outside feeds may help us spot topics, but the article is
@@ -427,7 +427,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </aside>
         </article>
 
-        <section className="mx-auto max-w-3xl px-5 sm:px-8">
+        <section className="mx-auto max-w-[840px] px-5 sm:px-8">
           <MonetizationRail
             context="article"
             placementIndex={7}

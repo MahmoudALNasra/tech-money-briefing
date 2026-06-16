@@ -1,6 +1,6 @@
 export const FREE_TOOLS = [
   {
-    href: "/business-data-generator",
+    href: "/leads",
     title: "Business Data Generator",
     description:
       "Generate local business lists by location, radius, and category, then unlock enriched exports.",

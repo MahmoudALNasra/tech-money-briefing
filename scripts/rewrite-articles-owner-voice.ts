@@ -1,7 +1,19 @@
 import {
   ARTICLE_EDITORIAL_SOURCE_NAME,
   ARTICLE_ORIGINALITY_INSTRUCTIONS,
+  OWNER_VOICE_AI_VOCABULARY_AVOID,
+  OWNER_VOICE_ANTI_AI_INSTRUCTIONS,
+  OWNER_VOICE_APPROVED_SAMPLES,
+  OWNER_VOICE_GOLD_ARTICLE_EXCERPT,
+  OWNER_VOICE_BANNED_PATTERNS,
+  OWNER_VOICE_PASSED_ARTICLE_EXCERPTS,
   OWNER_VOICE_REWRITE_GUIDE,
+  OWNER_VOICE_SKIP_SLUGS,
+  detectOwnerVoiceTemplateSignals,
+  detectCorporateTakeaways,
+  detectLowBurstiness,
+  detectSelfJustifyingSentences,
+  detectSubjectRepetition,
   stripGeneratedSourceFooter
 } from "../lib/article-attribution";
 import { normalizeArticleContent } from "../lib/article-markdown";
@@ -24,6 +36,8 @@ type ArticleRow = {
   category: string;
   source_name: string;
   source_url: string;
+  updated_at: string;
+  status: string;
 };
 
 type RewrittenArticle = {
@@ -32,6 +46,261 @@ type RewrittenArticle = {
   content: string;
   key_takeaways: string[];
 };
+
+type ValidationResult = {
+  issues: string[];
+  templateIssues: string[];
+  takeawayIssues: string[];
+  burstinessIssues: string[];
+  firstPersonIssues: string[];
+  structureIssues: string[];
+  aiSignalIssues: string[];
+  constructionIssues: string[];
+};
+
+type TopicBrief = {
+  readerQuestion: string;
+  topic: string;
+  facts: string[];
+  angles: string[];
+};
+
+const HARD_BANNED_PHRASES = [
+  "sure,",
+  "for instance",
+  "on the other hand",
+  "but it also",
+  "that being said",
+  "furthermore",
+  "moreover",
+  "additionally",
+  "in essence",
+  "at its core",
+  "it's worth noting",
+  "simply put",
+  "in short",
+  "to be fair",
+  "look,",
+  "honestly,",
+  "here's the thing",
+  "game-changer",
+  "leverage",
+  "unlock",
+  "streamline",
+  "robust",
+  "seamless",
+  "delve",
+  "navigating the",
+  "let's break it down",
+  "let's dive in",
+  "before diving in",
+  "here's how to",
+  "common pitfalls",
+  "actionable steps",
+  "actionable insights",
+  "unique value proposition",
+  "solid understanding of",
+  "one-size-fits-all",
+  "the truth is",
+  "big deal",
+  "nice-to-have",
+  "enter AI",
+  "strategic move",
+  "transformative",
+  "pivotal",
+  "bespoke",
+  "## FAQ",
+  "## Conclusion",
+  "## Summary",
+  "## Common Pitfalls",
+  "final thoughts",
+  "in conclusion",
+  "in today's fast-paced",
+  "whether you are a",
+  "identify",
+  "utilize",
+  "implement",
+  "strategies effectively",
+  "tailor your",
+  "optimize",
+  "consider these steps",
+  "consider the following",
+  "here are some steps",
+  "follow these steps",
+  "this helps [word] navigate",
+  "more effectively",
+  "these are the questions",
+  "this determines whether",
+  "it is important to note",
+  "it is worth noting",
+  "this ensures that",
+  "this allows you to",
+  "this makes it easier",
+  "by doing this",
+  "in order to",
+  "when it comes to",
+  "as a result of",
+  "due to the fact",
+  "in the event that",
+  "it is essential",
+  "it is crucial",
+  "plays a crucial role",
+  "plays an important role",
+  "take the time to",
+  "do not hesitate to",
+  "can be a good companion",
+  "can be an excellent",
+  "can be a great",
+  "is often touted as",
+  "go-to for",
+  "off the mark",
+  "without falling apart",
+  "without sacrificing quality",
+  "in a factory setting",
+  "crucial in a",
+  "which is crucial",
+  "they are reliable and efficient",
+  "sound appealing",
+  "jack-of-all-trades",
+  "master of none",
+  "these are not just theoretical",
+  "the risks are real",
+  "and they could outweigh",
+  "can go a long way",
+  "pull a fast one",
+  "on its own devices",
+  "to its own devices",
+  "without proper guidance",
+  "get past writer's block",
+  "final drafts",
+  "do it better",
+  "stand out",
+  "get lost",
+  "room for growth",
+  "differentiate yourself",
+  "compelling reason for existing",
+  "saturated",
+  "compared to specialized",
+  "compared to traditional"
+];
+
+const HARD_BANNED_PHRASES_PROMPT = `HARD BANNED PHRASES — your output must contain zero of these strings (case-insensitive):
+${HARD_BANNED_PHRASES.join(" | ")}
+
+If any of these appear in your output, the article will be automatically rejected. Do not use them as transitions, filler, or section titles.`;
+
+const TAKEAWAY_FORMAT_RULES = `TAKEAWAY FORMAT RULES:
+- Exactly 3 takeaways
+- Each must start with one of: "I would", "Don't", "Your"
+- Each must be advice to a friend — not a corporate summary
+- Do NOT use: identify, leverage, utilize, implement, strategies effectively, tailor your, optimize
+
+Good examples:
+- "I would start with one page, not a full site audit."
+- "Don't turn this feature on and walk away — check it weekly."
+- "Your first move should be running a free trial on a single campaign before committing."
+- "I would not trust the default settings here — they are optimized for the platform, not for you."
+- "Don't let the setup wizard decide your budget."
+- "Your biggest risk is not the tool itself — it's skipping the data audit before you connect it."`;
+
+const FORMATTING_RULES = `FORMATTING RULES (required for every article):
+1. Bold key terms, product names, and critical warnings using **bold**
+2. Include 2–4 inline hyperlinks to relevant external sources (official docs, tool homepages, credible reviews) — use natural anchor text, never "click here"
+3. Use ## headings that are specific to the topic — not generic like "## Introduction" or "## Conclusion"
+4. Dash bullet lists are allowed; numbered lists are banned
+5. Do not end with a summary, FAQ, or conclusion section — end on one sharp practical sentence
+6. Minimum 550 words, target 700–800 words
+7. Where the article covers sales prospecting, lead generation, finding business contacts, or B2B data — include one natural internal link to [Tech Revenue Brief's Business Data Generator](https://techrevenuebrief.com/business-data-generator) as a relevant tool`;
+
+const OWNER_VOICE_RULES = `OWNER VOICE RULES — this is the most important section:
+- You are a skeptical operator who has actually used these tools and wasted time on bad ones
+- Write in first person: I, my, I would, I would not, I wouldn't — at least 5 times in the body
+- Open with skepticism or a reframe — never with "In today's world" or "AI is changing everything"
+- Use short paragraphs (2–3 sentences max)
+- Mix sentence lengths: include at least 2 sentences under 7 words and 1 sentence over 20 words
+- Use dash bullets for lists, never numbered steps
+- Approved openers:
+  "I would not treat [X] like magic."
+  "I would not turn on [X] and walk away."
+  "I have used [X] and here is what I actually found."
+- Specific headings only — "## The mistake most people make here" not "## Common Mistakes"
+- Name actual tools, metrics, or workflows — no generic advice
+- End on one short, practical sentence. No "In conclusion", no recap, no FAQ`;
+
+const AI_DETECTION_RULES = `AI DETECTION RULES — these patterns will cause the article to be flagged as AI-generated by detectors. Do not use them under any circumstances:
+
+- Never introduce a list with a colon after an explanation sentence.
+  BAD: "Consider these steps: ..."
+  GOOD: "I would start with the URL Inspection Tool — not because it guarantees indexing, but because it forces you to think about which pages deserve priority."
+
+- Never write wrap-up sentences that explain what the previous sentence did.
+  BAD: "This helps Google's crawlers navigate your site more effectively."
+  GOOD: Cut it. The point was already made.
+
+- Never use passive structure to soften a recommendation.
+  BAD: "It is important to ensure your pages are well-structured."
+  GOOD: "Your pages need to be well-structured. That is not optional."
+
+- Never end a paragraph with a sentence that starts with "This" referring to the paragraph's own advice.
+  BAD: "This makes it easier for Google to index your content."
+  GOOD: End one sentence earlier.
+
+- Replace any bullet list that follows a colon with a paragraph that uses dashes mid-sentence or just flows as prose.
+  BAD: "Improve these things:\n- Internal links\n- Page speed"
+  GOOD: "Internal links matter more than most people think. Page speed is the other one I would check first."`;
+
+const CONSTRUCTION_RULES = `TWO NEW HARD RULES based on AI detector analysis:
+
+RULE A — Never repeat the same subject in back-to-back sentences.
+  BAD: "Versatile robots sound appealing. Versatile robots require reconfiguration. Versatile robots are harder to maintain."
+  GOOD: "Versatile robots sound appealing until you are the one scheduling the reconfiguration downtime. Maintenance gets complicated fast, and unlike a dedicated machine, you cannot just swap a part."
+
+RULE B — Never write a sentence that exists only to explain why the previous sentence mattered.
+  BAD: "Review the content before publishing. This ensures accuracy and maintains trust with your audience."
+  GOOD: "Review it before it goes live. One compliance miss in fintech costs more than the time you saved."
+
+The second sentence should add NEW information, not restate the first sentence's value. If the sentence starts with This/It/That and ends with a benefit, delete it.`;
+
+const OWNER_VOICE_SYSTEM_PROMPT = [
+  "You are the owner of Tech Revenue Brief. You write in first person as a skeptical operator who has actually run tools, wasted time, and compared options. You do not write SEO tutorials, corporate blogs, or textbook guides. Return only valid JSON.",
+  HARD_BANNED_PHRASES_PROMPT,
+  TAKEAWAY_FORMAT_RULES,
+  FORMATTING_RULES,
+  OWNER_VOICE_RULES,
+  AI_DETECTION_RULES,
+  CONSTRUCTION_RULES
+].join("\n\n");
+
+const MAX_REWRITE_ATTEMPTS = 5;
+const TOPIC_BRIEF_MODEL = process.env.OPENAI_TOPIC_BRIEF_MODEL ?? "gpt-4o-mini";
+const OWNER_VOICE_REWRITE_MODEL = process.env.OPENAI_REWRITE_MODEL ?? "gpt-4o";
+
+const OWNER_VOICE_BAD_EXAMPLE = `BAD — do not write like this:
+"As a small business owner, you might be wondering how to make the most of AI tools."
+"I would not treat ChatGPT like some kind of oracle."
+"Sure, it can generate a ton of content."
+"The truth is, the output quality largely hinges on..."
+"relevant and actionable insights"
+"a solid understanding of your market"
+"on the other hand"
+"that cater to"
+"unique value proposition"
+"test and iterate"
+"in the end"
+"pricing is more art than science"
+"fancy algorithms"
+"regulatory compliance as just another checkbox"
+"regulatory landscape"
+"building a house on sand"
+"stakeholder engagement is crucial"
+"by aligning your operations"
+"framework for growth"
+"## Common Pitfalls to Avoid"
+"1. **Being Too Vague**"
+"## FAQ"
+"Summary"
+"[ ] Define the purpose of your prompt clearly."
+"Let's break it down into actionable steps."`;
 
 function getNumberArg(name: string, fallback: number) {
   const prefix = `--${name}=`;
@@ -56,55 +325,538 @@ function articlePath(article: Pick<ArticleRow, "category" | "slug">) {
   return `/${article.category}/${article.slug}`;
 }
 
-async function loadArticles(options: {
-  limit: number;
-  category?: string;
-  slug?: string;
-  includeOthers: boolean;
-}) {
-  const supabase = getSupabaseClient();
-  let query = supabase
-    .from("articles")
-    .select(
-      "id,title,slug,meta_description,content,key_takeaways,category,source_name,source_url"
-    )
-    .eq("status", "published")
-    .not("source_name", "ilike", "%Referral%")
-    .order("published_at", { ascending: false })
-    .limit(options.limit);
-
-  if (!options.includeOthers) {
-    query = query.neq("category", "others");
-  }
-
-  if (options.category) {
-    query = query.eq("category", options.category);
-  }
-
-  if (options.slug) {
-    query = query.eq("slug", options.slug);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error(`Failed to load articles: ${error.message}`);
-  }
-
-  return (data ?? []) as ArticleRow[];
+function globalPattern(pattern: RegExp) {
+  return new RegExp(
+    pattern.source,
+    pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`
+  );
 }
 
-async function rewriteArticle(article: ArticleRow): Promise<RewrittenArticle> {
-  const internalLinks = getStaticInternalLinksForText(
-    [article.title, article.meta_description, article.category, article.content]
-      .join(" ")
-      .slice(0, 5000),
-    5
-  );
+function sanitizeSourceTextForBrief(content: string) {
+  return OWNER_VOICE_BANNED_PATTERNS.reduce(
+    (text, pattern) => text.replace(globalPattern(pattern), " "),
+    content
+  )
+    .replace(/\s{2,}/g, " ")
+    .slice(0, 4500);
+}
 
+const CLEANUP_REPLACEMENTS: Array<{
+  pattern: RegExp;
+  replacement: string;
+  label: string;
+}> = [
+  {
+    pattern: /can be (a |an )?(excellent|great|good) (companion|tool|solution|option) (to|for)/gi,
+    replacement: "works well for",
+    label: "can be X for"
+  },
+  {
+    pattern: /can be (a |an )?(excellent|great|good)\b/gi,
+    replacement: "can be useful",
+    label: "can be excellent/great/good"
+  },
+  {
+    pattern: /is often touted as (the |a )?go-to for/gi,
+    replacement: "gets recommended for",
+    label: "is often touted as go-to"
+  },
+  { pattern: /is often touted as/gi, replacement: "often gets sold as", label: "is often touted as" },
+  { pattern: /go-to for/gi, replacement: "common choice for", label: "go-to for" },
+  { pattern: /off the mark/gi, replacement: "wrong", label: "off the mark" },
+  {
+    pattern: /without proper guidance/gi,
+    replacement: "if you are not careful",
+    label: "without proper guidance"
+  },
+  { pattern: /can go a long way/gi, replacement: "actually works", label: "can go a long way" },
+  {
+    pattern: /these are not just theoretical (concerns|risks)/gi,
+    replacement: "this is real",
+    label: "not theoretical"
+  },
+  {
+    pattern: /the risks are real, and they could/gi,
+    replacement: "the risks",
+    label: "the risks are real"
+  },
+  { pattern: /and they could outweigh/gi, replacement: "and can outweigh", label: "and they could outweigh" },
+  { pattern: /in a factory setting/gi, replacement: "on the factory floor", label: "factory setting" },
+  { pattern: /crucial in a/gi, replacement: "important in a", label: "crucial in a" },
+  { pattern: /which is crucial/gi, replacement: "which matters", label: "which is crucial" },
+  {
+    pattern: /which is crucial in a \w+ setting/gi,
+    replacement: "",
+    label: "which is crucial in setting"
+  },
+  {
+    pattern: /they are reliable and efficient/gi,
+    replacement: "",
+    label: "reliable and efficient"
+  },
+  {
+    pattern: /jack-of-all-trades and master of none/gi,
+    replacement: "a generalist that underperforms at everything",
+    label: "jack-of-all-trades"
+  },
+  { pattern: /to its own devices/gi, replacement: "without oversight", label: "to its own devices" },
+  { pattern: /on its own devices/gi, replacement: "without oversight", label: "on its own devices" },
+  { pattern: /left to run unchecked/gi, replacement: "running without review", label: "unchecked" },
+  { pattern: /without sacrificing quality/gi, replacement: "while keeping the work clean", label: "without sacrificing quality" },
+  { pattern: /without falling apart/gi, replacement: "without breaking", label: "without falling apart" },
+  { pattern: /sound appealing/gi, replacement: "look useful", label: "sound appealing" },
+  { pattern: /pull a fast one/gi, replacement: "hide the real issue", label: "pull a fast one" },
+  { pattern: /get past writer['']s block/gi, replacement: "get unstuck", label: "writer's block" },
+  { pattern: /final drafts/gi, replacement: "publishable drafts", label: "final drafts" },
+  { pattern: /do it better/gi, replacement: "improve the work", label: "do it better" },
+  { pattern: /stand out/gi, replacement: "look different", label: "stand out" },
+  { pattern: /get lost/gi, replacement: "blend in", label: "get lost" },
+  { pattern: /room for growth/gi, replacement: "more work to do", label: "room for growth" },
+  { pattern: /differentiate yourself/gi, replacement: "show why you are different", label: "differentiate yourself" },
+  { pattern: /compelling reason for existing/gi, replacement: "clear reason to exist", label: "reason for existing" },
+  { pattern: /\bsaturated\b/gi, replacement: "crowded", label: "saturated" },
+  { pattern: /compared to specialized/gi, replacement: "next to dedicated", label: "compared to specialized" },
+  { pattern: /compared to traditional/gi, replacement: "next to older", label: "compared to traditional" },
+  {
+    pattern: /consider these steps[:\s]*/gi,
+    replacement: "here is what I would do — ",
+    label: "consider these steps"
+  },
+  { pattern: /consider the following[:\s]*/gi, replacement: "", label: "consider the following" },
+  { pattern: /here are some steps[:\s]*/gi, replacement: "I would do this — ", label: "here are some steps" },
+  { pattern: /follow these steps[:\s]*/gi, replacement: "I would do this — ", label: "follow these steps" },
+  { pattern: /\bsure,/gi, replacement: "Yes, but", label: "sure," },
+  { pattern: /\bfor instance\b/gi, replacement: "like", label: "for instance" },
+  { pattern: /\bon the other hand\b/gi, replacement: "but", label: "on the other hand" },
+  { pattern: /\bthat being said\b/gi, replacement: "", label: "that being said" },
+  { pattern: /\bfurthermore\b/gi, replacement: "also", label: "furthermore" },
+  { pattern: /\bmoreover\b/gi, replacement: "and", label: "moreover" },
+  { pattern: /\badditionally\b/gi, replacement: "also", label: "additionally" },
+  { pattern: /\bas a result of\b/gi, replacement: "because of", label: "as a result of" },
+  { pattern: /\bas a result\b(?!\s+of)/gi, replacement: "so", label: "as a result" },
+  { pattern: /\bas we['']ve seen\b/gi, replacement: "", label: "as we've seen" },
+  { pattern: /\bas mentioned\b/gi, replacement: "", label: "as mentioned" },
+  { pattern: /\bas noted above\b/gi, replacement: "", label: "as noted above" },
+  { pattern: /\bin order to\b/gi, replacement: "to", label: "in order to" },
+  { pattern: /\bwhen it comes to\b/gi, replacement: "with", label: "when it comes to" },
+  { pattern: /\bdue to the fact\b/gi, replacement: "because", label: "due to the fact" },
+  { pattern: /\bin the event that\b/gi, replacement: "if", label: "in the event that" },
+  { pattern: /\bby doing this\b/gi, replacement: "", label: "by doing this" },
+  { pattern: /\bmore effectively\b/gi, replacement: "better", label: "more effectively" },
+  { pattern: /\bin essence\b/gi, replacement: "basically", label: "in essence" },
+  { pattern: /\bat its core\b/gi, replacement: "really", label: "at its core" },
+  { pattern: /\bit is important to note\b/gi, replacement: "note:", label: "it is important to note" },
+  { pattern: /\bit is worth noting\b/gi, replacement: "note:", label: "it is worth noting" },
+  { pattern: /\bit is essential\b/gi, replacement: "you need to", label: "it is essential" },
+  { pattern: /\bit is crucial\b/gi, replacement: "this is important —", label: "it is crucial" },
+  { pattern: /\bit['']s worth noting\b/gi, replacement: "note:", label: "it's worth noting" },
+  { pattern: /\bsimply put\b/gi, replacement: "", label: "simply put" },
+  { pattern: /\bin short\b/gi, replacement: "", label: "in short" },
+  { pattern: /\bto be fair\b/gi, replacement: "", label: "to be fair" },
+  { pattern: /\bthe bottom line\b/gi, replacement: "my read", label: "the bottom line" },
+  { pattern: /\btake note\b/gi, replacement: "watch this", label: "take note" },
+  { pattern: /\bthe reality is\b/gi, replacement: "what tends to happen is", label: "the reality is" },
+  { pattern: /\btruth be told\b/gi, replacement: "", label: "truth be told" },
+  { pattern: /\bneedless to say\b/gi, replacement: "", label: "needless to say" },
+  { pattern: /\bnot surprisingly\b/gi, replacement: "", label: "not surprisingly" },
+  { pattern: /\bas you might expect\b/gi, replacement: "", label: "as you might expect" },
+  { pattern: /\bit goes without saying\b/gi, replacement: "", label: "it goes without saying" },
+  { pattern: /\bworth mentioning\b/gi, replacement: "worth checking", label: "worth mentioning" },
+  { pattern: /\bdon['']t forget that\b/gi, replacement: "remember:", label: "don't forget that" },
+  { pattern: /\bkeep in mind that\b/gi, replacement: "remember:", label: "keep in mind that" },
+  { pattern: /\btake the time to\b/gi, replacement: "", label: "take the time to" },
+  { pattern: /\bdo not hesitate to\b/gi, replacement: "", label: "do not hesitate to" },
+  { pattern: /\bcircle back\b/gi, replacement: "return", label: "circle back" },
+  { pattern: /\btouch base\b/gi, replacement: "talk", label: "touch base" },
+  { pattern: /\bmoving forward\b/gi, replacement: "next", label: "moving forward" },
+  { pattern: /\bgoing forward\b/gi, replacement: "next", label: "going forward" },
+  { pattern: /\bhonestly,/gi, replacement: "", label: "honestly," },
+  { pattern: /\bhere['']s the thing\b/gi, replacement: "", label: "here's the thing" },
+  { pattern: /\blook,/gi, replacement: "", label: "look," },
+  { pattern: /\bwhat actually\b/gi, replacement: "what", label: "what actually" },
+  { pattern: /\bgame[- ]changer\b/gi, replacement: "useful shift", label: "game-changer" },
+  { pattern: /\bleverag(e|ing)\b/gi, replacement: "use", label: "leverage" },
+  { pattern: /\bunlock(ing)?\b/gi, replacement: "open up", label: "unlock" },
+  { pattern: /\bstreamline\b/gi, replacement: "simplify", label: "streamline" },
+  { pattern: /\brobust\b/gi, replacement: "solid", label: "robust" },
+  { pattern: /\bseamless\b/gi, replacement: "smooth", label: "seamless" },
+  { pattern: /\bdelve\b/gi, replacement: "get into", label: "delve" },
+  { pattern: /\bnavigating the\b/gi, replacement: "understanding the", label: "navigating the" },
+  { pattern: /\btransformative\b/gi, replacement: "significant", label: "transformative" },
+  { pattern: /\bpivotal\b/gi, replacement: "important", label: "pivotal" },
+  { pattern: /\bbespoke\b/gi, replacement: "custom", label: "bespoke" },
+  { pattern: /\bstrategic move\b/gi, replacement: "decision", label: "strategic move" },
+  { pattern: /\blet['']s dive in\b\.?/gi, replacement: "", label: "let's dive in" },
+  { pattern: /\blet['']s break it down\b\.?/gi, replacement: "", label: "let's break it down" },
+  { pattern: /\bbefore diving in\b/gi, replacement: "", label: "before diving in" },
+  { pattern: /\bhere['']s how to\b/gi, replacement: "how to", label: "here's how to" },
+  { pattern: /\bin conclusion\b[,.]?/gi, replacement: "", label: "in conclusion" },
+  { pattern: /\bin the end\b/gi, replacement: "after that", label: "in the end" },
+  { pattern: /\bultimately\b/gi, replacement: "later", label: "ultimately" },
+  { pattern: /\bfinal thoughts\b:?/gi, replacement: "", label: "final thoughts" },
+  {
+    pattern: /^##\s+(FAQ|Conclusion|Summary|Common Pitfalls|Final Thoughts)\s*$/gim,
+    replacement: "## More on this",
+    label: "generic section heading"
+  },
+  {
+    pattern: /\bunique value proposition\b/gi,
+    replacement: "what makes it different",
+    label: "unique value proposition"
+  },
+  { pattern: /\bactionable insights?\b/gi, replacement: "useful data", label: "actionable insights" },
+  {
+    pattern: /\bsolid understanding of\b/gi,
+    replacement: "good grasp of",
+    label: "solid understanding of"
+  },
+  {
+    pattern: /\bone[- ]size[- ]fits[- ]all\b/gi,
+    replacement: "generic solution",
+    label: "one-size-fits-all"
+  },
+  {
+    pattern: /\bthe truth is\b/gi,
+    replacement: "Usually",
+    label: "the truth is"
+  },
+  { pattern: /\bthis helps \w+ navigate\b/gi, replacement: "that helps people read", label: "this helps [word] navigate" },
+  { pattern: /\bthese are the questions\b/gi, replacement: "I would ask these questions", label: "these are the questions" },
+  { pattern: /\bthis determines whether\b/gi, replacement: "this decides whether", label: "this determines whether" },
+  { pattern: /\bthis ensures that\b/gi, replacement: "this means", label: "this ensures that" },
+  { pattern: /\bthis allows you to\b/gi, replacement: "so you can", label: "this allows you to" },
+  { pattern: /\bthis makes it easier\b/gi, replacement: "the job gets simpler", label: "this makes it easier" },
+  { pattern: /\bplays a crucial role\b/gi, replacement: "matters a lot", label: "plays a crucial role" },
+  { pattern: /\bplays an important role\b/gi, replacement: "matters", label: "plays an important role" },
+  { pattern: /\bbig deal\b/gi, replacement: "important", label: "big deal" },
+  { pattern: /\bnice-to-have\b/gi, replacement: "optional", label: "nice-to-have" },
+  { pattern: /\bit['']s not just about\b/gi, replacement: "it is not only", label: "it's not just about" },
+  { pattern: /\bbut it also\b/gi, replacement: "and it", label: "but it also" },
+  { pattern: /\boffer insights\b/gi, replacement: "share useful notes", label: "offer insights" },
+  { pattern: /\btrip up\b/gi, replacement: "slow you down", label: "trip up" },
+  { pattern: /\brisk management\b/gi, replacement: "risk checks", label: "risk management" },
+  { pattern: /\bnavigate the\b/gi, replacement: "understand the", label: "navigate the" },
+  { pattern: /\bidentify\b/gi, replacement: "find", label: "identify" },
+  { pattern: /\butilize\b/gi, replacement: "use", label: "utilize" },
+  { pattern: /\bimplement\b/gi, replacement: "use", label: "implement" },
+  { pattern: /\bstrategies effectively\b/gi, replacement: "the thing that matters", label: "strategies effectively" },
+  { pattern: /\btailor your\b/gi, replacement: "adjust your", label: "tailor your" },
+  { pattern: /\boptimize\b/gi, replacement: "improve", label: "optimize" },
+  { pattern: /\bwhether you are a\b[^.]+?(or a\b[^.]+)?/gi, replacement: "", label: "whether you are a" },
+  { pattern: /in today['']s fast-paced[^,.]*/gi, replacement: "", label: "in today's fast-paced" },
+  { pattern: /^\s*\d+\.\s+/gm, replacement: "- ", label: "numbered list" },
+  { pattern: /^\s*\[\s*\]\s+/gm, replacement: "- ", label: "checkbox list" },
+  { pattern: /^\s*\[x\]\s+/gim, replacement: "- ", label: "checked list" }
+];
+
+const AI_SIGNAL_PATTERNS: RegExp[] = [
+  /consider (these|the following)/i,
+  /this (helps|allows|ensures|makes it)/i,
+  /plays a (crucial|important|key) role/i,
+  /it is (important|essential|crucial|worth)/i,
+  /more effectively/i,
+  /\w+ing your \w+ (more )?(effectively|efficiently)/i,
+  /these are the (steps|questions|factors)/i,
+  /can be (a |an )?(excellent|great|good) (companion|tool|solution|option) (to|for)/i,
+  /(This|It|That) (means|makes|helps|allows|ensures|shows|demonstrates|proves|can|will|would) (it |you |your |the )/i,
+  /^##\s+.+\s+(compared to|vs)\s+.+$/im,
+  /:\n[-•*]/
+];
+
+function scanAiSignalPatterns(body: string) {
+  return AI_SIGNAL_PATTERNS.filter((pattern) => pattern.test(body)).map((pattern) =>
+    pattern.toString()
+  );
+}
+
+function warnAiSignals(slug: string, attempt: number, phase: string, body: string) {
+  const signals = scanAiSignalPatterns(body);
+
+  for (const signal of signals) {
+    console.warn(`[AI-SIGNAL] ${slug} attempt ${attempt} ${phase}: ${signal}`);
+  }
+
+  return signals;
+}
+
+function cleanupText(text: string) {
+  const triggered: string[] = [];
+  let cleaned = text;
+
+  for (const replacement of CLEANUP_REPLACEMENTS) {
+    replacement.pattern.lastIndex = 0;
+    if (replacement.pattern.test(cleaned)) {
+      triggered.push(replacement.label);
+      replacement.pattern.lastIndex = 0;
+      cleaned = cleaned.replace(replacement.pattern, replacement.replacement);
+    }
+  }
+
+  const beforeSelfJustifyCleanup = cleaned;
+  cleaned = cleaned
+    .replace(
+      /([.!?]\s+)(This|It|That) (means|makes|helps|allows|ensures|shows|demonstrates|proves|can|will|would) (it |you |your |the )[^.!?]*[.!?]/gi,
+      "$1"
+    )
+    .replace(/:\n(?=[-•*])/g, ".\n");
+
+  if (cleaned !== beforeSelfJustifyCleanup) {
+    triggered.push("self-justify sentence");
+  }
+
+  return {
+    text: cleaned.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim(),
+    triggered
+  };
+}
+
+function cleanupTakeaway(takeaway: string, index: number) {
+  const { text } = cleanupText(takeaway);
+  const fixed = text
+    .replace(/\bidentify\b/gi, "find")
+    .replace(/\butilize\b/gi, "use")
+    .replace(/\bimplement\b/gi, "use")
+    .replace(/\bstrategies effectively\b/gi, "the thing that matters")
+    .replace(/\btailor your\b/gi, "adjust your")
+    .replace(/\boptimize\b/gi, "improve")
+    .trim();
+
+  if (/^I would\b/i.test(fixed) || /^Don't\b/i.test(fixed) || /^Your\b/i.test(fixed)) {
+    return fixed;
+  }
+
+  if (/\b(I|you|your|don't|not)\b/i.test(fixed)) {
+    return index === 1 ? `Don't ignore this: ${fixed}` : `I would keep this in mind: ${fixed}`;
+  }
+
+  const lowered = fixed.charAt(0).toLowerCase() + fixed.slice(1);
+  if (index === 1) {
+    return `Don't skip this: ${lowered}`;
+  }
+  if (index === 2) {
+    return `Your first check should be this: ${lowered}`;
+  }
+  return `I would start here: ${lowered}`;
+}
+
+function cleanupRewrittenDraft(
+  draft: RewrittenArticle,
+  article: Pick<ArticleRow, "slug" | "category">,
+  attempt: number,
+  phase: string
+): RewrittenArticle {
+  const content = cleanupText(draft.content);
+  const title = cleanupText(draft.title);
+  const meta = cleanupText(draft.meta_description);
+  const keyTakeaways = draft.key_takeaways.map(cleanupTakeaway).slice(0, 3);
+  const triggered = [...content.triggered, ...title.triggered, ...meta.triggered];
+  let contentText = content.text;
+
+  if (!article.category?.includes("comparison")) {
+    const beforeHeadingCleanup = contentText;
+    contentText = contentText
+      .replace(/^## .+ compared to .+$/gim, "")
+      .replace(/^## .+\s+vs\s+.+$/gim, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
+    if (contentText !== beforeHeadingCleanup) {
+      triggered.push("comparison heading");
+    }
+  }
+
+  if (triggered.length > 0) {
+    console.log(
+      `[owner-voice] ${article.slug} attempt ${attempt} ${phase} cleanup: ${[...new Set(triggered)].join(", ")}`
+    );
+  }
+
+  warnAiSignals(article.slug, attempt, phase, contentText);
+
+  return {
+    title: title.text,
+    meta_description: meta.text.slice(0, 180),
+    content: normalizeArticleContent(stripGeneratedSourceFooter(contentText)),
+    key_takeaways: keyTakeaways
+  };
+}
+
+const BURSTINESS_PATCH = `
+
+That part matters.
+
+I would check that first. I would still verify this manually, because the dashboard can look clean while the actual workflow stays messy and nobody can explain which page, source, or campaign created the result.`;
+
+function applyBurstinessPatch(content: string) {
+  const breakAt = content.indexOf("\n\n## ");
+  if (breakAt === -1) {
+    return `${content}${BURSTINESS_PATCH}`;
+  }
+
+  return `${content.slice(0, breakAt)}${BURSTINESS_PATCH}${content.slice(breakAt)}`;
+}
+
+function prependFirstPersonParagraph(content: string, brief: TopicBrief) {
+  return `I would not treat ${brief.topic} like a box to check. I would ask what it changes in the work, what it costs, and where it can quietly waste time. I have made this mistake before, and my rule now is simple: if I would not explain the choice to a friend in one sentence, I wait.\n\n${content}`;
+}
+
+async function loadArticles(options: {
+  limit?: number;
+  category?: string;
+  slug?: string;
+  since?: string;
+  onlyOthers: boolean;
+  fetchAll: boolean;
+  bulkTouchedOnly: boolean;
+  includeDrafts: boolean;
+}) {
+  const supabase = getSupabaseClient();
+  const pageSize = 100;
+  const maxTotal = options.fetchAll
+    ? Number.MAX_SAFE_INTEGER
+    : (options.limit ?? 5);
+  const rows: ArticleRow[] = [];
+  let offset = 0;
+
+  while (rows.length < maxTotal) {
+    const rangeEnd = offset + pageSize - 1;
+    let query = supabase
+      .from("articles")
+      .select(
+        "id,title,slug,meta_description,content,key_takeaways,category,source_name,source_url,updated_at,status"
+      )
+      .not("source_name", "ilike", "%Referral%")
+      .order("published_at", { ascending: false })
+      .range(offset, rangeEnd);
+
+    if (options.includeDrafts) {
+      query = query.in("status", ["published", "draft"]);
+    } else {
+      query = query.eq("status", "published");
+    }
+
+    if (options.onlyOthers) {
+      query = query.eq("category", "others");
+    } else {
+      query = query.neq("category", "others");
+    }
+
+    if (options.category) {
+      query = query.eq("category", options.category);
+    }
+
+    if (options.slug) {
+      query = query.eq("slug", options.slug);
+    }
+
+    if (options.since) {
+      query = query.gte("published_at", options.since);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw new Error(`Failed to load articles: ${error.message}`);
+    }
+
+    const page = (data ?? []) as ArticleRow[];
+    if (page.length === 0) {
+      break;
+    }
+
+    rows.push(...page);
+    offset += pageSize;
+
+    if (page.length < pageSize) {
+      break;
+    }
+  }
+
+  return rows
+    .filter((article) => !OWNER_VOICE_SKIP_SLUGS.includes(article.slug))
+    .filter((article) => {
+      if (!options.bulkTouchedOnly) {
+        return true;
+      }
+
+      const hasEditorialSource =
+        article.source_name === ARTICLE_EDITORIAL_SOURCE_NAME;
+      const updatedRecently =
+        Date.now() - new Date(article.updated_at).getTime() < 48 * 60 * 60 * 1000;
+      return hasEditorialSource && updatedRecently;
+    })
+    .slice(0, maxTotal);
+}
+
+async function extractTopicBrief(article: ArticleRow): Promise<TopicBrief> {
   const completion = await getOpenAIClient().chat.completions.create({
-    model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-    temperature: 0.42,
+    model: TOPIC_BRIEF_MODEL,
+    temperature: 0.2,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "article_topic_brief",
+        strict: true,
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            readerQuestion: { type: "string" },
+            topic: { type: "string" },
+            facts: {
+              type: "array",
+              minItems: 3,
+              maxItems: 6,
+              items: { type: "string" }
+            },
+            angles: {
+              type: "array",
+              minItems: 2,
+              maxItems: 4,
+              items: { type: "string" }
+            }
+          },
+          required: ["readerQuestion", "topic", "facts", "angles"]
+        }
+      }
+    },
+    messages: [
+      {
+        role: "system",
+        content:
+          "Extract only the topic, reader question, facts, and angles from an article. Ignore the old writing style, headings, and structure."
+      },
+      {
+        role: "user",
+        content: JSON.stringify({
+          title: article.title,
+          category: article.category,
+          meta_description: article.meta_description,
+          key_takeaways: article.key_takeaways ?? [],
+          content: sanitizeSourceTextForBrief(article.content)
+        })
+      }
+    ]
+  });
+
+  const raw = completion.choices[0]?.message.content;
+  if (!raw) {
+    throw new Error(`Topic brief empty for ${article.slug}`);
+  }
+
+  return JSON.parse(raw) as TopicBrief;
+}
+
+async function writeOwnerVoiceArticle(
+  article: ArticleRow,
+  brief: TopicBrief,
+  internalLinks: Array<{ label: string; href: string }>,
+  attempt: number,
+  retryFeedback?: string[]
+): Promise<RewrittenArticle> {
+  const completion = await getOpenAIClient().chat.completions.create({
+    model: OWNER_VOICE_REWRITE_MODEL,
+    temperature: rewriteTemperatureForAttempt(attempt),
     response_format: {
       type: "json_schema",
       json_schema: {
@@ -131,52 +883,61 @@ async function rewriteArticle(article: ArticleRow): Promise<RewrittenArticle> {
     messages: [
       {
         role: "system",
-        content:
-          "You rewrite Tech Revenue Brief articles in the owner's original voice. Return only valid JSON. Preserve the topic and factual meaning, but rebuild the article from scratch so it is original, useful, and not a source summary."
+        content: OWNER_VOICE_SYSTEM_PROMPT
       },
       {
         role: "user",
         content: JSON.stringify({
-          task: "Rewrite this published article in the current Tech Revenue Brief owner voice.",
+          task: "Write a brand-new Tech Revenue Brief article from scratch in the owner voice.",
+          goldStandardExcerpt: OWNER_VOICE_GOLD_ARTICLE_EXCERPT,
+          detectorPassedExcerpts: OWNER_VOICE_PASSED_ARTICLE_EXCERPTS,
+          aiVocabularyToAvoid: OWNER_VOICE_AI_VOCABULARY_AVOID,
+          badExampleToAvoid: OWNER_VOICE_BAD_EXAMPLE,
+          approvedVoiceSamples: OWNER_VOICE_APPROVED_SAMPLES,
+          retryFeedback:
+            retryFeedback && retryFeedback.length > 0
+              ? `Your last draft failed checks. Fix these issues: ${retryFeedback.join("; ")}`
+              : undefined,
           rules: [
             ...ARTICLE_ORIGINALITY_INSTRUCTIONS,
             ...OWNER_VOICE_REWRITE_GUIDE,
-            "Preserve the same URL intent: do not turn the article into a different topic.",
-            "Do not mention that the article was rewritten, generated, based on RSS, or based on another article.",
-            "Do not add a Source footer, Read more link, original source block, or citation unless the old article includes a specific statistic or official claim that absolutely needs a citation.",
-            "Use 2-4 useful internal links only if they fit naturally. Place them inside normal paragraphs, headings, or list items. Do not create a separate related-links section at the bottom.",
-            "Internal links must use root-relative paths only and should be attached to meaningful anchor text, not generic text like 'click here' or 'read more'.",
-            "Use bold words for important decision points, warnings, and money/time trade-offs, but do not bold full paragraphs.",
-            "Use markdown only. Do not include an H1 because the title is stored separately.",
-            "Use a direct opening paragraph and ## Quick Answer, but do not write a generic textbook 'Step-by-Step Process' unless the article absolutely needs it.",
-            "Vary the middle sections so every article does not feel like the same template. Prefer headings that sound specific to the topic, not generic headings like 'Common Pitfalls to Avoid'.",
-            "Avoid generic AI detector trigger phrasing and repeated internet wording. Prefer specific, opinionated, practical sentences that sound like a real site owner thinking through the topic.",
-            "For startup-name/tool articles specifically: do not start with 'naming your startup is not just...' or 'with so many businesses vying for attention'. Start with a practical concern like whether the name is memorable, available, easy to say, and not embarrassing to use in public.",
-            "Do not present every paragraph as a neutral instruction. Include personal judgment, objections, and trade-offs.",
-            "Aim for 850-1200 words. Prefer clarity and usefulness over length.",
-            "Generate exactly 3 key_takeaways as short, useful strings.",
-            "Generate a meta_description between 120 and 155 characters when possible."
+            ...OWNER_VOICE_ANTI_AI_INSTRUCTIONS,
+            HARD_BANNED_PHRASES_PROMPT,
+            TAKEAWAY_FORMAT_RULES,
+            FORMATTING_RULES,
+            OWNER_VOICE_RULES,
+            AI_DETECTION_RULES,
+            CONSTRUCTION_RULES,
+            "Never use words or phrases listed in aiVocabularyToAvoid unless quoting someone.",
+            "Match the goldStandardExcerpt: skeptical first-person opener, plain reasoning, specific ## headings, short paragraphs, opinionated lists — not a tutorial.",
+            "Treat detectorPassedExcerpts as the closest style target because those passed the user's AI detector. Match their plain rhythm and business-owner reasoning without copying them.",
+            "Read badExampleToAvoid and do not produce anything structurally or tonally similar.",
+            "Do not try to sound human by using 'sure,' 'the truth is,' 'some kind of oracle,' analogies like darts/bullseyes, or polished transition phrases.",
+            "Use plainer owner phrasing: 'I would start with...', 'I would delete...', 'this is where people overdo it', 'that is too vague', 'I would not pay for that yet'.",
+            "Avoid neat article endings. No summary section, no conclusion, no final lesson, no recap paragraph.",
+            "Avoid business-school language: value proposition, segmentation matters, perceived value, operational costs, actionable insights, tailored strategies, customer needs and budgets.",
+            "If you want to warn the reader, use a specific heading like '## The mistake is asking ChatGPT with no context' — never 'Common Pitfalls' or 'FAQ'.",
+            "Use dash bullet lists or short paragraphs only. Never use numbered lists like '1.' or '2.' anywhere in the article.",
+            "Do not end with 'Final Thoughts', 'In conclusion', '## Conclusion', '## Takeaway', or any recap section. End on one sharp practical sentence.",
+            "Use the topicBrief only for meaning. Do not reuse the old article's structure, headings, or phrasing.",
+            "Write 550-900 words in markdown. No H1.",
+            "You may include one short ## Quick Answer if it fits naturally. Do not add ## FAQ.",
+            "Do not use numbered step lists (1. 2. 3.) or checkbox checklists.",
+            "Use 0-3 internal links only when they fit naturally in a sentence. Prefer the Business Data Generator internal link only for sales prospecting, lead generation, business contacts, or B2B data topics.",
+            "Include 2-4 inline external links to official docs, product homepages, or credible source pages when they fit naturally.",
+            "key_takeaways must sound like plain advice to a friend, not corporate bullet points.",
+            "Title should sound like something a real person would click, not a keyword-stuffed SEO title."
           ],
-          availableInternalLinks: internalLinks.map((link) => ({
-            label: link.label,
-            href: link.href
-          })),
-          article: {
-            id: article.id,
-            slug: article.slug,
-            category: article.category,
-            currentTitle: article.title,
-            currentMetaDescription: article.meta_description,
-            currentKeyTakeaways: article.key_takeaways ?? [],
-            currentContent: article.content
-          }
+          topicBrief: brief,
+          slug: article.slug,
+          category: article.category,
+          availableInternalLinks: internalLinks
         })
       }
     ]
   });
 
   const raw = completion.choices[0]?.message.content;
-
   if (!raw) {
     throw new Error(`OpenAI returned empty content for ${article.slug}`);
   }
@@ -201,23 +962,330 @@ async function rewriteArticle(article: ArticleRow): Promise<RewrittenArticle> {
   };
 }
 
+function rewriteTemperatureForAttempt(attempt: number) {
+  if (attempt <= 1) {
+    return 0.5;
+  }
+
+  if (attempt === 2) {
+    return 0.45;
+  }
+
+  return 0.4;
+}
+
+async function rewriteTakeawaysOnly(
+  article: ArticleRow,
+  brief: TopicBrief,
+  draft: RewrittenArticle,
+  issues: string[]
+) {
+  const completion = await getOpenAIClient().chat.completions.create({
+    model: OWNER_VOICE_REWRITE_MODEL,
+    temperature: 0.3,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "owner_voice_takeaway_repair",
+        strict: true,
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            key_takeaways: {
+              type: "array",
+              minItems: 3,
+              maxItems: 3,
+              items: { type: "string" }
+            }
+          },
+          required: ["key_takeaways"]
+        }
+      }
+    },
+    messages: [
+      {
+        role: "system",
+        content: [
+          "Return only valid JSON. Rewrite only the key_takeaways. Do not rewrite the article body.",
+          HARD_BANNED_PHRASES_PROMPT,
+          TAKEAWAY_FORMAT_RULES
+        ].join("\n\n")
+      },
+      {
+        role: "user",
+        content: JSON.stringify({
+          title: draft.title,
+          slug: article.slug,
+          topicBrief: brief,
+          failedChecks: issues,
+          articleExcerpt: draft.content.slice(0, 2500),
+          currentTakeaways: draft.key_takeaways
+        })
+      }
+    ]
+  });
+
+  const raw = completion.choices[0]?.message.content;
+  if (!raw) {
+    throw new Error(`Takeaway repair empty for ${article.slug}`);
+  }
+
+  const parsed = JSON.parse(raw) as { key_takeaways?: unknown };
+  if (!Array.isArray(parsed.key_takeaways) || parsed.key_takeaways.length !== 3) {
+    throw new Error(`Takeaway repair missed fields for ${article.slug}`);
+  }
+
+  return parsed.key_takeaways.map((takeaway, index) =>
+    cleanupTakeaway(String(takeaway).trim(), index)
+  );
+}
+
+function validateOwnerVoiceDraft(draft: RewrittenArticle): ValidationResult {
+  const templateIssues = detectOwnerVoiceTemplateSignals(draft.content);
+  const takeawayIssues = detectCorporateTakeaways(draft.key_takeaways);
+  const burstinessIssues = detectLowBurstiness(draft.content);
+  const constructionIssues = [
+    ...detectSubjectRepetition(draft.content),
+    ...detectSelfJustifyingSentences(draft.content)
+  ];
+  const aiSignals = scanAiSignalPatterns(draft.content);
+  const aiSignalIssues =
+    aiSignals.length > 3
+      ? [
+          `too many AI-signal patterns after cleanup (${aiSignals.length}): ${aiSignals.join(", ")}`
+        ]
+      : [];
+  const firstPersonIssues: string[] = [];
+  const structureIssues: string[] = [];
+
+  const firstPersonCount = (
+    draft.content.match(/\bI\b|\bmy\b|\bI would\b|\bI would not\b|\bI wouldn't\b/gi) ?? []
+  ).length;
+  if (firstPersonCount < 5) {
+    firstPersonIssues.push("not enough first-person voice (I/my/I would)");
+  }
+
+  if (draft.content.length < 400) {
+    structureIssues.push("article too short");
+  }
+
+  if (/\bwe would\b/i.test(draft.content)) {
+    structureIssues.push("corporate 'we would' voice instead of owner 'I'");
+  }
+
+  if (/^\s*\d+\.\s/m.test(draft.content)) {
+    structureIssues.push("numbered list detected");
+  }
+
+  const issues = [
+    ...templateIssues,
+    ...takeawayIssues,
+    ...burstinessIssues,
+    ...constructionIssues,
+    ...firstPersonIssues,
+    ...structureIssues,
+    ...aiSignalIssues
+  ];
+
+  return {
+    issues,
+    templateIssues,
+    takeawayIssues,
+    burstinessIssues,
+    constructionIssues,
+    firstPersonIssues,
+    structureIssues,
+    aiSignalIssues
+  };
+}
+
+function sentenceExamplesForRetry(content: string, limit = 4) {
+  const sentences = content.match(/[^.!?]+[.!?]+/g) ?? [];
+  const examples = new Set<string>();
+  const selfJustifyPattern =
+    /^(This|It|That) (means|makes|helps|allows|ensures|shows|demonstrates|proves|can|will|would) (it |you |your |the )/i;
+
+  for (let i = 1; i < sentences.length && examples.size < limit; i += 1) {
+    const prev = sentences[i - 1]?.trim();
+    const curr = sentences[i]?.trim();
+    const prevFirstWord = prev?.split(/\s+/)[0]?.toLowerCase();
+    const currFirstWord = curr?.split(/\s+/)[0]?.toLowerCase();
+
+    if (
+      prev &&
+      curr &&
+      prevFirstWord &&
+      currFirstWord &&
+      prevFirstWord === currFirstWord &&
+      prevFirstWord.length > 3
+    ) {
+      examples.add(`${prev} ${curr}`);
+    }
+
+    if (curr && selfJustifyPattern.test(curr)) {
+      examples.add(curr);
+    }
+  }
+
+  for (const pattern of OWNER_VOICE_BANNED_PATTERNS) {
+    if (examples.size >= limit) {
+      break;
+    }
+
+    const sentence = sentences.find((item) => pattern.test(item));
+    if (sentence) {
+      examples.add(sentence.trim());
+    }
+  }
+
+  return [...examples].slice(0, limit);
+}
+
+async function repairDraft(
+  article: ArticleRow,
+  brief: TopicBrief,
+  draft: RewrittenArticle,
+  validation: ValidationResult,
+  attempt: number
+) {
+  let repaired = draft;
+
+  if (validation.takeawayIssues.length > 0) {
+    console.log(`[owner-voice] ${article.slug} attempt ${attempt} repairing takeaways`);
+    repaired = {
+      ...repaired,
+      key_takeaways: await rewriteTakeawaysOnly(
+        article,
+        brief,
+        repaired,
+        validation.takeawayIssues
+      )
+    };
+  }
+
+  if (validation.burstinessIssues.length > 0) {
+    console.log(`[owner-voice] ${article.slug} attempt ${attempt} patching burstiness`);
+    repaired = {
+      ...repaired,
+      content: applyBurstinessPatch(repaired.content)
+    };
+  }
+
+  if (validation.firstPersonIssues.length > 0) {
+    console.log(`[owner-voice] ${article.slug} attempt ${attempt} patching first-person voice`);
+    repaired = {
+      ...repaired,
+      content: prependFirstPersonParagraph(repaired.content, brief)
+    };
+  }
+
+  return cleanupRewrittenDraft(repaired, article, attempt, "repair");
+}
+
+async function rewriteArticle(article: ArticleRow): Promise<RewrittenArticle> {
+  const internalLinks = getStaticInternalLinksForText(
+    [article.title, article.meta_description, article.category, article.content]
+      .join(" ")
+      .slice(0, 5000),
+    5
+  ).map((link) => ({
+    label: link.label,
+    href: link.href
+  }));
+
+  const brief = await extractTopicBrief(article);
+  let lastIssues: string[] = [];
+  let draft: RewrittenArticle | undefined;
+
+  for (let attempt = 1; attempt <= MAX_REWRITE_ATTEMPTS; attempt += 1) {
+    draft = await writeOwnerVoiceArticle(
+      article,
+      brief,
+      internalLinks,
+      attempt,
+      attempt > 1 ? lastIssues : undefined
+    );
+    draft = cleanupRewrittenDraft(draft, article, attempt, "generation");
+    let validation = validateOwnerVoiceDraft(draft);
+
+    if (validation.issues.length > 0) {
+      draft = await repairDraft(article, brief, draft, validation, attempt);
+      validation = validateOwnerVoiceDraft(draft);
+    }
+
+    const failedSentenceExamples =
+      attempt >= 2 ? sentenceExamplesForRetry(draft.content) : [];
+    lastIssues = [
+      ...validation.issues,
+      ...failedSentenceExamples.map(
+        (example) => `Do not write this AI-flagged sentence: "${example}"`
+      )
+    ];
+
+    if (validation.issues.length === 0) {
+      return draft;
+    }
+
+    console.warn(
+      `[owner-voice] ${article.slug} attempt ${attempt} failed checks: ${lastIssues.join(", ")}`
+    );
+  }
+
+  if (!draft) {
+    throw new Error(`Rewrite failed for ${article.slug}`);
+  }
+
+  throw new Error(
+    `Rewrite for ${article.slug} failed validation after ${MAX_REWRITE_ATTEMPTS} attempts: ${lastIssues.join(", ")}`
+  );
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function run() {
-  const limit = getNumberArg("limit", 5);
+  const fetchAll = hasFlag("all");
+  const limit = fetchAll ? undefined : getNumberArg("limit", 5);
   const category = getStringArg("category");
   const slug = getStringArg("slug");
+  const since = getStringArg("since");
   const dryRun = hasFlag("dry-run");
-  const includeOthers = hasFlag("include-others");
-  const articles = await loadArticles({ limit, category, slug, includeOthers });
+  const draftOnFail = hasFlag("draft-on-fail");
+  const onlyOthers = hasFlag("others-only");
+  const bulkTouchedOnly = hasFlag("bulk-touched-only");
+  const includeDrafts = hasFlag("include-drafts") || Boolean(since);
+  const delayMs = getNumberArg("delay-ms", 0);
+  const articles = await loadArticles({
+    limit,
+    category,
+    slug,
+    since,
+    onlyOthers,
+    fetchAll,
+    bulkTouchedOnly,
+    includeDrafts
+  });
   const result = {
     checked: articles.length,
     updated: 0,
+    drafted: 0,
     dryRun,
+    bulkTouchedOnly,
     links: [] as string[],
     errors: [] as string[]
   };
 
-  for (const article of articles) {
+  console.log(
+    `[owner-voice] loaded ${articles.length} article(s)${onlyOthers ? " (others only)" : " (excluding others)"}${bulkTouchedOnly ? " [bulk-touched only]" : ""}${since ? ` [since ${since}]` : ""}${dryRun ? " [dry-run]" : ""}`
+  );
+
+  for (const [index, article] of articles.entries()) {
     try {
+      console.log(
+        `[owner-voice] ${index + 1}/${articles.length} rewriting ${article.slug}`
+      );
       const rewritten = await rewriteArticle(article);
       const path = articlePath(article);
       const url = `${siteConfig.url}${path}`;
@@ -231,6 +1299,7 @@ async function run() {
             content: rewritten.content,
             key_takeaways: rewritten.key_takeaways,
             source_name: ARTICLE_EDITORIAL_SOURCE_NAME,
+            status: "published",
             updated_at: new Date().toISOString()
           })
           .eq("id", article.id);
@@ -247,6 +1316,27 @@ async function run() {
       result.errors.push(
         `${article.slug}: ${error instanceof Error ? error.message : String(error)}`
       );
+
+      if (draftOnFail && !dryRun) {
+        const { error: draftError } = await getSupabaseClient()
+          .from("articles")
+          .update({
+            status: "draft",
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", article.id);
+
+        if (draftError) {
+          result.errors.push(`${article.slug}: failed to draft: ${draftError.message}`);
+        } else {
+          result.drafted += 1;
+          console.warn(`[owner-voice] drafted failed raw article ${article.slug}`);
+        }
+      }
+    }
+
+    if (delayMs > 0 && index < articles.length - 1) {
+      await sleep(delayMs);
     }
   }
 

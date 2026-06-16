@@ -66,13 +66,13 @@ export function ArticleShareToolbar({ title, url }: ArticleShareToolbarProps) {
   }
 
   return (
-    <aside className="mt-6 rounded-3xl border border-stone-200 bg-white p-4 shadow-sm">
+    <aside className="share-briefing-card mt-6 rounded-md border border-white/[0.06] bg-[var(--bg-surface)] p-4 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent-blue)]">
             Share This Briefing
           </p>
-          <p className="mt-1 text-sm text-stone-600">
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
             Send it to a community, teammate, or your own notes.
           </p>
         </div>
@@ -81,14 +81,14 @@ export function ArticleShareToolbar({ title, url }: ArticleShareToolbarProps) {
           <button
             type="button"
             onClick={handleNativeShare}
-            className="rounded-full border border-stone-200 px-4 py-2 text-sm font-bold text-ink transition hover:border-ink"
+            className="rounded-[3px] border border-white/[0.06] px-4 py-2 text-sm font-bold text-[var(--text-primary)] transition hover:border-[var(--border-accent)]"
           >
             Share
           </button>
           <button
             type="button"
             onClick={handleCopy}
-            className="rounded-full border border-stone-200 px-4 py-2 text-sm font-bold text-ink transition hover:border-ink"
+            className="rounded-[3px] border border-white/[0.06] px-4 py-2 text-sm font-bold text-[var(--text-primary)] transition hover:border-[var(--border-accent)]"
           >
             {copied ? "Copied" : "Copy link"}
           </button>
@@ -99,7 +99,7 @@ export function ArticleShareToolbar({ title, url }: ArticleShareToolbarProps) {
               target={link.label === "Email" ? undefined : "_blank"}
               rel={link.label === "Email" ? undefined : "noopener noreferrer"}
               aria-label={link.ariaLabel}
-              className="rounded-full bg-stone-100 px-4 py-2 text-sm font-bold text-stone-700 transition hover:bg-ink hover:text-white"
+              className="rounded-[3px] bg-white/[0.04] px-4 py-2 text-sm font-bold text-[var(--text-secondary)] transition hover:bg-[var(--accent-blue)] hover:text-[var(--bg-base)]"
             >
               {link.label}
             </a>

@@ -1,0 +1,42 @@
+.rb-blur-text {
+  display: inline;
+}
+
+.blur-headline-word {
+  display: inline;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
+.rb-blur-part {
+  display: inline-block;
+  opacity: 0.01;
+  filter: blur(6px);
+  transform: translateY(-0.25em);
+  transition:
+    opacity 360ms ease,
+    filter 360ms ease,
+    transform 360ms ease;
+  will-change: filter, opacity, transform;
+}
+
+.rb-blur-part.rb-from-bottom {
+  transform: translateY(0.25em);
+}
+
+.rb-blur-part.is-visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-blur-part {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+}

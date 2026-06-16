@@ -29,8 +29,11 @@ export const revalidate = 0;
 export const metadata: Metadata = {
   title: `Search ${siteConfig.name}`,
   description: `Search briefings, free tools, and comparison pages from ${siteConfig.name}.`,
+  alternates: {
+    canonical: "/search"
+  },
   robots: {
-    index: true,
+    index: false,
     follow: true
   }
 };

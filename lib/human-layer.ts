@@ -242,7 +242,7 @@ function buildArticleNextActions(article: Article): HumanAction[] {
   });
 
   actions.push({
-    href: `/contact?topic=help&page=${encodeURIComponent(`/${article.category}/${article.slug}`)}`,
+    href: "/contact",
     label: "Get hands-on help",
     description: "Tell us your site and goal—we reply with practical next steps.",
     variant: "secondary"

@@ -5,11 +5,27 @@ import { shouldBypassArticleImageOptimization } from "@/lib/article-image-optimi
 import { getRelatedArticles } from "@/lib/articles";
 import { formatCategory } from "@/lib/format";
 import { articleImageAlt } from "@/lib/seo";
+import FadeContent from "@/components/ui/FadeContent";
 
 type RelatedArticlesProps = {
   currentArticleId: string;
   category: string;
 };
+
+function categoryBadgeClass(category: string) {
+  const normalized = category.toLowerCase();
+
+  if (normalized.includes("ai")) return "badge-ai";
+  if (normalized.includes("seo")) return "badge-seo";
+  if (normalized.includes("fintech")) return "badge-fintech";
+  if (normalized.includes("startup")) return "badge-startups";
+  if (normalized.includes("ecommerce")) return "badge-ecommerce";
+  if (normalized.includes("marketing")) return "badge-digital";
+  if (normalized.includes("creator")) return "badge-creator";
+  if (normalized.includes("lead")) return "badge-leads";
+
+  return "badge-ai";
+}
 
 export async function RelatedArticles({
   currentArticleId,
@@ -22,26 +38,31 @@ export async function RelatedArticles({
   }
 
   return (
-    <section className="border-t border-stone-200 bg-stone-50">
-      <div className="mx-auto max-w-5xl px-5 py-14 sm:px-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
+    <section className="border-t border-white/[0.06] bg-[var(--bg-base)]">
+      <div className="mx-auto max-w-[1140px] px-5 py-14 sm:px-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--text-dim)]">
           Keep Reading
         </p>
-        <h2 className="mt-3 text-3xl font-black tracking-tight text-ink">
+        <h2 className="mt-3 font-serif text-3xl font-bold tracking-tight text-[var(--text-primary)]">
           Related Briefings
         </h2>
         <div className="mt-8 grid gap-6 md:grid-cols-3">
-          {articles.map((article) => (
-            <article
+          {articles.map((article, index) => (
+            <FadeContent
               key={article.id}
-              className="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm"
+              blur={false}
+              duration={0.45}
+              delay={Math.min(index * 0.07, 0.35)}
+              threshold={0.15}
+              className="article-card-fade-wrapper"
             >
+            <article className="article-card">
               <Link
                 href={`/${article.category}/${article.slug}`}
                 aria-label={article.title}
                 className="group block"
               >
-                <div className="relative aspect-[16/10] bg-stone-200">
+                <div className="card-image-wrap relative">
                   {article.image_url ? (
                     <Image
                       src={article.image_url}
@@ -55,30 +76,31 @@ export async function RelatedArticles({
                       className="object-cover transition duration-300 group-hover:scale-[1.02]"
                     />
                   ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-stone-100 via-stone-200 to-stone-300" />
+                    <div className="h-full w-full bg-[var(--bg-elevated)]" />
                   )}
                 </div>
               </Link>
-              <div className="p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+              <div className="card-body">
+                <p className={`badge w-fit ${categoryBadgeClass(article.category)}`}>
                   {formatCategory(article.category)}
                 </p>
-                <h3 className="mt-3 text-lg font-black leading-tight tracking-tight text-ink">
+                <h3 className="card-title">
                   <Link
                     href={`/${article.category}/${article.slug}`}
-                    className="hover:text-stone-700"
+                    className="hover:text-[var(--accent-blue)]"
                   >
                     {article.title}
                   </Link>
                 </h3>
                 <Link
                   href={`/${article.category}/${article.slug}`}
-                  className="mt-5 inline-flex text-sm font-bold text-ink underline decoration-stone-300 underline-offset-4 hover:decoration-ink"
+                  className="mt-2 inline-flex text-xs font-bold uppercase tracking-[0.2em] text-[var(--text-dim)] transition hover:text-[var(--text-primary)]"
                 >
                   Read Briefing
                 </Link>
               </div>
             </article>
+            </FadeContent>
           ))}
         </div>
       </div>

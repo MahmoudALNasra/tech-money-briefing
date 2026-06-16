@@ -22,7 +22,7 @@ const AUTO_LINK_RULES: AutoLinkRule[] = [
   { href: "/newsletter-revenue-calculator", pattern: /\b(?:newsletter revenue calculator|newsletter revenue)\b/i },
   { href: "/newsletter-subject-line-generator", pattern: /\b(?:newsletter subject line generator|subject lines?)\b/i },
   { href: "/image-compressor", pattern: /\b(?:image compressor|Core Web Vitals|LCP)\b/i },
-  { href: "/business-data-generator", pattern: /\b(?:business data generator|local lead list|competitor research)\b/i },
+  { href: "/leads", pattern: /\b(?:business data generator|local lead list|competitor research)\b/i },
   { href: "/serp-intent-analyzer", pattern: /\b(?:SERP intent analyzer|SERP intent)\b/i },
   { href: "/content-gap-finder", pattern: /\b(?:content gap finder|content gaps?)\b/i },
   { href: "https://chatgpt.com/", pattern: /\bChatGPT\b/i },

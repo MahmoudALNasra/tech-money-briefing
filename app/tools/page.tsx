@@ -40,6 +40,7 @@ export default function ToolsPage() {
       showMonetizationRail={true}
       showAssistant={false}
       newsletterSource="tools_hub"
+      animateHeroTitle
     >
       <ToolsHub featuredToolHrefs={featuredToolHrefs} />
     </ToolPageShell>

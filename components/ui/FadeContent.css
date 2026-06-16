@@ -1,0 +1,21 @@
+.rb-fade-content {
+  transform: translateY(14px);
+  transition-property: opacity, filter, transform;
+  will-change: opacity, transform;
+}
+
+.rb-fade-content.is-visible {
+  transform: translateY(0);
+}
+
+.article-card-fade-wrapper {
+  display: contents;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-fade-content {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none;
+  }
+}

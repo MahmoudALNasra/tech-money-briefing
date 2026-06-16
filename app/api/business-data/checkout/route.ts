@@ -70,9 +70,9 @@ export async function POST(request: Request) {
       billing_address_collection: "auto",
       client_reference_id: user.id,
       success_url: absoluteUrl(
-        `/business-data-generator?checkout=success&session_id={CHECKOUT_SESSION_ID}&cache=${encodeURIComponent(cacheKey)}`
+        `/leads?checkout=success&session_id={CHECKOUT_SESSION_ID}&cache=${encodeURIComponent(cacheKey)}`
       ),
-      cancel_url: absoluteUrl("/business-data-generator?checkout=cancelled"),
+      cancel_url: absoluteUrl("/leads?checkout=cancelled"),
       "line_items[0][price]": priceId,
       "line_items[0][quantity]": "1",
       "metadata[product]": "business-data-export",

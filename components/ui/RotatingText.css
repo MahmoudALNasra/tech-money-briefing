@@ -1,0 +1,36 @@
+.rotating-word-wrapper {
+  display: inline-flex;
+  min-width: 160px;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.rotating-word {
+  min-width: 160px;
+  color: var(--accent-blue);
+  display: inline-block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
+.rb-rotating-text {
+  opacity: 0.01;
+  transform: translateY(0.35em);
+  transition:
+    opacity 320ms ease,
+    transform 320ms ease;
+}
+
+.rb-rotating-text.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-rotating-text {
+    opacity: 1;
+    transform: none;
+  }
+}

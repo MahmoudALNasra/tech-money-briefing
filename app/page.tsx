@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-import { ArticleFeed } from "@/components/articles/ArticleFeed";
-import { PaginationControls } from "@/components/articles/PaginationControls";
-import { StartHerePathfinder } from "@/components/engagement/StartHerePathfinder";
-import { FeedWithSidebar } from "@/components/layout/FeedWithSidebar";
+import { HomeArticleLoadMore } from "@/components/articles/HomeArticleLoadMore";
+import { HomeHero } from "@/components/home/HomeHero";
+import { HomeScrollController } from "@/components/home/HomeScrollController";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { ToolAssistant } from "@/components/tools/ToolAssistant";
-import { getPaginatedHomepageArticles } from "@/lib/articles";
+import { getPaginatedHomepageArticles, getPublishedCategories } from "@/lib/articles";
 import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { formatCategory } from "@/lib/format";
 import { paginatedCanonicalPath, parsePageParam } from "@/lib/pagination";
@@ -72,63 +71,75 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   }
 
   const { articles } = paginatedArticles;
+  const heroCategories = await getPublishedCategories()
+    .then((categories) =>
+      categories
+        .filter((category) => category !== "leads" && category !== "others")
+        .map(formatCategory)
+    )
+    .catch(() =>
+      getPublicNavCategories()
+        .filter((category) => category !== "others")
+        .map(formatCategory)
+    );
+  const articleFeedJson = JSON.stringify(
+    articles.map(({ title, meta_description, category }) => ({
+      title,
+      meta_description,
+      category
+    }))
+  ).replace(/</g, "\\u003c");
 
   return (
     <>
       <SiteHeader categories={getPublicNavCategories()} />
+      <HomeScrollController />
 
-      <main className="bg-stone-50">
-        <section className="border-b border-stone-200 bg-white">
-          <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-20">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-500">
-              Hyper-Niche Industry Intelligence
-            </p>
-            <h1 className="mt-4 max-w-3xl text-4xl font-black leading-[1.05] tracking-tight text-ink sm:text-5xl">
-              Analyst-grade briefings for operators who need signal, not noise.
-            </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-stone-600">
-              {siteConfig.name} monitors curated RSS sources, adds original
-              industry context, and publishes concise B2B briefings with
-              actionable takeaways.
-            </p>
-            {getPublicNavCategories().length > 0 ? (
-              <div className="mt-6 flex flex-wrap gap-2">
-                {getPublicNavCategories().map((category) => (
-                  <span
-                    key={category}
-                    className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-stone-600"
-                  >
-                    {formatCategory(category)}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-            <StartHerePathfinder />
-          </div>
-        </section>
+      <main className="trb-home">
+        <script
+          id="trb-articles-data"
+          dangerouslySetInnerHTML={{
+            __html: `window.__TRB_ARTICLES__=${articleFeedJson};`
+          }}
+        />
+        <HomeHero categories={heroCategories} />
+
+        <div className="section-divider" role="separator">
+          <div className="divider-line" />
+          <span className="divider-label">Latest Briefs</span>
+          <div className="divider-line" />
+        </div>
 
         {articles.length > 0 ? (
-          <FeedWithSidebar>
-            <ArticleFeed articles={articles} />
-            <PaginationControls
-              currentPage={paginatedArticles.page}
-              totalPages={paginatedArticles.totalPages}
-              basePath="/"
-              hasPreviousPage={paginatedArticles.hasPreviousPage}
-              hasNextPage={paginatedArticles.hasNextPage}
-            />
-          </FeedWithSidebar>
+          <section
+            id="articles"
+            className="home-articles"
+            aria-labelledby="latest-briefs-heading"
+          >
+            <div className="home-articles-inner">
+              <h2 id="latest-briefs-heading" className="sr-only">
+                Latest Briefs
+              </h2>
+              <HomeArticleLoadMore
+                initialArticles={articles}
+                initialPage={paginatedArticles.page}
+                totalPages={paginatedArticles.totalPages}
+              />
+            </div>
+          </section>
         ) : (
-          <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
-            <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">
-              <h2 className="text-2xl font-bold text-ink">No articles yet</h2>
-              <p className="mt-3 text-stone-600">
-                Add active RSS sources in Supabase, then run{" "}
-                <code className="rounded bg-stone-100 px-2 py-1 text-sm">
-                  npm run ingest
-                </code>
-                .
-              </p>
+          <section id="articles" className="home-articles articles-visible">
+            <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
+              <div className="rounded-md border border-dashed border-white/10 bg-[var(--bg-surface)] p-10 text-center">
+                <h2 className="text-2xl font-bold text-white">No articles yet</h2>
+                <p className="mt-3 text-slate-400">
+                  Add active RSS sources in Supabase, then run{" "}
+                  <code className="rounded bg-white/10 px-2 py-1 text-sm">
+                    npm run ingest
+                  </code>
+                  .
+                </p>
+              </div>
             </div>
           </section>
         )}

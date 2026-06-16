@@ -42,7 +42,9 @@ export function AuthCallback() {
         searchParams.get("error_code");
       const isDriveReturn =
         nextPath.includes("drive=connected") &&
-        (nextPath.startsWith("/business-data-generator") || nextPath.startsWith("/profile"));
+        (nextPath.startsWith("/leads") ||
+          nextPath.startsWith("/business-data-generator") ||
+          nextPath.startsWith("/profile"));
 
       try {
         if (authError) {

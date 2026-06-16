@@ -18,7 +18,7 @@ type SiteHeaderProps = {
 };
 
 const primaryLinks = [
-  { href: "/business-data-generator", label: "Leads", badge: "New" },
+  { href: "/leads", label: "Leads", badge: "New" },
   { href: "/tools", label: "Tools", badge: "Free" },
   { href: "/compare", label: "Compare" },
   { href: "/about", label: "About" },
@@ -63,6 +63,11 @@ const topicMeta: Record<
     eyebrow: "Audience",
     accent: "from-purple-50 to-fuchsia-50 hover:border-purple-200",
     dot: "bg-purple-500"
+  },
+  leads: {
+    eyebrow: "Prospecting",
+    accent: "from-orange-50 to-amber-50 hover:border-orange-200",
+    dot: "bg-orange-500"
   },
   others: {
     eyebrow: "Signals",
@@ -153,12 +158,15 @@ export function SiteHeader({
           clickedHref ? "opacity-100" : "opacity-0"
         }`}
       />
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-stone-200/80 bg-white/90 shadow-sm shadow-stone-950/5 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75">
+      <header
+        role="navigation"
+        className="fixed inset-x-0 top-0 z-[100] border-b border-white/[0.06] bg-[#0a0e17]/[0.92] shadow-sm shadow-black/20 backdrop-blur-[14px] supports-[backdrop-filter]:bg-[#0a0e17]/[0.92]"
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 py-3.5 sm:px-8">
           <Link
             href="/"
             onClick={(event) => handleAnimatedNavigation(event, "/")}
-            className={`group flex shrink-0 items-center gap-3 text-base font-black tracking-tight text-ink transition duration-200 sm:text-lg ${
+            className={`group flex shrink-0 items-center gap-3 font-serif text-base font-black tracking-tight text-slate-50 transition duration-200 sm:text-lg ${
               clickedHref === "/" ? "scale-95 opacity-80" : "hover:scale-[1.02]"
             }`}
           >
@@ -179,7 +187,7 @@ export function SiteHeader({
             <>
               <div className="hidden items-center gap-3 lg:flex">
                 <nav
-                  className="flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50/80 p-1 shadow-sm"
+                  className="flex items-center gap-1 rounded-[3px] border border-white/[0.06] bg-white/[0.03] p-1 shadow-sm"
                   aria-label="Primary navigation"
                 >
                   {primaryLinks.map((link) => (
@@ -189,15 +197,15 @@ export function SiteHeader({
                       onClick={(event) =>
                         handleAnimatedNavigation(event, link.href)
                       }
-                      className={`group relative overflow-hidden rounded-full px-3.5 py-2 text-sm font-bold text-stone-600 transition duration-200 before:absolute before:inset-0 before:scale-x-0 before:rounded-full before:bg-white before:transition before:duration-300 hover:-translate-y-0.5 hover:text-ink hover:shadow-sm hover:before:scale-x-100 ${
+                      className={`nav-link group relative overflow-hidden rounded-[3px] px-3.5 py-2 transition duration-200 before:absolute before:inset-0 before:scale-x-0 before:rounded-[3px] before:bg-white/[0.06] before:transition before:duration-300 hover:-translate-y-0.5 hover:shadow-sm hover:before:scale-x-100 ${
                         clickedHref === link.href
-                          ? "scale-95 bg-ink text-white shadow-inner before:scale-x-0"
+                          ? "active scale-95 bg-white/[0.04] shadow-inner before:scale-x-0"
                           : ""
                       }`}
                     >
                       <span className="relative z-10">{link.label}</span>
                       {link.badge ? (
-                        <span className="relative z-10 ml-1 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-800">
+                        <span className="badge badge-leads relative z-10 ml-1">
                           {link.badge}
                         </span>
                       ) : null}
@@ -221,14 +229,14 @@ export function SiteHeader({
                     aria-expanded={isTopicsOpen}
                     aria-haspopup="true"
                     onClick={() => setIsTopicsOpen((current) => !current)}
-                    className="group inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-gradient-to-r from-white via-emerald-50 to-sky-50 px-4 py-2 text-sm font-black text-ink shadow-sm shadow-emerald-950/5 transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md"
+                    className="group inline-flex items-center gap-2 rounded-[3px] border border-white/[0.06] bg-white/[0.03] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-slate-500 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-400/25 hover:text-slate-300"
                   >
-                    <span className="grid h-6 w-6 place-items-center rounded-full bg-ink text-[11px] font-black text-white">
+                    <span className="grid h-6 w-6 place-items-center rounded-full bg-sky-400 text-[11px] font-black text-[#0a0e17]">
                       #
                     </span>
                     Topics
                     <span
-                      className={`text-stone-500 transition ${
+                      className={`text-slate-500 transition ${
                         isTopicsOpen ? "rotate-180" : ""
                       }`}
                     >
@@ -243,7 +251,7 @@ export function SiteHeader({
                     }`}
                     aria-label="Topics"
                   >
-                    <div className="rounded-[2rem] border border-stone-200 bg-white/95 p-3 shadow-2xl shadow-stone-950/15 backdrop-blur-xl">
+                    <div className="rounded-[2rem] border border-white/[0.06] bg-[#0d1117]/95 p-3 shadow-2xl shadow-black/30 backdrop-blur-xl">
                       <div className="mb-2 overflow-hidden rounded-3xl bg-gradient-to-br from-ink via-stone-900 to-emerald-900 p-5 text-white">
                         <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-200">
                           Explore briefs
@@ -270,8 +278,8 @@ export function SiteHeader({
                                   : ""
                               } ${
                                 category === activeCategory
-                                  ? "border-ink bg-ink text-white shadow-md"
-                                  : `border-stone-100 bg-gradient-to-br ${meta.accent} text-stone-800`
+                                  ? "border-sky-400/25 bg-sky-400/10 text-white shadow-md"
+                                  : "border-white/[0.06] bg-white/[0.03] text-slate-300"
                               }`}
                             >
                               <span className="relative z-10 flex items-center gap-2">
@@ -286,7 +294,7 @@ export function SiteHeader({
                                   className={`text-[10px] font-black uppercase tracking-[0.18em] ${
                                     category === activeCategory
                                       ? "text-stone-300"
-                                      : "text-stone-500"
+                                      : "text-slate-500"
                                   }`}
                                 >
                                   {meta.eyebrow}
@@ -299,7 +307,7 @@ export function SiteHeader({
                                 className={`relative z-10 mt-1 block text-xs leading-5 ${
                                   category === activeCategory
                                     ? "text-stone-300"
-                                    : "text-stone-500"
+                                    : "text-slate-500"
                                 }`}
                               >
                                 Latest tools, trends, and operator notes.
@@ -325,7 +333,7 @@ export function SiteHeader({
                 <Link
                   href="/tools"
                   onClick={(event) => handleAnimatedNavigation(event, "/tools")}
-                  className={`rounded-full bg-ink px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-stone-700 ${
+                  className={`nav-link rounded-[3px] border border-white/[0.06] bg-white/[0.03] px-4 py-2 shadow-sm transition hover:-translate-y-0.5 ${
                     clickedHref === "/tools" ? "scale-95 ring-4 ring-emerald-200" : ""
                   }`}
                 >
@@ -336,7 +344,7 @@ export function SiteHeader({
                   onClick={(event) =>
                     handleAnimatedNavigation(event, "/compare")
                   }
-                  className={`rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-700 transition hover:-translate-y-0.5 hover:border-ink hover:text-ink ${
+                  className={`nav-link rounded-[3px] border border-white/[0.06] bg-white/[0.03] px-4 py-2 transition hover:-translate-y-0.5 hover:border-sky-400/25 ${
                     clickedHref === "/compare"
                       ? "scale-95 ring-4 ring-emerald-200"
                       : ""
@@ -351,21 +359,21 @@ export function SiteHeader({
                 aria-label="Toggle navigation menu"
                 aria-expanded={isMenuOpen}
                 onClick={() => setIsMenuOpen((current) => !current)}
-                className="group inline-flex h-11 w-11 items-center justify-center rounded-full border border-stone-200 bg-stone-50 transition hover:border-ink hover:bg-white lg:hidden"
+                className="group inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.03] transition hover:border-sky-400/25 lg:hidden"
               >
                 <span className="relative h-4 w-5">
                   <span
-                    className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-ink transition duration-300 ${
+                    className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-slate-300 transition duration-300 ${
                       isMenuOpen ? "translate-y-[7px] rotate-45" : ""
                     }`}
                   />
                   <span
-                    className={`absolute left-0 top-[7px] h-0.5 w-5 rounded-full bg-ink transition duration-300 ${
+                    className={`absolute left-0 top-[7px] h-0.5 w-5 rounded-full bg-slate-300 transition duration-300 ${
                       isMenuOpen ? "opacity-0" : "opacity-100"
                     }`}
                   />
                   <span
-                    className={`absolute bottom-0 left-0 h-0.5 w-5 rounded-full bg-ink transition duration-300 ${
+                    className={`absolute bottom-0 left-0 h-0.5 w-5 rounded-full bg-slate-300 transition duration-300 ${
                       isMenuOpen ? "-translate-y-[7px] -rotate-45" : ""
                     }`}
                   />
@@ -373,13 +381,13 @@ export function SiteHeader({
               </button>
 
               <div
-                className={`absolute inset-x-3 top-[calc(100%+0.5rem)] origin-top rounded-3xl border border-stone-200 bg-white p-3 shadow-2xl shadow-stone-950/10 transition duration-300 lg:hidden ${
+                className={`absolute inset-x-3 top-[calc(100%+0.5rem)] origin-top rounded-3xl border border-white/[0.06] bg-[#0d1117] p-3 shadow-2xl shadow-black/30 transition duration-300 lg:hidden ${
                   isMenuOpen
                     ? "translate-y-0 scale-100 opacity-100"
                     : "pointer-events-none -translate-y-3 scale-95 opacity-0"
                 }`}
               >
-                <div className="mb-3 rounded-2xl bg-stone-50 p-3">
+                <div className="mb-3 rounded-2xl bg-white/[0.03] p-3">
                   <SearchForm onSearch={() => setIsMenuOpen(false)} />
                 </div>
 
@@ -391,15 +399,15 @@ export function SiteHeader({
                       onClick={(event) =>
                         handleAnimatedNavigation(event, link.href)
                       }
-                      className={`flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-black text-stone-800 transition hover:-translate-y-0.5 hover:bg-stone-100 hover:text-ink ${
+                      className={`nav-link flex items-center justify-between rounded-2xl px-4 py-3 transition hover:-translate-y-0.5 hover:bg-white/[0.04] ${
                         clickedHref === link.href
-                          ? "scale-95 bg-emerald-50 ring-4 ring-emerald-100"
+                          ? "active scale-95 bg-sky-400/10 ring-4 ring-sky-400/10"
                           : ""
                       }`}
                     >
                       {link.label}
                       {link.badge ? (
-                        <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] uppercase tracking-wide text-emerald-800">
+                        <span className="badge badge-leads">
                           {link.badge}
                         </span>
                       ) : null}
@@ -408,8 +416,8 @@ export function SiteHeader({
                   <AuthNavLink />
                 </nav>
 
-                <div className="my-3 h-px bg-stone-100" />
-                <p className="px-4 pb-2 text-xs font-black uppercase tracking-[0.22em] text-stone-400">
+                <div className="my-3 h-px bg-white/[0.06]" />
+                <p className="px-4 pb-2 text-xs font-black uppercase tracking-[0.22em] text-slate-500">
                   Topics
                 </p>
                 <nav className="grid gap-1" aria-label="Mobile categories">
@@ -426,8 +434,8 @@ export function SiteHeader({
                           : ""
                       } ${
                         category === activeCategory
-                          ? "bg-ink text-white"
-                          : "text-stone-700 hover:bg-stone-100 hover:text-ink"
+                          ? "bg-sky-400/10 text-sky-300"
+                          : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
                       }`}
                     >
                       {formatCategory(category)}
@@ -439,7 +447,6 @@ export function SiteHeader({
           ) : null}
         </div>
       </header>
-      <div aria-hidden="true" className="h-20" />
     </>
   );
 }

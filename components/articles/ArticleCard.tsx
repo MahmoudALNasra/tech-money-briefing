@@ -9,12 +9,30 @@ import { ARTICLE_EDITORIAL_SOURCE_NAME } from "@/lib/article-attribution";
 import { formatCategory } from "@/lib/format";
 import { articleImageAlt } from "@/lib/seo";
 import type { ArticleSummary } from "@/lib/types";
+import FadeContent from "@/components/ui/FadeContent";
 
 type ArticleCardProps = {
   article: ArticleSummary;
   featured?: boolean;
   priority?: boolean;
+  variant?: "list" | "grid";
+  animationIndex?: number;
 };
+
+function categoryBadgeClass(category: string) {
+  const normalized = category.toLowerCase();
+
+  if (normalized.includes("ai")) return "badge-ai";
+  if (normalized.includes("seo")) return "badge-seo";
+  if (normalized.includes("fintech")) return "badge-fintech";
+  if (normalized.includes("startup")) return "badge-startups";
+  if (normalized.includes("ecommerce")) return "badge-ecommerce";
+  if (normalized.includes("marketing")) return "badge-digital";
+  if (normalized.includes("creator")) return "badge-creator";
+  if (normalized.includes("lead")) return "badge-leads";
+
+  return "badge-ai";
+}
 
 function GeneratedArticleThumbnail({
   title,
@@ -49,7 +67,9 @@ function GeneratedArticleThumbnail({
 export function ArticleCard({
   article,
   featured = false,
-  priority = false
+  priority = false,
+  variant = "list",
+  animationIndex = 0
 }: ArticleCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const shouldShowImage = Boolean(article.image_url && !imageFailed);
@@ -60,6 +80,72 @@ export function ArticleCard({
         year: "numeric"
       }).format(new Date(article.published_at))
     : null;
+
+  if (variant === "grid") {
+    return (
+      <FadeContent
+        blur={false}
+        duration={0.45}
+        delay={Math.min(animationIndex * 0.07, 0.35)}
+        easing="ease-out"
+        threshold={0.15}
+        initialOpacity={0}
+        className="article-card-fade-wrapper"
+      >
+      <article className="article-card">
+        <Link
+          href={`/${article.category}/${article.slug}`}
+          aria-label={article.title}
+          className="card-image-wrap article-card-media group"
+        >
+          {shouldShowImage ? (
+            <Image
+              src={article.image_url!}
+              alt={articleImageAlt(article)}
+              fill
+              quality={65}
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              priority={priority}
+              unoptimized={shouldBypassArticleImageOptimization(article.image_url)}
+              onError={() => setImageFailed(true)}
+              className="object-cover transition duration-300 group-hover:scale-[1.02]"
+            />
+          ) : (
+            <div className="article-card-placeholder" aria-hidden="true">
+              <span>◆</span>
+            </div>
+          )}
+        </Link>
+
+        <div className="card-body article-card-body">
+          <div className="card-meta article-card-meta">
+            <Link
+              href={`/${article.category}`}
+              className={`badge signal-badge ${categoryBadgeClass(article.category)}`}
+            >
+              {formatCategory(article.category)}
+            </Link>
+            {publishedLabel ? <span className="card-date">{publishedLabel}</span> : null}
+          </div>
+
+          <Link href={`/${article.category}/${article.slug}`} className="group">
+            <h2 className="card-title article-card-title">{article.title}</h2>
+          </Link>
+
+          <p className="card-excerpt article-card-excerpt">{article.meta_description}</p>
+
+          {article.key_takeaways.length > 0 ? (
+            <ul className="card-bullets article-card-takeaways">
+              {article.key_takeaways.slice(0, 3).map((takeaway) => (
+                <li key={takeaway}>{takeaway}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      </article>
+      </FadeContent>
+    );
+  }
 
   return (
     <article

@@ -1,0 +1,28 @@
+.rb-scroll-word {
+  display: inline-block;
+  transform: translateY(0.3em);
+  transition:
+    opacity 420ms ease,
+    filter 420ms ease,
+    transform 420ms ease;
+}
+
+.rb-scroll-word.is-visible {
+  transform: translateY(0);
+}
+
+.subscribe-headline-text {
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rb-scroll-word {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none;
+  }
+}

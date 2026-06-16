@@ -26,7 +26,7 @@ export async function sendBusinessDataPaymentEmail(input: {
   }
 
   const siteName = siteConfig.name;
-  const reportUrl = absoluteUrl("/business-data-generator");
+  const reportUrl = absoluteUrl("/leads");
   const amount = formatAmount(input.amountTotal, input.currency);
   const bundleName = input.bundleName?.trim() || "Business data credits";
   const subject = `${siteName} - your business data credits are ready`;

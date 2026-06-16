@@ -258,7 +258,7 @@ export function ToolAssistant({
                 Need competitor businesses, pins, and an enriched Excel report?
               </p>
               <Link
-                href="/business-data-generator?source=ai_cat_assistant"
+                href="/leads?source=ai_cat_assistant"
                 onClick={() => setIsOpen(false)}
                 className="shrink-0 rounded-full bg-emerald-700 px-3 py-1.5 text-xs font-black text-white transition hover:bg-emerald-800"
               >

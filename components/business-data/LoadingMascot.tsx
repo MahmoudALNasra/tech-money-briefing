@@ -29,7 +29,7 @@ export function LoadingMascot({
       </p>
       {showBusinessDataLink ? (
         <Link
-          href="/business-data-generator?source=loading_mascot"
+          href="/leads?source=loading_mascot"
           className="rounded-full bg-emerald-700 px-4 py-2 text-xs font-black text-white transition hover:bg-emerald-800"
         >
           Open paid competitor report

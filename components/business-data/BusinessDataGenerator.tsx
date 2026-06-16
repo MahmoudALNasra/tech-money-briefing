@@ -1014,7 +1014,8 @@ export function BusinessDataGenerator() {
     const onPageShow = (event: PageTransitionEvent) => {
       if (
         event.persisted &&
-        window.location.pathname === "/business-data-generator"
+        (window.location.pathname === "/leads" ||
+          window.location.pathname === "/business-data-generator")
       ) {
         remountTurnstile();
       }
@@ -1885,7 +1886,7 @@ export function BusinessDataGenerator() {
     );
 
     try {
-      const nextPath = `/business-data-generator?drive=connected&cache=${encodeURIComponent(cacheKey)}`;
+      const nextPath = `/leads?drive=connected&cache=${encodeURIComponent(cacheKey)}`;
       const { error: oauthError } = await requestGoogleDriveIdentityLink(nextPath);
 
       if (oauthError) {
@@ -2042,7 +2043,7 @@ export function BusinessDataGenerator() {
 
     const cacheKey = activeCacheKeyRef.current || window.crypto.randomUUID();
     persistSearchSnapshot(cacheKey);
-    const nextPath = `/business-data-generator?checkoutBundle=${encodeURIComponent(
+    const nextPath = `/leads?checkoutBundle=${encodeURIComponent(
       bundleId
     )}&cache=${encodeURIComponent(cacheKey)}`;
     const loginPath = `/login?next=${encodeURIComponent(nextPath)}`;
@@ -2255,7 +2256,7 @@ export function BusinessDataGenerator() {
 
         setPendingCheckoutBundle(checkoutBundle);
         remountTurnstile();
-        window.history.replaceState({}, "", "/business-data-generator");
+        window.history.replaceState({}, "", "/leads");
 
         return () => {
           if (restoreTimer) {
@@ -2281,7 +2282,7 @@ export function BusinessDataGenerator() {
             "export"
           );
           remountTurnstile();
-          window.history.replaceState({}, "", "/business-data-generator");
+          window.history.replaceState({}, "", "/leads");
         }
       }
 
@@ -2310,7 +2311,7 @@ export function BusinessDataGenerator() {
         setCheckoutStatus(
           "Checkout was cancelled. Your previous search was restored. Complete the security check below before searching again."
         );
-        window.history.replaceState({}, "", "/business-data-generator");
+        window.history.replaceState({}, "", "/leads");
       }, 0);
 
       return () => {
@@ -2372,7 +2373,7 @@ export function BusinessDataGenerator() {
 
         if (!cancelled) {
           setCheckoutStatus("Subscriber tools unlocked. Use your credits to generate formatted Excel reports.");
-          window.history.replaceState({}, "", "/business-data-generator");
+          window.history.replaceState({}, "", "/leads");
         }
       } catch (verifyError) {
         if (!cancelled) {
@@ -2619,7 +2620,7 @@ export function BusinessDataGenerator() {
               </p>
               {!isSignedIn ? (
                 <Link
-                  href="/login?next=/business-data-generator"
+                  href="/login?next=/leads"
                   className="mt-3 inline-flex rounded-full bg-stone-950 px-4 py-2 text-xs font-black text-white transition hover:bg-stone-800"
                 >
                   Sign in
@@ -3051,7 +3052,7 @@ export function BusinessDataGenerator() {
                     </button>
                   ))}
                   <Link
-                    href="/contact?source=business-data-sales"
+                    href="/contact"
                     className="rounded-2xl border border-stone-200 bg-stone-950 p-4 text-left text-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
                   >
                     <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-200">

@@ -334,7 +334,7 @@ export function ProfilePanel() {
         </div>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link
-            href="/business-data-generator"
+            href="/leads"
             className="inline-flex rounded-full bg-ink px-5 py-2.5 text-sm font-black text-white transition hover:bg-stone-800"
           >
             Generate business data

@@ -18,7 +18,9 @@ function isSafeDriveReturnPath(value: string | null) {
     value &&
       value.startsWith("/") &&
       !value.startsWith("//") &&
-      (value.startsWith("/business-data-generator") || value.startsWith("/profile"))
+      (value.startsWith("/leads") ||
+        value.startsWith("/business-data-generator") ||
+        value.startsWith("/profile"))
   );
 }
 

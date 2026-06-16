@@ -6,7 +6,10 @@ import { InfoPage } from "@/components/layout/InfoPage";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Contact Tech Revenue Brief for corrections, source suggestions, sponsorship questions, referral guide feedback, and editorial partnerships."
+    "Contact Tech Revenue Brief for corrections, source suggestions, sponsorship questions, referral guide feedback, and editorial partnerships.",
+  alternates: {
+    canonical: "/contact"
+  }
 };
 
 export default function ContactPage() {

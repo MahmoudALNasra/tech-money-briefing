@@ -48,13 +48,13 @@ export function SearchForm({
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder={placeholder}
-        className={`min-w-0 rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm font-medium text-ink outline-none transition placeholder:text-stone-400 focus:border-ink focus:bg-white ${
+        className={`min-w-0 rounded-[3px] border border-white/[0.06] bg-white/[0.03] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-secondary)] outline-none transition placeholder:text-[var(--text-dim)] focus:border-[var(--border-accent)] focus:bg-[var(--bg-elevated)] ${
           compact ? "w-48 lg:w-56" : "w-full"
         }`}
       />
       <button
         type="submit"
-        className="shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-bold text-white transition hover:bg-stone-700"
+        className="shrink-0 rounded-[3px] bg-[var(--accent-blue)] px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--bg-base)] transition hover:bg-[#7dd3fc]"
       >
         Search
       </button>

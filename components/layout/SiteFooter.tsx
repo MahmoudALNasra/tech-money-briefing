@@ -17,9 +17,9 @@ const footerLinks = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-stone-200 bg-white">
-      <div className="mx-auto flex max-w-5xl flex-col gap-5 px-5 py-8 text-sm text-stone-600 sm:px-8 md:flex-row md:items-center md:justify-between">
-        <p>
+    <footer className="border-t border-white/[0.06] bg-[var(--bg-surface)]">
+      <div className="mx-auto flex max-w-[1140px] flex-col gap-6 px-5 py-10 text-sm text-[var(--text-muted)] sm:px-8 md:flex-row md:items-center md:justify-between">
+        <p className="max-w-md font-sans text-sm leading-6">
           © {new Date().getFullYear()} {siteConfig.name}. Tech monetization
           briefings for builders and operators.
         </p>
@@ -28,7 +28,7 @@ export function SiteFooter() {
             <Link
               key={link.href}
               href={link.href}
-              className="font-semibold transition hover:text-ink"
+              className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-dim)] transition hover:text-[var(--text-secondary)]"
             >
               {link.label}
             </Link>

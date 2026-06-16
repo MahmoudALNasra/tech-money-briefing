@@ -4,7 +4,11 @@ import {
   ADSENSE_TRUST_PAGES,
   isAdsenseHiddenCategory
 } from "@/lib/adsense-readiness";
-import { getPublishedCategories, getPublishedSitemapEntries } from "@/lib/articles";
+import {
+  ARTICLES_PER_PAGE,
+  getPublishedCategories,
+  getPublishedSitemapEntries
+} from "@/lib/articles";
 import { COMPARISONS } from "@/lib/comparisons";
 import { FREE_TOOLS } from "@/lib/free-tools";
 import { absoluteUrl } from "@/lib/site";
@@ -81,8 +85,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return staticSitemapEntries();
   }
 
+  const homepageArticleCount = articles.filter(
+    (article) => !isAdsenseHiddenCategory(String(article.category))
+  ).length;
+  const homepagePageCount = Math.max(
+    1,
+    Math.ceil(homepageArticleCount / ARTICLES_PER_PAGE)
+  );
+  const homepagePaginationEntries = Array.from(
+    { length: Math.max(homepagePageCount - 1, 0) },
+    (_, index) => index + 2
+  ).map((page) => ({
+    url: absoluteUrl(`/?page=${page}`),
+    lastModified: new Date(),
+    changeFrequency: "hourly" as const,
+    priority: 0.75
+  }));
+
   return [
     ...staticSitemapEntries(),
+    ...homepagePaginationEntries,
     ...categories
       .filter((category) => !isAdsenseHiddenCategory(category))
       .map((category) => ({

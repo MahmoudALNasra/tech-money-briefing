@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
+import FadeContent from "@/components/ui/FadeContent";
 import { COMPARISONS } from "@/lib/comparisons";
 import { siteConfig } from "@/lib/site";
 
@@ -30,72 +31,93 @@ export default function CompareHubPage() {
       secondaryCopy="Each comparison includes a decision table, best-for guidance, and links to relevant free tools."
       monetizationContext="compare"
       newsletterSource="compare_hub"
+      animateHeroTitle
     >
       <div className="grid gap-5 md:grid-cols-3">
         {featuredComparisons.map((comparison, index) => (
-          <Link
+          <FadeContent
             key={comparison.slug}
-            href={`/compare/${comparison.slug}`}
-            className="group overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-stone-400 hover:shadow-xl"
+            blur={false}
+            duration={0.45}
+            delay={Math.min(index * 0.07, 0.35)}
+            threshold={0.15}
+            className="article-card-fade-wrapper"
           >
-            <ComparisonThumbnail comparison={comparison} index={index} />
-            <div className="p-5">
-              <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-stone-500">
-                Featured
-              </span>
-              <h2 className="mt-4 text-xl font-black text-ink">
-                {comparison.title}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
-                {comparison.description}
-              </p>
-              <span className="mt-5 inline-flex text-xs font-black uppercase tracking-[0.2em] text-stone-400 transition group-hover:text-ink">
-                Read comparison
-              </span>
-            </div>
-          </Link>
+            <Link
+              href={`/compare/${comparison.slug}`}
+              className="compare-card group block shadow-sm transition hover:shadow-xl"
+            >
+              <div className="card-image-wrap">
+                <ComparisonThumbnail comparison={comparison} index={index} />
+              </div>
+              <div className="compare-card-body">
+                <span className="compare-card-label">
+                  Featured
+                </span>
+                <h2 className="compare-card-title">
+                  {comparison.title}
+                </h2>
+                <p className="compare-card-desc">
+                  {comparison.description}
+                </p>
+                <span className="mt-5 inline-flex text-xs font-black uppercase tracking-[0.2em] text-[var(--text-dim)] transition group-hover:text-[var(--text-primary)]">
+                  Read comparison
+                </span>
+              </div>
+            </Link>
+          </FadeContent>
         ))}
       </div>
 
       <section className="mt-10">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-stone-400">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[var(--text-dim)]">
               More matchups
             </p>
-            <h2 className="mt-2 text-2xl font-black text-ink">
+            <h2 className="mt-2 text-2xl font-black text-[var(--text-primary)]">
               Browse all comparisons
             </h2>
           </div>
-          <span className="text-xs font-bold uppercase tracking-[0.22em] text-stone-400">
+          <span className="text-xs font-bold uppercase tracking-[0.22em] text-[var(--text-dim)]">
             {COMPARISONS.length} guides
           </span>
         </div>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           {remainingComparisons.map((comparison, index) => (
-            <Link
+            <FadeContent
               key={comparison.slug}
-              href={`/compare/${comparison.slug}`}
-              className="group grid overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm transition hover:border-stone-400 hover:shadow-md sm:grid-cols-[220px_1fr]"
+              blur={false}
+              duration={0.45}
+              delay={Math.min(index * 0.07, 0.35)}
+              threshold={0.15}
+              className="article-card-fade-wrapper"
             >
-              <ComparisonThumbnail
-                comparison={comparison}
-                index={index + 3}
-                compact
-              />
-              <div className="p-5">
-                <h3 className="text-lg font-black text-ink">
-                  {comparison.title}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-stone-600">
-                  {comparison.description}
-                </p>
-                <span className="mt-4 inline-flex text-xs font-bold uppercase tracking-[0.2em] text-stone-400 transition group-hover:text-ink">
-                  View guide
-                </span>
-              </div>
-            </Link>
+              <Link
+                href={`/compare/${comparison.slug}`}
+                className="compare-card group grid overflow-hidden shadow-sm transition hover:shadow-md sm:grid-cols-[220px_1fr]"
+              >
+                <div className="card-image-wrap min-h-52 sm:min-h-full">
+                  <ComparisonThumbnail
+                    comparison={comparison}
+                    index={index + 3}
+                    compact
+                  />
+                </div>
+                <div className="compare-card-body">
+                  <h3 className="compare-card-title text-lg">
+                    {comparison.title}
+                  </h3>
+                  <p className="compare-card-desc">
+                    {comparison.description}
+                  </p>
+                  <span className="mt-4 inline-flex text-xs font-bold uppercase tracking-[0.2em] text-[var(--text-dim)] transition group-hover:text-[var(--text-primary)]">
+                    View guide
+                  </span>
+                </div>
+              </Link>
+            </FadeContent>
           ))}
         </div>
       </section>
@@ -121,9 +143,9 @@ function ComparisonThumbnail({
 
   return (
     <div
-      className={`relative overflow-hidden bg-gradient-to-br ${
+      className={`relative h-full min-h-full overflow-hidden bg-gradient-to-br ${
         gradients[index % gradients.length]
-      } ${compact ? "min-h-52 sm:min-h-full" : "h-56"}`}
+      }`}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.42),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(15,23,42,0.32),transparent_42%)]" />
       <div className="absolute inset-x-4 top-4 flex items-center justify-between gap-3 text-[0.65rem] font-black uppercase tracking-[0.18em] text-white">

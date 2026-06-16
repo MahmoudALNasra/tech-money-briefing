@@ -8,6 +8,7 @@ import { ToolPageNav } from "@/components/tools/ToolPageNav";
 import { ToolRelatedTools } from "@/components/tools/ToolRelatedTools";
 import { ToolHumanLayer } from "@/components/tools/ToolHumanLayer";
 import { ToolSeoSections } from "@/components/tools/ToolSeoSections";
+import BlurText from "@/components/ui/BlurText";
 import { CORE_CATEGORIES } from "@/lib/categories";
 import { faqJsonLdFromItems, webApplicationJsonLd } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/site";
@@ -26,6 +27,7 @@ type ToolPageShellProps = {
   newsletterSource?: string;
   contentMaxWidthClassName?: string;
   heroMaxWidthClassName?: string;
+  animateHeroTitle?: boolean;
   children: ReactNode;
 };
 
@@ -41,6 +43,7 @@ export function ToolPageShell({
   newsletterSource = "tool_page",
   contentMaxWidthClassName = "max-w-5xl",
   heroMaxWidthClassName = "max-w-5xl",
+  animateHeroTitle = false,
   children
 }: ToolPageShellProps) {
   const seo = toolHref ? getToolPageSeo(toolHref) : undefined;
@@ -68,26 +71,33 @@ export function ToolPageShell({
         />
       ) : null}
       <SiteHeader categories={[...CORE_CATEGORIES]} />
-      <main className="bg-stone-50 pt-[73px]">
-        <section className="relative overflow-hidden border-b border-stone-200 bg-white">
+      <main className="min-h-screen bg-[var(--bg-base)]">
+        <section className="page-hero-band">
           <div
-            className="pointer-events-none absolute -right-20 top-0 h-64 w-64 rounded-full bg-gradient-to-br from-emerald-200/60 to-sky-200/40 blur-3xl"
-            aria-hidden="true"
-          />
-          <div
-            className={`relative mx-auto ${heroMaxWidthClassName} px-5 py-10 sm:px-8 sm:py-14`}
+            className={`page-hero-inner ${heroMaxWidthClassName}`}
           >
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-stone-500">
+            <p className="page-eyebrow">
               {eyebrow}
             </p>
-            <h1 className="mt-3 text-4xl font-black tracking-tight text-ink sm:text-5xl">
-              {title}
+            <h1 className="page-h1">
+              {animateHeroTitle ? (
+                <BlurText
+                  text={title}
+                  delay={60}
+                  animateBy="words"
+                  direction="top"
+                  threshold={0.3}
+                  className="blur-headline-word"
+                />
+              ) : (
+                title
+              )}
             </h1>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-stone-600">
+            <p className="page-sub">
               {description}
             </p>
             {secondaryCopy ? (
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-500">
+              <p className="max-w-2xl text-sm leading-7 text-[var(--text-muted)]">
                 {secondaryCopy}
               </p>
             ) : null}
@@ -103,7 +113,7 @@ export function ToolPageShell({
             />
           ) : null}
           {children}
-          {toolHref && toolHref !== "/business-data-generator" ? (
+          {toolHref && toolHref !== "/leads" && toolHref !== "/business-data-generator" ? (
             <div className="mt-8">
               <BusinessDataPromoCard source={`tool_${toolHref.replace(/^\//, "")}`} />
             </div>

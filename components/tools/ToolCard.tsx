@@ -14,32 +14,32 @@ export function ToolCard({ tool, featured = false, compact = false }: ToolCardPr
   return (
     <Link
       href={tool.href}
-      className={`group overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-stone-400 hover:shadow-xl ${
+      className={`tool-card group block overflow-hidden shadow-sm transition hover:shadow-xl ${
         featured ? "grid md:grid-cols-[1.05fr_0.95fr]" : ""
       }`}
     >
       <ToolThumbnail tool={tool} compact={compact} featured={featured} />
       <div className={compact ? "p-4" : featured ? "flex flex-col justify-center p-7" : "p-5"}>
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-stone-100 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-stone-500">
+          <span className="badge badge-digital">
             Free tool
           </span>
-          <span className="text-xs font-bold uppercase tracking-[0.18em] text-stone-300 transition group-hover:text-stone-500">
+          <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--text-dim)] transition group-hover:text-[var(--text-secondary)]">
             Open
           </span>
         </div>
         <h2
-          className={`mt-4 font-black leading-tight tracking-tight text-ink ${
+          className={`mt-4 font-black leading-tight tracking-tight text-[var(--text-primary)] ${
             featured ? "text-3xl" : compact ? "text-base" : "text-xl"
           }`}
         >
           {tool.title}
         </h2>
-        <p className={`mt-2 leading-6 text-stone-600 ${compact ? "text-sm" : "text-sm"}`}>
+        <p className={`mt-2 leading-6 text-[var(--text-muted)] ${compact ? "text-sm" : "text-sm"}`}>
           {tool.description}
         </p>
         {!compact ? (
-          <span className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-stone-400 transition group-hover:text-ink">
+          <span className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-[var(--text-dim)] transition group-hover:text-[var(--text-primary)]">
             Launch tool
             <span aria-hidden="true" className="transition group-hover:translate-x-1">
               -&gt;

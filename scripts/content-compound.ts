@@ -97,40 +97,98 @@ async function main() {
   const skipCompare = hasFlag("skip-compare");
   const skipSeoImages = hasFlag("skip-seo-images");
   const skipGsc = hasFlag("skip-gsc");
+  const skipOwnerVoice = hasFlag("skip-owner-voice");
   const dryRun = hasFlag("dry-run");
 
   const steps: Step[] = [];
 
+  const runOwnerVoiceSince = async (since: string, label: string) => {
+    if (skipOwnerVoice || dryRun) {
+      return { name: `${label} owner-voice rewrite`, ok: true, code: 0 };
+    }
+
+    const core = await runNpmScript(
+      [
+        "articles:rewrite-owner-voice",
+        "--",
+        "--all",
+        "--draft-on-fail",
+        `--since=${since}`
+      ],
+      `${label} owner-voice rewrite`
+    );
+
+    if (!core.ok) {
+      return core;
+    }
+
+    return await runNpmScript(
+      [
+        "articles:rewrite-owner-voice",
+        "--",
+        "--all",
+        "--others-only",
+        "--draft-on-fail",
+        `--since=${since}`
+      ],
+      `${label} owner-voice rewrite (others)`
+    );
+  };
+
+  const runArticleCreationStep = (
+    label: string,
+    step: () => Promise<StepResult>
+  ): Step => {
+    return async () => {
+      const since = new Date(Date.now() - 5000).toISOString();
+      const result = await step();
+
+      if (!result.ok) {
+        return result;
+      }
+
+      const ownerVoiceResult = await runOwnerVoiceSince(since, label);
+
+      return ownerVoiceResult.ok ? result : ownerVoiceResult;
+    };
+  };
+
   if (!skipTrends) {
-    steps.push(() =>
-      runNpmScript(
-        [
-          "ingest:trends",
-          "--",
-          `--max-new=${trendsMaxNew}`,
-          `--geo=${geo}`
-        ],
-        "Trends ingestion"
+    steps.push(
+      runArticleCreationStep("Trends", () =>
+        runNpmScript(
+          [
+            "ingest:trends",
+            "--",
+            `--max-new=${trendsMaxNew}`,
+            `--geo=${geo}`
+          ],
+          "Trends ingestion"
+        )
       )
     );
   }
 
   if (!skipIngest) {
-    steps.push(() => runNpmScript(["ingest"], "RSS ingestion"));
+    steps.push(
+      runArticleCreationStep("RSS", () => runNpmScript(["ingest"], "RSS ingestion"))
+    );
     steps.push(() =>
       runNpmScript(["ingest:trends:backfill-images"], "Trends image backfill")
     );
   }
 
   if (!skipEditorial) {
-    steps.push(() =>
-      runInlineStep("Editorial articles", async () => {
-        const { runEditorialIngestion } = await import("../lib/editorial-ingestion");
-        const result = await runEditorialIngestion({
-          maxNewArticles: editorialLimit
-        });
-        console.log(JSON.stringify(result, null, 2));
-      })
+    steps.push(
+      runArticleCreationStep("Editorial", () =>
+        runInlineStep("Editorial articles", async () => {
+          const { runEditorialIngestion } = await import("../lib/editorial-ingestion");
+          const result = await runEditorialIngestion({
+            maxNewArticles: editorialLimit
+          });
+          console.log(JSON.stringify(result, null, 2));
+        })
+      )
     );
   }
 

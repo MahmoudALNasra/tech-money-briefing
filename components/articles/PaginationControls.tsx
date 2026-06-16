@@ -24,9 +24,9 @@ export function PaginationControls({
   }
 
   const linkClass =
-    "inline-flex min-h-11 items-center justify-center rounded-full border border-stone-300 bg-white px-5 text-sm font-bold text-ink transition hover:border-ink hover:bg-stone-100";
+    "inline-flex min-h-11 items-center justify-center rounded-[3px] border border-white/[0.06] bg-[var(--bg-surface)] px-5 text-sm font-bold text-[var(--text-primary)] transition hover:border-[var(--border-accent)] hover:bg-[var(--bg-elevated)]";
   const disabledClass =
-    "inline-flex min-h-11 items-center justify-center rounded-full border border-stone-200 bg-stone-100 px-5 text-sm font-bold text-stone-400";
+    "inline-flex min-h-11 items-center justify-center rounded-[3px] border border-white/[0.06] bg-[var(--bg-elevated)] px-5 text-sm font-bold text-[var(--text-dim)]";
 
   return (
     <nav
@@ -47,7 +47,7 @@ export function PaginationControls({
         </span>
       )}
 
-      <span className="text-sm font-semibold text-stone-500">
+      <span className="text-sm font-semibold text-[var(--text-muted)]">
         Page {currentPage} of {totalPages}
       </span>
 
