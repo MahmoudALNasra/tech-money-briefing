@@ -257,7 +257,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   };
 
   return (
-    <div className="w-full min-w-0 rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-8">
+    <div className="w-full min-w-0 rounded-[1.5rem] border border-stone-200 bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-8" data-surface="light">
       <p className="text-xs font-black uppercase tracking-[0.24em] text-stone-400">
         {isSignup ? "Create account" : "Welcome back"}
       </p>
@@ -301,7 +301,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-2 min-h-12 w-full rounded-2xl border border-stone-200 px-4 text-base outline-none ring-stone-200 transition focus:ring-4 sm:text-sm"
+            className="mt-2 min-h-12 w-full rounded-2xl border border-stone-200 bg-white px-4 text-base text-stone-950 caret-stone-950 outline-none ring-stone-200 transition placeholder:text-stone-400 focus:border-emerald-300 focus:ring-4 sm:text-sm"
             autoComplete="email"
           />
         </label>
@@ -312,7 +312,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="mt-2 min-h-12 w-full rounded-2xl border border-stone-200 px-4 text-base outline-none ring-stone-200 transition focus:ring-4 sm:text-sm"
+            className="mt-2 min-h-12 w-full rounded-2xl border border-stone-200 bg-white px-4 text-base text-stone-950 caret-stone-950 outline-none ring-stone-200 transition placeholder:text-stone-400 focus:border-emerald-300 focus:ring-4 sm:text-sm"
             autoComplete={isSignup ? "new-password" : "current-password"}
           />
         </label>

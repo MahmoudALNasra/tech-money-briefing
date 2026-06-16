@@ -4,9 +4,9 @@ import { BusinessDataGenerator } from "@/components/business-data/BusinessDataGe
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
-const pageTitle = "Local Lead Generator";
+const pageTitle = "Local Lead Generator — Free AI Lead Analysis";
 const pageDescription =
-  "Find local businesses, competitors, phone numbers, websites, ratings, emails, and outreach recommendations. Export lead reports to Excel or Google Drive.";
+  "Search any city, get 3 fully analyzed local businesses free (3 lifetime runs), then unlock Excel exports with outreach pitches, email discovery, and website checks. Built for agencies and sales teams.";
 const pageImage = absoluteUrl("/og-business-data-generator.png");
 
 export const metadata: Metadata = {
@@ -82,9 +82,9 @@ export default function LeadsPage() {
       />
       <ToolPageShell
         eyebrow="Lead generation tool"
-        title="Find local businesses ready to buy"
-        description="Search a city, address, business name, or map area to discover nearby companies, contact details, and prospecting opportunities with clean export-ready data."
-        secondaryCopy="Built for agencies, founders, sales teams, and freelancers who need local market data without messy spreadsheets."
+        title="Find local businesses with ready-to-send pitches"
+        description="Run 3 free lifetime analyses (3 businesses each). See real outreach angles, opportunity signals, and email discovery before you buy credits."
+        secondaryCopy="Built for agencies, founders, and sales teams who need qualified local leads — not another raw Google scrape."
         showMonetizationRail={false}
         showAssistant={false}
         newsletterSource="leads_tool"

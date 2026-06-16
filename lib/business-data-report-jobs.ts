@@ -1,5 +1,12 @@
 import {
+  applyReportFilters,
+  applySearchFilters,
+  parseReportFilters,
+  parseSearchFilters
+} from "@/lib/business-data-search-filters";
+import {
   nearbySearchAll,
+  placeDetails,
   processPlacesBatch,
   REPORT_BATCH_SIZE,
   resolveSearchCenter,
@@ -29,6 +36,7 @@ export type ReportJobQuery = {
     label: string;
   };
   places: GoogleNearbyPlace[];
+  preChargedPlaceIds?: string[];
 };
 
 export type ReportJobRow = {
@@ -174,7 +182,46 @@ async function finalizeReportJob(job: ReportJobRow) {
   }
 
   const rows = job.results;
-  const creditsToCharge = rows.length;
+  const preCharged = new Set(job.query.preChargedPlaceIds ?? []);
+  const creditsToCharge = rows.filter((row) => !preCharged.has(row.place_id)).length;
+
+  if (creditsToCharge === 0 && rows.length > 0) {
+    const csv = toCsv(rows);
+    const { data, error } = await supabase
+      .from("business_data_report_jobs")
+      .update({
+        status: "completed",
+        results: rows,
+        csv,
+        processed_count: rows.length,
+        charged_credits: 0,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", job.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    await logUsageEvent({
+      userId: job.user_id,
+      eventType: "full_export",
+      tokensCharged: 0,
+      estimatedCostUsd: 0,
+      metadata: {
+        job_id: job.id,
+        category: job.query.category,
+        location: job.query.location,
+        requested_count: job.requested_count,
+        processed_count: rows.length,
+        pre_charged_only: true
+      }
+    });
+
+    return mapJob(data as Record<string, unknown>);
+  }
 
   if (creditsToCharge === 0) {
     const { data, error } = await supabase
@@ -325,7 +372,8 @@ export async function advanceReportJob(jobId: string, userId: string, apiKey: st
     startIndex: job.processed_index,
     batchSize: REPORT_BATCH_SIZE,
     category: job.query.category,
-    apiKey
+    apiKey,
+    allPlacesForDensity: places
   });
 
   const nextResults = [...job.results, ...batchRows];
@@ -368,13 +416,40 @@ export async function startReportJob(input: {
   radiusMeters: number;
   requestedCount: number;
 }) {
-  const creditsRequired = getBusinessDataExportTokenCost(input.requestedCount);
+  const requestedPlaceIds = Array.isArray(input.body.placeIds)
+    ? input.body.placeIds
+        .map((value) => String(value ?? "").trim())
+        .filter(Boolean)
+        .slice(0, 60)
+    : [];
+  const preChargedPlaceIds = Array.isArray(input.body.preChargedPlaceIds)
+    ? input.body.preChargedPlaceIds
+        .map((value) => String(value ?? "").trim())
+        .filter(Boolean)
+    : [];
+  const preChargedSet = new Set(preChargedPlaceIds);
+  const seededExportRows = Array.isArray(input.body.seededExportRows)
+    ? (input.body.seededExportRows as ExportRow[])
+    : [];
+  const useSampleSelection =
+    Boolean(input.body.useSampleSelection) &&
+    requestedPlaceIds.length > 0 &&
+    seededExportRows.length > 0;
+
+  const selectedSeededRows = useSampleSelection
+    ? seededExportRows.filter((row) => requestedPlaceIds.includes(row.place_id))
+    : [];
+  const creditsRequired = useSampleSelection
+    ? selectedSeededRows.filter((row) => !preChargedSet.has(row.place_id)).length
+    : getBusinessDataExportTokenCost(input.requestedCount);
   const balance = await getWalletBalance(input.userId);
 
   if (balance < creditsRequired) {
     return {
       ok: false as const,
-      error: `Not enough credits. This ${input.requestedCount}-business report needs up to ${creditsRequired} credits.`,
+      error: useSampleSelection
+        ? `Not enough credits. This selection needs ${creditsRequired} additional credits beyond Sample Enrich.`
+        : `Not enough credits. This ${input.requestedCount}-business report needs up to ${creditsRequired} credits.`,
       balance,
       required: creditsRequired
     };
@@ -386,14 +461,122 @@ export async function startReportJob(input: {
     apiKey: input.apiKey
   });
 
-  const places = await nearbySearchAll({
+  if (useSampleSelection && selectedSeededRows.length > 0) {
+    const job = await createReportJob({
+      userId: input.userId,
+      requestedCount: selectedSeededRows.length,
+      cacheKey: input.cacheKey,
+      query: {
+        location: input.location,
+        category: input.category,
+        radiusMeters: input.radiusMeters,
+        center,
+        places: selectedSeededRows.map((row) => ({
+          place_id: row.place_id,
+          name: row.name
+        })),
+        preChargedPlaceIds
+      }
+    });
+
+    const { data, error } = await supabase
+      .from("business_data_report_jobs")
+      .update({
+        results: selectedSeededRows,
+        processed_count: selectedSeededRows.length,
+        processed_index: selectedSeededRows.length,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", job.id)
+      .eq("user_id", input.userId)
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const finalized = await finalizeReportJob(mapJob(data as Record<string, unknown>));
+
+    return {
+      ok: true as const,
+      job: finalized
+    };
+  }
+
+  const searchFilters = parseSearchFilters(input.body);
+  const reportFilters = parseReportFilters(input.body);
+
+  let places = await nearbySearchAll({
     apiKey: input.apiKey,
     lat: center.lat,
     lng: center.lng,
     category: input.category,
     radiusMeters: input.radiusMeters,
-    limit: input.requestedCount
+    limit: Math.max(input.requestedCount, 60)
   });
+
+  if (
+    places.length > 0 &&
+    (searchFilters.minRating !== undefined ||
+      searchFilters.maxRating !== undefined ||
+      searchFilters.minReviewCount !== undefined ||
+      searchFilters.maxReviewCount !== undefined ||
+      searchFilters.openNowOnly ||
+      searchFilters.websiteFilter !== "any" ||
+      (searchFilters.excludePlaceIds?.length ?? 0) > 0 ||
+      (searchFilters.excludeNames?.length ?? 0) > 0)
+  ) {
+    const details = await Promise.all(
+      places.map((place) => placeDetails(place.place_id as string, input.apiKey))
+    );
+    const items = places.map((place, index) => ({
+      place,
+      detail: details[index]
+    }));
+    places = applySearchFilters(items, searchFilters).filtered.map((item) => item.place);
+  }
+
+  if (requestedPlaceIds.length > 0) {
+    const allowed = new Set(requestedPlaceIds);
+    places = places.filter((place) => allowed.has(String(place.place_id ?? "")));
+  }
+
+  if (Array.isArray(input.body.enrichedPreview) && reportFilters.pitchAngles?.length) {
+    const previewRows = input.body.enrichedPreview as Array<Record<string, unknown>>;
+    const allowedIds = new Set(
+      applyReportFilters(
+        previewRows.map((row) => ({
+          place_id: String(row.place_id ?? ""),
+          pitch_angle: String(row.pitch_angle ?? ""),
+          email_candidates: String(row.email_candidates ?? ""),
+          website_reachable: Boolean(row.website_reachable)
+        })),
+        reportFilters
+      ).map((row) => row.place_id)
+    );
+    places = places.filter((place) => allowedIds.has(String(place.place_id ?? "")));
+  } else if (reportFilters.hasEmailCandidate !== "any" || reportFilters.websiteReachable !== "any") {
+    const previewRows = Array.isArray(input.body.enrichedPreview)
+      ? (input.body.enrichedPreview as Array<Record<string, unknown>>)
+      : [];
+    if (previewRows.length > 0) {
+      const allowedIds = new Set(
+        applyReportFilters(
+          previewRows.map((row) => ({
+            place_id: String(row.place_id ?? ""),
+            pitch_angle: String(row.pitch_angle ?? ""),
+            email_candidates: String(row.email_candidates ?? ""),
+            website_reachable: Boolean(row.website_reachable)
+          })),
+          reportFilters
+        ).map((row) => row.place_id)
+      );
+      places = places.filter((place) => allowedIds.has(String(place.place_id ?? "")));
+    }
+  }
+
+  places = places.slice(0, input.requestedCount);
 
   if (places.length === 0) {
     return {

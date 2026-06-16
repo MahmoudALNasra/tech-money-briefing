@@ -97,6 +97,8 @@ export const BUSINESS_DATA_CATEGORIES = [
   { value: "zoo", label: "Zoos" }
 ] as const;
 
+export const BUSINESS_DATA_CATEGORY_COUNT = BUSINESS_DATA_CATEGORIES.length;
+
 export const BUSINESS_DATA_CATEGORY_VALUES: ReadonlySet<string> = new Set(
   BUSINESS_DATA_CATEGORIES.map((category) => category.value)
 );

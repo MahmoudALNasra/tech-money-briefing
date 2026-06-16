@@ -40,6 +40,20 @@
   svg {
     display: block;
   }
+
+  /* :root uses color-scheme: dark; force readable typed text on white/light tool cards. */
+  .bg-white :is(input, textarea, select):not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="submit"]):not([type="button"]),
+  [data-surface="light"] :is(input, textarea, select):not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+    color-scheme: light;
+    background-color: #ffffff;
+    color: #0c0a09;
+    caret-color: #0c0a09;
+  }
+
+  .bg-white :is(input, textarea)::placeholder,
+  [data-surface="light"] :is(input, textarea)::placeholder {
+    color: #a8a29e;
+  }
 }
 
 .trb-home {

@@ -4,6 +4,13 @@ import {
   mapWithConcurrency,
   type BusinessAiInsight
 } from "@/lib/business-data-export-ai";
+import {
+  buildPlaceDataHash,
+  extractCachedEnrichmentFields,
+  getCachedEnrichment,
+  upsertCachedEnrichment
+} from "@/lib/business-data-enrichment-cache";
+import { computeCompetitorDensity } from "@/lib/business-data-search-filters";
 
 export const REPORT_BATCH_SIZE = 2;
 
@@ -13,6 +20,13 @@ export type GoogleNearbyPlace = {
   vicinity?: string;
   rating?: number;
   user_ratings_total?: number;
+  types?: string[];
+  geometry?: {
+    location?: {
+      lat?: number;
+      lng?: number;
+    };
+  };
   opening_hours?: {
     open_now?: boolean;
   };
@@ -28,6 +42,7 @@ export type GooglePlaceDetails = {
   rating?: number;
   user_ratings_total?: number;
   business_status?: string;
+  price_level?: number;
   types?: string[];
   opening_hours?: {
     open_now?: boolean;
@@ -65,6 +80,10 @@ export type ExportRow = {
   business_opportunity_summary: string;
   recommended_pitch: string;
   pitch_angle: string;
+  active_social: boolean;
+  gbp_profile_signal: string;
+  competitor_density_1mi: number;
+  price_level: number | null;
   types: string;
   weekday_hours: string;
   place_id: string;
@@ -146,6 +165,10 @@ export function toCsv(rows: ExportRow[]) {
     "business_opportunity_summary",
     "recommended_pitch",
     "pitch_angle",
+    "active_social",
+    "gbp_profile_signal",
+    "competitor_density_1mi",
+    "price_level",
     "types",
     "weekday_hours",
     "place_id",
@@ -311,6 +334,7 @@ export async function placeDetails(placeId: string, apiKey: string) {
       "rating",
       "user_ratings_total",
       "business_status",
+      "price_level",
       "types",
       "opening_hours",
       "geometry"
@@ -322,12 +346,38 @@ export async function placeDetails(placeId: string, apiKey: string) {
   return json.result ?? {};
 }
 
+function hasActiveSocial(socialLinks: string[]) {
+  return socialLinks.some((link) => /instagram\.com|facebook\.com/i.test(link));
+}
+
+function buildGbpProfileSignal(detail: GooglePlaceDetails) {
+  const reviewCount = detail.user_ratings_total ?? 0;
+  const hasPhone = Boolean(detail.formatted_phone_number);
+  const hasWebsite = Boolean(detail.website);
+  const status = String(detail.business_status ?? "").toUpperCase();
+
+  if (status === "CLOSED_PERMANENTLY") {
+    return "Permanently closed on Google.";
+  }
+
+  if (!hasPhone && !hasWebsite && reviewCount < 5) {
+    return "Likely unclaimed or lightly maintained Google profile.";
+  }
+
+  if (hasPhone && reviewCount >= 20) {
+    return "Established Google Business Profile with review history.";
+  }
+
+  return "Google profile present, but contact and review signals are mixed.";
+}
+
 export async function processPlacesBatch(input: {
   places: GoogleNearbyPlace[];
   startIndex: number;
   batchSize: number;
   category: string;
   apiKey: string;
+  allPlacesForDensity?: GoogleNearbyPlace[];
 }): Promise<{ rows: ExportRow[]; nextIndex: number }> {
   const slice = input.places.slice(input.startIndex, input.startIndex + input.batchSize);
 
@@ -335,51 +385,91 @@ export async function processPlacesBatch(input: {
     return { rows: [], nextIndex: input.startIndex };
   }
 
+  const densityPool =
+    input.allPlacesForDensity?.map((place) => ({
+      lat: place.geometry?.location?.lat ?? null,
+      lng: place.geometry?.location?.lng ?? null,
+      types: place.types
+    })) ?? [];
+
   const details = await mapWithConcurrency(slice, 6, (place) =>
     placeDetails(place.place_id as string, input.apiKey)
   );
-  const enrichments = await mapWithConcurrency(details, 4, (detail) =>
-    enrichWebsite(detail.website ?? "")
-  );
-  const aiInsights = await mapWithConcurrency(
-    slice.map((place, index) => ({ place, index })),
-    3,
-    async ({ index }) => {
-      const detail = details[index];
-      const enrichment = enrichments[index];
-      const lat = detail.geometry?.location?.lat ?? null;
-      const lng = detail.geometry?.location?.lng ?? null;
-      const name = detail.name ?? slice[index]?.name ?? "";
 
-      return generateBusinessAiInsight({
+  const rows: ExportRow[] = [];
+
+  for (let index = 0; index < slice.length; index += 1) {
+    const place = slice[index];
+    const detail = details[index];
+    const placeId = place.place_id ?? "";
+    const placeHash = buildPlaceDataHash(detail);
+    const cached = placeId ? await getCachedEnrichment(placeId) : null;
+    const lat = detail.geometry?.location?.lat ?? null;
+    const lng = detail.geometry?.location?.lng ?? null;
+    const name = detail.name ?? place.name ?? "";
+    const competitorDensity = computeCompetitorDensity(
+      {
+        lat,
+        lng,
+        types: detail.types ?? place.types
+      },
+      densityPool
+    );
+    const priceLevel =
+      typeof detail.price_level === "number" ? detail.price_level : null;
+
+    let enrichmentFields = cached?.enrichment ?? null;
+
+    if (!enrichmentFields || cached?.sourcePlaceDataHash !== placeHash) {
+      const enrichment = await enrichWebsite(detail.website ?? "");
+      const insight: BusinessAiInsight = await generateBusinessAiInsight({
         name,
         category: input.category,
-        address: detail.formatted_address ?? slice[index]?.vicinity ?? "",
+        address: detail.formatted_address ?? place.vicinity ?? "",
         phone: detail.formatted_phone_number ?? "",
         website: detail.website ?? "",
         googleMapsUrl:
           detail.url ??
           (lat && lng ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : ""),
-        rating: detail.rating ?? slice[index]?.rating ?? null,
-        totalReviews: detail.user_ratings_total ?? slice[index]?.user_ratings_total ?? null,
-        openNow: detail.opening_hours?.open_now ?? slice[index]?.opening_hours?.open_now ?? null,
+        rating: detail.rating ?? place.rating ?? null,
+        totalReviews: detail.user_ratings_total ?? place.user_ratings_total ?? null,
+        openNow: detail.opening_hours?.open_now ?? place.opening_hours?.open_now ?? null,
         businessStatus: detail.business_status ?? "",
         types: (detail.types ?? []).join("|"),
         weekdayHours: (detail.opening_hours?.weekday_text ?? []).join(" | "),
         enrichment
       });
+
+      enrichmentFields = {
+        email_candidates: enrichment.emailCandidates.join(" | "),
+        website_reachable: enrichment.websiteReachable,
+        website_title: enrichment.websiteTitle,
+        meta_description: enrichment.metaDescription,
+        homepage_headings: enrichment.homepageHeadings.join(" | "),
+        social_links: enrichment.socialLinks.join(" | "),
+        contact_url: enrichment.contactUrl,
+        has_contact_page: enrichment.hasContactPage,
+        opportunity_signal: enrichment.signal,
+        website_analysis: insight.website_analysis,
+        business_opportunity_summary: insight.business_opportunity_summary,
+        recommended_pitch: insight.recommended_pitch,
+        pitch_angle: insight.pitch_angle,
+        active_social: hasActiveSocial(enrichment.socialLinks),
+        gbp_profile_signal: buildGbpProfileSignal(detail),
+        price_level: priceLevel,
+        competitor_density_1mi: competitorDensity
+      };
+
+      if (placeId) {
+        await upsertCachedEnrichment({
+          placeId,
+          sourcePlaceDataHash: placeHash,
+          enrichment: enrichmentFields
+        });
+      }
     }
-  );
 
-  const rows: ExportRow[] = slice.map((place, index) => {
-    const detail = details[index];
-    const enrichment = enrichments[index];
-    const insight: BusinessAiInsight = aiInsights[index];
-    const lat = detail.geometry?.location?.lat ?? null;
-    const lng = detail.geometry?.location?.lng ?? null;
-    const name = detail.name ?? place.name ?? "";
-
-    return {
+    rows.push({
       name,
       address: detail.formatted_address ?? place.vicinity ?? "",
       phone: detail.formatted_phone_number ?? "",
@@ -392,26 +482,16 @@ export async function processPlacesBatch(input: {
       total_reviews: detail.user_ratings_total ?? place.user_ratings_total ?? null,
       open_now: detail.opening_hours?.open_now ?? place.opening_hours?.open_now ?? null,
       business_status: detail.business_status ?? "",
-      email_candidates: enrichment.emailCandidates.join(" | "),
-      website_reachable: enrichment.websiteReachable,
-      website_title: enrichment.websiteTitle,
-      meta_description: enrichment.metaDescription,
-      homepage_headings: enrichment.homepageHeadings.join(" | "),
-      social_links: enrichment.socialLinks.join(" | "),
-      contact_url: enrichment.contactUrl,
-      has_contact_page: enrichment.hasContactPage,
-      opportunity_signal: enrichment.signal,
-      website_analysis: insight.website_analysis,
-      business_opportunity_summary: insight.business_opportunity_summary,
-      recommended_pitch: insight.recommended_pitch,
-      pitch_angle: insight.pitch_angle,
+      ...extractCachedEnrichmentFields(enrichmentFields),
+      price_level: priceLevel ?? enrichmentFields.price_level ?? null,
+      competitor_density_1mi: competitorDensity,
       types: (detail.types ?? []).join("|"),
       weekday_hours: (detail.opening_hours?.weekday_text ?? []).join(" | "),
-      place_id: place.place_id ?? "",
+      place_id: placeId,
       lat,
       lng
-    };
-  });
+    });
+  }
 
   return {
     rows,

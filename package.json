@@ -66,7 +66,10 @@
     "backfill:images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-images.ts"
   },
   "dependencies": {
+    "@radix-ui/react-popover": "^1.1.17",
+    "@radix-ui/react-select": "^2.3.1",
     "@supabase/supabase-js": "latest",
+    "cmdk": "^1.1.1",
     "next": "latest",
     "node-cron": "latest",
     "openai": "latest",

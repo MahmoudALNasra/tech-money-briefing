@@ -6,6 +6,21 @@ import Image from "next/image";
 
 import { ContactForm } from "@/components/contact/ContactForm";
 import { ExportLoadingOverlay } from "@/components/business-data/ExportLoadingOverlay";
+import {
+  LeadsAdvancedFilters,
+  DEFAULT_ADVANCED_FILTER_STATE,
+  normalizeAdvancedFilterState,
+  parseExcludeInput,
+  type AdvancedFilterState
+} from "@/components/business-data/LeadsAdvancedFilters";
+import { LeadsEnrichedPreviewCard } from "@/components/business-data/LeadsEnrichedPreviewCard";
+import { LeadsCategoryCombobox } from "@/components/business-data/LeadsCategoryCombobox";
+import { LeadsFilteredSelection } from "@/components/business-data/LeadsFilteredSelection";
+import { LeadsRadiusSelect } from "@/components/business-data/LeadsRadiusSelect";
+import { LeadsReportFilters, type ReportFilterState } from "@/components/business-data/LeadsReportFilters";
+import { LeadsSampleEnrichPanel } from "@/components/business-data/LeadsSampleEnrichPanel";
+import { LeadsSearchOrientation } from "@/components/business-data/LeadsSearchOrientation";
+import { LeadsTrustRow } from "@/components/business-data/LeadsTrustRow";
 import { LoadingMascot } from "@/components/business-data/LoadingMascot";
 import {
   TurnstileWidget,
@@ -16,7 +31,7 @@ import {
   getCategoryRecommendations,
   getGroupedCategoryOptions
 } from "@/lib/business-data-category-groups";
-import { BUSINESS_DATA_CATEGORIES } from "@/lib/business-data-categories";
+import { BUSINESS_DATA_CATEGORIES, BUSINESS_DATA_CATEGORY_COUNT } from "@/lib/business-data-categories";
 import {
   fetchWalletBalance,
   getBusinessDataAuthHeaders
@@ -38,6 +53,11 @@ import {
   getBusinessDataExportTokenCost,
   type BusinessDataCreditBundleId
 } from "@/lib/business-data-token-config";
+import { FREE_RUN_ENRICHED_COUNT } from "@/lib/business-data-free-config";
+import { resolveRatingFilterRange } from "@/lib/business-data-rating-filter";
+import { resolveReviewFilterRange } from "@/lib/business-data-review-filter";
+import type { ExportRow } from "@/lib/business-data-export-core";
+import { applyReportFilters } from "@/lib/business-data-search-filters";
 import { formatCreditBalance } from "@/lib/format-token-balance";
 import {
   getTurnstileLocalhostDevMessage,
@@ -94,7 +114,15 @@ type SearchResponse = {
   previewLimit: number;
   totalAvailableEstimate: number;
   lockedCount: number;
+  excludedCount?: number;
   results: BusinessResult[];
+  enrichedResults?: EnrichedExportRow[];
+  enrichmentBlocked?: boolean;
+  enrichmentMessage?: string;
+  freeRunsUsed?: number;
+  freeRunsRemaining?: number;
+  freeRunsLimit?: number;
+  requiresSignInForEnrichment?: boolean;
 };
 
 type SearchSnapshot = {
@@ -104,6 +132,7 @@ type SearchSnapshot = {
   selectedCenter: SearchCenter;
   search: SearchResponse | null;
   paidAccess: boolean;
+  advancedFilters?: AdvancedFilterState;
   reportResultLimit?: number;
   readyReportCacheKey?: string;
   reportJobId?: string;
@@ -120,6 +149,17 @@ type EnrichedExportRow = {
   pitch_angle: string;
   email_candidates?: string;
   opportunity_signal?: string;
+  website_reachable?: boolean;
+  website_title?: string;
+  meta_description?: string;
+  homepage_headings?: string;
+  social_links?: string;
+  contact_url?: string;
+  has_contact_page?: boolean;
+  active_social?: boolean;
+  gbp_profile_signal?: string;
+  competitor_density_1mi?: number;
+  price_level?: number | null;
 };
 
 type PaidExportCsv = {
@@ -839,6 +879,26 @@ export function BusinessDataGenerator() {
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [isSuggestionPanelOpen, setIsSuggestionPanelOpen] = useState(false);
   const [isSuggesting, setIsSuggesting] = useState(false);
+  const [enrichedPreview, setEnrichedPreview] = useState<EnrichedExportRow[]>([]);
+  const [sampleEnrichRows, setSampleEnrichRows] = useState<EnrichedExportRow[]>([]);
+  const [sampleExportRows, setSampleExportRows] = useState<ExportRow[]>([]);
+  const [sampleChargedPlaceIds, setSampleChargedPlaceIds] = useState<string[]>([]);
+  const [selectedReportPlaceIds, setSelectedReportPlaceIds] = useState<string[]>([]);
+  const [isSampleEnrichLoading, setIsSampleEnrichLoading] = useState(false);
+  const [freeRunsRemaining, setFreeRunsRemaining] = useState<number | null>(null);
+  const [freeRunsLimit, setFreeRunsLimit] = useState(3);
+  const [enrichmentBlocked, setEnrichmentBlocked] = useState(false);
+  const [enrichmentMessage, setEnrichmentMessage] = useState("");
+  const [requiresSignInForEnrichment, setRequiresSignInForEnrichment] = useState(false);
+  const [excludedCount, setExcludedCount] = useState(0);
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterState>(
+    DEFAULT_ADVANCED_FILTER_STATE
+  );
+  const [reportFilters, setReportFilters] = useState<ReportFilterState>({
+    pitchAngles: [],
+    hasEmailCandidate: "any",
+    websiteReachable: "any"
+  });
   const [search, setSearch] = useState<SearchResponse | null>(null);
   const [activeResultPlaceId, setActiveResultPlaceId] = useState<string | null>(null);
   const [isCenterPreviewOpen, setIsCenterPreviewOpen] = useState(false);
@@ -1361,6 +1421,7 @@ export function BusinessDataGenerator() {
       selectedCenter,
       search: snapshotSearch,
       paidAccess: snapshotPaidAccess,
+      advancedFilters,
       reportResultLimit: selectedReportLimit,
       readyReportCacheKey,
       reportJobId: reportJobId ?? undefined,
@@ -1409,6 +1470,15 @@ export function BusinessDataGenerator() {
     if (!options.keepExisting) {
       setSearch(null);
       setActiveResultPlaceId(null);
+      setSampleEnrichRows([]);
+      setSampleExportRows([]);
+      setSampleChargedPlaceIds([]);
+      setSelectedReportPlaceIds([]);
+      setReportFilters({
+        pitchAngles: [],
+        hasEmailCandidate: "any",
+        websiteReachable: "any"
+      });
     }
     pushToDataLayer({
       event: "business_data_search_submit",
@@ -1425,6 +1495,7 @@ export function BusinessDataGenerator() {
 
     try {
       const headers = await getBusinessDataAuthHeaders();
+      const { excludePlaceIds, excludeNames } = parseExcludeInput(advancedFilters.excludeInput);
       const response = await fetch("/api/business-data/search", {
         method: "POST",
         headers,
@@ -1433,7 +1504,16 @@ export function BusinessDataGenerator() {
           category: searchCategory,
           radiusMeters: searchRadiusMeters,
           center: searchCenter,
-          turnstileToken: turnstileToken || undefined
+          turnstileToken: turnstileToken || undefined,
+          filters: {
+            ...resolveRatingFilterRange(advancedFilters),
+            ...resolveReviewFilterRange(advancedFilters),
+            openNowOnly: advancedFilters.openNowOnly,
+            excludePermanentlyClosed: true,
+            websiteFilter: advancedFilters.websiteFilter,
+            excludePlaceIds,
+            excludeNames
+          }
         })
       });
       const json = (await response.json()) as SearchResponse | { error?: string };
@@ -1444,25 +1524,43 @@ export function BusinessDataGenerator() {
 
       const searchResult = json as SearchResponse;
       setSearch(searchResult);
+      setEnrichedPreview(searchResult.enrichedResults ?? []);
+      setEnrichmentBlocked(Boolean(searchResult.enrichmentBlocked));
+      setEnrichmentMessage(searchResult.enrichmentMessage ?? "");
+      setFreeRunsRemaining(
+        typeof searchResult.freeRunsRemaining === "number"
+          ? searchResult.freeRunsRemaining
+          : null
+      );
+      setFreeRunsLimit(searchResult.freeRunsLimit ?? 3);
+      setRequiresSignInForEnrichment(Boolean(searchResult.requiresSignInForEnrichment));
+      setExcludedCount(searchResult.excludedCount ?? 0);
+      if (searchResult.enrichedResults?.length) {
+        setEnrichedRows(searchResult.enrichedResults);
+      } else if (!searchResult.paidAccess) {
+        setEnrichedRows([]);
+      }
       setActiveResultPlaceId(searchResult.results[0]?.placeId ?? null);
       setPaidAccess(Boolean(searchResult.paidAccess));
       if (typeof searchResult.tokenBalance === "number") {
         setTokenBalance(searchResult.tokenBalance);
       }
-      if (activeCacheKeyRef.current) {
-        writeSearchSnapshot(activeCacheKeyRef.current, {
-          location: searchLocation,
-          category: searchCategory,
-          radiusMeters: searchRadiusMeters,
-          selectedCenter: searchCenter,
-          search: searchResult,
-          paidAccess: Boolean(searchResult.paidAccess),
-          reportResultLimit: selectedReportLimit,
-          readyReportCacheKey: activeReport ? buildReportCacheKey() : undefined,
-          // eslint-disable-next-line react-hooks/purity
-          savedAt: Date.now()
-        });
+      if (!activeCacheKeyRef.current) {
+        activeCacheKeyRef.current = window.crypto.randomUUID();
       }
+      writeSearchSnapshot(activeCacheKeyRef.current, {
+        location: searchLocation,
+        category: searchCategory,
+        radiusMeters: searchRadiusMeters,
+        selectedCenter: searchCenter,
+        search: searchResult,
+        paidAccess: Boolean(searchResult.paidAccess),
+        advancedFilters,
+        reportResultLimit: selectedReportLimit,
+        readyReportCacheKey: activeReport ? buildReportCacheKey() : undefined,
+        // eslint-disable-next-line react-hooks/purity
+        savedAt: Date.now()
+      });
       if (turnstileWidgetEnabled) {
         consumeTurnstileToken();
       }
@@ -1712,9 +1810,19 @@ export function BusinessDataGenerator() {
   };
 
   const generateReport = async () => {
-    if ((tokenBalance ?? 0) < selectedReportCreditCost) {
+    const usingSampleSelection = sampleEnrichRows.length > 0 && selectedReportPlaceIds.length > 0;
+    const reportCount = usingSampleSelection
+      ? selectedReportPlaceIds.length
+      : selectedReportLimit;
+    const additionalCreditsNeeded = usingSampleSelection
+      ? selectedReportPlaceIds.filter((id) => !sampleChargedPlaceIds.includes(id)).length
+      : selectedReportCreditCost;
+
+    if ((tokenBalance ?? 0) < additionalCreditsNeeded) {
       setError(
-        `You need at least ${formatCreditBalance(selectedReportCreditCost)} credits for this ${selectedReportLimit}-business subscriber report. Subscribe or buy more credits from your profile.`
+        usingSampleSelection
+          ? `You need ${formatCreditBalance(additionalCreditsNeeded)} more credits for this selection. Sample Enrich businesses are not charged again.`
+          : `You need at least ${formatCreditBalance(selectedReportCreditCost)} credits for this report.`
       );
       return;
     }
@@ -1740,10 +1848,11 @@ export function BusinessDataGenerator() {
     setExportStatus("Generating the subscriber report with website analysis and pitch recommendations...");
     setError("");
     cancelReportRef.current = false;
-    setReportProgress({ processed: 0, requested: selectedReportLimit });
+    setReportProgress({ processed: 0, requested: reportCount });
 
     try {
       const cacheKey = buildReportCacheKey();
+      const { excludePlaceIds, excludeNames } = parseExcludeInput(advancedFilters.excludeInput);
       const startResponse = await fetch("/api/business-data/report/start", {
         method: "POST",
         headers: await getBusinessDataAuthHeaders(),
@@ -1752,9 +1861,24 @@ export function BusinessDataGenerator() {
           category,
           radiusMeters,
           center: selectedCenter,
-          resultLimit: selectedReportLimit,
+          resultLimit: reportCount,
           turnstileToken: turnstileToken || undefined,
-          cacheKey
+          cacheKey,
+          useSampleSelection: usingSampleSelection,
+          placeIds: usingSampleSelection ? selectedReportPlaceIds : undefined,
+          preChargedPlaceIds: sampleChargedPlaceIds,
+          seededExportRows: usingSampleSelection ? sampleExportRows : undefined,
+          filters: {
+            ...resolveRatingFilterRange(advancedFilters),
+            ...resolveReviewFilterRange(advancedFilters),
+            openNowOnly: advancedFilters.openNowOnly,
+            excludePermanentlyClosed: true,
+            websiteFilter: advancedFilters.websiteFilter,
+            excludePlaceIds,
+            excludeNames
+          },
+          reportFilters: usingSampleSelection ? undefined : reportFilters,
+          enrichedPreview: usingSampleSelection ? undefined : enrichedPreview.length ? enrichedPreview : enrichedRows
         })
       });
       const startJson = (await startResponse.json()) as ReportJobStatusResponse & {
@@ -1813,6 +1937,81 @@ export function BusinessDataGenerator() {
     }
   };
 
+  const runSampleEnrich = async () => {
+    if (!search) {
+      return;
+    }
+
+    if (turnstileWidgetEnabled && !turnstileToken) {
+      setError("Complete the security check before running Sample Enrich.");
+      return;
+    }
+
+    setIsSampleEnrichLoading(true);
+    setError("");
+
+    try {
+      const { excludePlaceIds, excludeNames } = parseExcludeInput(advancedFilters.excludeInput);
+      const response = await fetch("/api/business-data/sample-enrich", {
+        method: "POST",
+        headers: await getBusinessDataAuthHeaders(),
+        body: JSON.stringify({
+          location,
+          category,
+          radiusMeters,
+          center: selectedCenter,
+          turnstileToken: turnstileToken || undefined,
+          filters: {
+            ...resolveRatingFilterRange(advancedFilters),
+            ...resolveReviewFilterRange(advancedFilters),
+            openNowOnly: advancedFilters.openNowOnly,
+            excludePermanentlyClosed: true,
+            websiteFilter: advancedFilters.websiteFilter,
+            excludePlaceIds,
+            excludeNames
+          }
+        })
+      });
+      const json = (await response.json()) as {
+        rows?: EnrichedExportRow[];
+        exportRows?: ExportRow[];
+        chargedPlaceIds?: string[];
+        creditsCharged?: number;
+        balance?: number;
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(json.error ?? "Sample Enrich failed.");
+      }
+
+      const rows = json.rows ?? [];
+      setSampleEnrichRows(rows);
+      setSampleExportRows(json.exportRows ?? []);
+      setSampleChargedPlaceIds(json.chargedPlaceIds ?? []);
+      setSelectedReportPlaceIds(rows.map((row) => row.place_id));
+      setEnrichedRows(rows);
+      if (typeof json.balance === "number") {
+        setTokenBalance(json.balance);
+      }
+      setExportStatus(
+        `Sample Enrich complete — ${formatCreditBalance(json.creditsCharged ?? rows.length)} credits used. Filter below, then generate your final report.`
+      );
+
+      if (turnstileWidgetEnabled) {
+        consumeTurnstileToken();
+      }
+    } catch (sampleError) {
+      setError(
+        handleTurnstileError(
+          sampleError instanceof Error ? sampleError.message : String(sampleError)
+        )
+      );
+    } finally {
+      setIsSampleEnrichLoading(false);
+    }
+  };
+
   const cancelReportGeneration = async () => {
     setIsCancellingReport(true);
     cancelReportRef.current = true;
@@ -1864,6 +2063,7 @@ export function BusinessDataGenerator() {
       selectedCenter,
       search,
       paidAccess,
+      advancedFilters,
       reportResultLimit: selectedReportLimit,
       readyReportCacheKey: activeReport ? buildReportCacheKey() : undefined,
       reportJobId: reportJobId ?? undefined,
@@ -2029,6 +2229,13 @@ export function BusinessDataGenerator() {
     };
   }, [activeReport, exportStatus, isDriveLoading]);
 
+  const goToAuth = (mode: "login" | "signup") => {
+    const cacheKey = activeCacheKeyRef.current || window.crypto.randomUUID();
+    persistSearchSnapshot(cacheKey);
+    const nextPath = `/leads?cache=${encodeURIComponent(cacheKey)}`;
+    window.location.href = `/${mode}?next=${encodeURIComponent(nextPath)}`;
+  };
+
   const requestCheckout = async (bundleId: BusinessDataCreditBundleId = "starter") => {
     setError("");
     setCheckoutStatus("");
@@ -2046,8 +2253,7 @@ export function BusinessDataGenerator() {
     const nextPath = `/leads?checkoutBundle=${encodeURIComponent(
       bundleId
     )}&cache=${encodeURIComponent(cacheKey)}`;
-    const loginPath = `/login?next=${encodeURIComponent(nextPath)}`;
-    window.location.href = loginPath;
+    window.location.href = `/login?next=${encodeURIComponent(nextPath)}`;
   };
 
   const startCheckout = async (bundleId: BusinessDataCreditBundleId = "starter") => {
@@ -2176,6 +2382,28 @@ export function BusinessDataGenerator() {
       setSearch(cachedSearch.search);
       setActiveResultPlaceId(cachedSearch.search?.results[0]?.placeId ?? null);
       setPaidAccess(cachedSearch.paidAccess);
+      if (cachedSearch.advancedFilters) {
+        setAdvancedFilters(normalizeAdvancedFilterState(cachedSearch.advancedFilters));
+      }
+      if (cachedSearch.search) {
+        setEnrichedPreview(cachedSearch.search.enrichedResults ?? []);
+        setEnrichmentBlocked(Boolean(cachedSearch.search.enrichmentBlocked));
+        setEnrichmentMessage(cachedSearch.search.enrichmentMessage ?? "");
+        setFreeRunsRemaining(
+          typeof cachedSearch.search.freeRunsRemaining === "number"
+            ? cachedSearch.search.freeRunsRemaining
+            : null
+        );
+        setFreeRunsLimit(cachedSearch.search.freeRunsLimit ?? 3);
+        setRequiresSignInForEnrichment(Boolean(cachedSearch.search.requiresSignInForEnrichment));
+        setExcludedCount(cachedSearch.search.excludedCount ?? 0);
+        if (cachedSearch.search.enrichedResults?.length) {
+          setEnrichedRows(cachedSearch.search.enrichedResults);
+        }
+        if (typeof cachedSearch.search.tokenBalance === "number") {
+          setTokenBalance(cachedSearch.search.tokenBalance);
+        }
+      }
       if (cachedSearch.reportResultLimit) {
         setReportResultLimit(cachedSearch.reportResultLimit);
       }
@@ -2257,6 +2485,27 @@ export function BusinessDataGenerator() {
         setPendingCheckoutBundle(checkoutBundle);
         remountTurnstile();
         window.history.replaceState({}, "", "/leads");
+
+        return () => {
+          if (restoreTimer) {
+            window.clearTimeout(restoreTimer);
+          }
+        };
+      }
+
+      const authRestoreCache = params.get("cache");
+      if (authRestoreCache && !params.get("drive")) {
+        const cachedSearch = readSearchSnapshot(authRestoreCache);
+
+        if (authRestoreCache) {
+          activeCacheKeyRef.current = authRestoreCache;
+        }
+
+        if (cachedSearch) {
+          scheduleRestore(cachedSearch, "", "checkout");
+          remountTurnstile();
+          window.history.replaceState({}, "", "/leads");
+        }
 
         return () => {
           if (restoreTimer) {
@@ -2430,14 +2679,20 @@ export function BusinessDataGenerator() {
               Local market finder
             </p>
             <h2 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">
-              Start with a place. See the businesses around it.
+              Find local businesses with sales-ready pitches in minutes.
             </h2>
             <p className="mt-3 text-sm leading-6 text-stone-600">
-              Search a business, city, neighborhood, or address. We will use that point
-              as the center of the map and build a nearby business preview.
+              Search any area, get 3 fully analyzed businesses free (3 lifetime runs), then unlock
+              wider scans and full Excel reports with credits.
             </p>
+            {typeof freeRunsRemaining === "number" && !hasSubscriberAccess ? (
+              <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 ring-1 ring-emerald-100">
+                {freeRunsRemaining} of {freeRunsLimit} free analyses remaining
+              </p>
+            ) : null}
 
             <div className="mt-6 space-y-4">
+              <LeadsSearchOrientation freeRunEnrichedCount={FREE_RUN_ENRICHED_COUNT} />
               <label className="relative block text-sm font-semibold text-stone-800">
                 <span className="mb-2 flex items-center gap-2">
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-100 text-xs font-black text-emerald-800 ring-1 ring-emerald-200">
@@ -2490,10 +2745,9 @@ export function BusinessDataGenerator() {
                   </span>
                   <span>What type of business?</span>
                 </span>
-                <select
+                <LeadsCategoryCombobox
                   value={category}
-                  onChange={(event) => {
-                    const nextCategory = event.target.value;
+                  onChange={(nextCategory) => {
                     setCategory(nextCategory);
                     pushToDataLayer({
                       event: "business_data_category_change",
@@ -2503,18 +2757,12 @@ export function BusinessDataGenerator() {
                       location_label: selectedCenter.label
                     });
                   }}
-                  className="mt-2 min-h-12 w-full rounded-2xl border border-stone-200 bg-white px-4 text-sm text-stone-950 shadow-sm outline-none ring-emerald-200 transition focus:border-emerald-300 focus:ring-4"
-                >
-                  {groupedCategories.map((group) => (
-                    <optgroup key={group.id} label={group.label}>
-                      {group.options.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
+                  groups={groupedCategories}
+                />
+                <span className="mt-2 block text-xs leading-5 text-stone-500">
+                  Search across {BUSINESS_DATA_CATEGORY_COUNT} Google Places business categories —
+                  type to filter the list.
+                </span>
               </label>
 
               {categoryRecommendations.length > 0 ? (
@@ -2544,16 +2792,18 @@ export function BusinessDataGenerator() {
                   </span>
                   <span>How far from the pin?</span>
                 </span>
-                <select
+                <LeadsRadiusSelect
                   value={radiusMeters}
-                  onChange={(event) => {
-                    const nextRadius = Number(event.target.value);
-                    const radius = radiusOptions.find(
-                      (item) => item.meters === nextRadius
-                    );
+                  options={radiusOptions}
+                  hasSubscriberAccess={hasSubscriberAccess}
+                  freeRadiusLimitMeters={freeRadiusLimitMeters}
+                  onChange={(nextRadius) => {
+                    const radius = radiusOptions.find((item) => item.meters === nextRadius);
 
                     if (nextRadius > freeRadiusLimitMeters && !hasSubscriberAccess) {
-                      setError("Radius above 1 mile is for subscribers. Choose 1 mile or less, or subscribe to unlock a wider scan.");
+                      setError(
+                        "Radius above 1 mile is for subscribers. Choose 1 mile or less, or subscribe to unlock a wider scan."
+                      );
                       return;
                     }
 
@@ -2569,25 +2819,17 @@ export function BusinessDataGenerator() {
                       location_label: selectedCenter.label
                     });
                   }}
-                  className="mt-2 min-h-12 w-full rounded-2xl border border-stone-200 bg-white px-4 text-sm text-stone-950 shadow-sm outline-none ring-emerald-200 transition focus:border-emerald-300 focus:ring-4"
-                >
-                  {radiusOptions.map((item) => (
-                    <option
-                      key={item.meters}
-                      value={item.meters}
-                      disabled={item.meters > freeRadiusLimitMeters && !hasSubscriberAccess}
-                    >
-                      {item.label}
-                      {item.meters > freeRadiusLimitMeters && !hasSubscriberAccess
-                        ? " - subscribers"
-                        : ""}
-                    </option>
-                  ))}
-                </select>
+                />
                 <span className="mt-2 block text-xs leading-5 text-stone-500">
                   Free previews scan up to 1 mile. Subscribers can scan up to 5 miles.
                 </span>
               </label>
+
+              <LeadsAdvancedFilters
+                value={advancedFilters}
+                onChange={setAdvancedFilters}
+                excludedCount={excludedCount}
+              />
             </div>
 
             <div className="mt-4 rounded-2xl border border-stone-200 bg-white p-4 text-sm text-stone-900 shadow-sm">
@@ -2619,12 +2861,46 @@ export function BusinessDataGenerator() {
                   : "Sign in to see your credits or buy more."}
               </p>
               {!isSignedIn ? (
-                <Link
-                  href="/login?next=/leads"
-                  className="mt-3 inline-flex rounded-full bg-stone-950 px-4 py-2 text-xs font-black text-white transition hover:bg-stone-800"
-                >
-                  Sign in
-                </Link>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => goToAuth("login")}
+                    className="inline-flex rounded-full bg-stone-950 px-4 py-2 text-xs font-black text-white transition hover:bg-stone-800"
+                  >
+                    Sign in
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToAuth("signup")}
+                    className="inline-flex rounded-full border border-emerald-600 bg-white px-4 py-2 text-xs font-black text-emerald-800 transition hover:bg-emerald-50"
+                  >
+                    Sign up
+                  </button>
+                </div>
+              ) : null}
+              {requiresSignInForEnrichment ? (
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs font-semibold text-amber-800">
+                    Your first free analysis was used. Create a free account to unlock your remaining
+                    analyses.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => goToAuth("signup")}
+                      className="inline-flex rounded-full bg-amber-700 px-4 py-2 text-xs font-black text-white transition hover:bg-amber-800"
+                    >
+                      Sign up free
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => goToAuth("login")}
+                      className="inline-flex rounded-full border border-amber-300 bg-white px-4 py-2 text-xs font-black text-amber-900 transition hover:bg-amber-50"
+                    >
+                      Sign in
+                    </button>
+                  </div>
+                </div>
               ) : null}
             </div>
 
@@ -2907,6 +3183,51 @@ export function BusinessDataGenerator() {
         {isLoading ? <LoadingMascot label="Scanning nearby businesses..." /> : null}
         {!isLoading && search ? (
           <div className="space-y-5">
+            {!hasSubscriberAccess ? (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
+                We found ~{search.totalAvailableEstimate} businesses matching this search. Showing{" "}
+                {enrichedPreview.length || search.results.length} fully analyzed for free — unlock
+                the rest with credits.
+              </div>
+            ) : null}
+            {enrichmentBlocked && enrichmentMessage ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                <p className="text-sm font-bold text-amber-900">{enrichmentMessage}</p>
+                <div className="mt-4">
+                  <LeadsTrustRow />
+                </div>
+                <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                  {creditBundleOptions.map((bundle) => (
+                    <button
+                      key={bundle.id}
+                      type="button"
+                      onClick={() => void requestCheckout(bundle.id)}
+                      className="rounded-2xl border border-emerald-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-emerald-400"
+                    >
+                      <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">
+                        {bundle.name}
+                      </p>
+                      <p className="mt-2 text-2xl font-black text-ink">${bundle.priceUsd}</p>
+                      <p className="mt-1 text-sm font-black text-emerald-800">
+                        {formatCreditBalance(bundle.credits)} credits
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {enrichedPreview.length > 0 ? (
+              <div className="space-y-3">
+                <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">
+                  Your fully analyzed preview rows
+                </p>
+                <div className="grid gap-3 lg:grid-cols-3">
+                  {enrichedPreview.map((row) => (
+                    <LeadsEnrichedPreviewCard key={row.place_id} row={row} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="grid gap-4 rounded-[1.5rem] bg-stone-950 p-5 text-white sm:grid-cols-[1.2fr_0.8fr]">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-200">
@@ -2917,8 +3238,8 @@ export function BusinessDataGenerator() {
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-stone-300">
                   {hasSubscriberAccess
-                      ? `Showing ${search.results.length} preview records. Subscriber reports add public email candidates, website checks, and outreach notes for each exported business.`
-                    : `Showing ${search.results.length} free records. Full reports unlock wider scans, a business counter, and a formatted Excel workbook with email discovery, website checks, and outreach notes.`}
+                    ? `Showing ${search.results.length} preview records. Subscriber reports add public email candidates, website checks, and outreach notes for each exported business.`
+                    : `Showing ${search.results.length} matching businesses with ${enrichedPreview.length} fully enriched for free. Buy credits to process up to 60 businesses per report.`}
                 </p>
                 <div className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm">
                   {hasSubscriberAccess ? (
@@ -2974,30 +3295,80 @@ export function BusinessDataGenerator() {
             </div>
 
             {hasSubscriberAccess ? (
-              <div className="rounded-3xl border border-emerald-100 bg-emerald-50/70 p-4">
-                <label className="block text-sm font-black text-ink">
-                  Businesses to process in the report
-                  <select
-                    value={selectedReportLimit}
-                    onChange={(event) => setReportResultLimit(Number(event.target.value))}
-                    className="mt-2 min-h-12 w-full rounded-2xl border border-emerald-200 bg-white px-4 text-sm font-bold text-stone-950 outline-none ring-emerald-200 transition focus:ring-4 sm:max-w-xs"
-                  >
-                    {reportLimitOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option === search.totalAvailableEstimate
-                          ? `All found (${formatBusinessCount(option)})`
-                          : formatBusinessCount(option)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <p className="mt-2 text-xs font-semibold leading-5 text-emerald-900">
-                  Process {formatBusinessCount(selectedReportLimit)} ={" "}
-                  {formatCreditBalance(selectedReportCreditCost)} credits. Each business gets details,
-                  website checks, and outreach notes.
-                </p>
+              <div className="space-y-4">
+                {!sampleEnrichRows.length ? (
+                  <LeadsSampleEnrichPanel
+                    creditBalance={tokenBalance}
+                    isLoading={isSampleEnrichLoading}
+                    onRunSampleEnrich={() => void runSampleEnrich()}
+                  />
+                ) : null}
+                <LeadsReportFilters
+                  value={reportFilters}
+                  onChange={setReportFilters}
+                  enrichedPreview={sampleEnrichRows}
+                  availablePitchAngles={Array.from(
+                    new Set(sampleEnrichRows.map((row) => row.pitch_angle).filter(Boolean))
+                  )}
+                  unlocked={sampleEnrichRows.length > 0}
+                  isFreeUser={false}
+                />
+                {sampleEnrichRows.length > 0 ? (
+                  <LeadsFilteredSelection
+                    rows={sampleEnrichRows}
+                    filters={reportFilters}
+                    selectedPlaceIds={selectedReportPlaceIds}
+                    onTogglePlaceId={(placeId) => {
+                      setSelectedReportPlaceIds((current) =>
+                        current.includes(placeId)
+                          ? current.filter((id) => id !== placeId)
+                          : [...current, placeId]
+                      );
+                    }}
+                    onSelectAllFiltered={() => {
+                      const filtered = applyReportFilters(
+                        sampleEnrichRows.map((row) => ({
+                          place_id: row.place_id,
+                          pitch_angle: row.pitch_angle,
+                          email_candidates: row.email_candidates,
+                          website_reachable: row.website_reachable
+                        })),
+                        reportFilters
+                      );
+                      setSelectedReportPlaceIds(filtered.map((row) => row.place_id));
+                    }}
+                  />
+                ) : null}
               </div>
             ) : (
+              <LeadsReportFilters
+                value={reportFilters}
+                onChange={setReportFilters}
+                enrichedPreview={enrichedPreview}
+                availablePitchAngles={[]}
+                unlocked={false}
+                isFreeUser
+              />
+            )}
+
+            {hasSubscriberAccess && sampleEnrichRows.length > 0 ? (
+              <div className="rounded-3xl border border-emerald-100 bg-emerald-50/70 p-4">
+                <p className="text-sm font-black text-ink">
+                  Final report: {selectedReportPlaceIds.length} selected lead
+                  {selectedReportPlaceIds.length === 1 ? "" : "s"}
+                </p>
+                <p className="mt-2 text-xs font-semibold leading-5 text-emerald-900">
+                  Additional credits needed:{" "}
+                  {formatCreditBalance(
+                    selectedReportPlaceIds.filter((id) => !sampleChargedPlaceIds.includes(id))
+                      .length
+                  )}{" "}
+                  (Sample Enrich rows are not charged again).
+                </p>
+              </div>
+            ) : null}
+
+            {hasSubscriberAccess ? null : (
               <div
                 id="business-data-credit-bundles"
                 className="overflow-hidden rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-5"
@@ -3025,6 +3396,10 @@ export function BusinessDataGenerator() {
                       cancelled reports only charge completed rows.
                     </p>
                   </div>
+                </div>
+
+                <div className="mt-4">
+                  <LeadsTrustRow />
                 </div>
 
                 <div className="mt-5 grid gap-3 lg:grid-cols-4">
@@ -3096,18 +3471,18 @@ export function BusinessDataGenerator() {
               </button>
               {hasSubscriberAccess ? (
                 <>
-                  {!reportReady ? (
+                  {!reportReady && sampleEnrichRows.length > 0 ? (
                     <button
                       type="button"
                       onClick={() => void generateReport()}
-                      disabled={isExportLoading}
+                      disabled={isExportLoading || selectedReportPlaceIds.length === 0}
                       className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-wait disabled:bg-emerald-300"
                     >
                       {isExportLoading
                         ? "Building the report..."
-                        : `Generate ${selectedReportLimit}-business report`}
+                        : `Generate Excel for ${selectedReportPlaceIds.length} selected lead${selectedReportPlaceIds.length === 1 ? "" : "s"}`}
                     </button>
-                  ) : (
+                  ) : !reportReady ? null : (
                     <>
                       <button
                         type="button"

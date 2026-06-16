@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 
 import { BUSINESS_DATA_CATEGORY_VALUES } from "@/lib/business-data-categories";
 import { getUserFromRequest } from "@/lib/business-data-auth";
-import { checkKeyedRateLimit, getClientIdentity } from "@/lib/business-data-rate-limit";
+import { FREE_RADIUS_LIMIT_METERS } from "@/lib/business-data-free-config";
+import {
+  buildFilteredPlaceSet,
+  mapPlaceToResult,
+  resolveFreeEnrichment
+} from "@/lib/business-data-search-service";
 import { enforceBusinessDataSecurity } from "@/lib/business-data-security";
 import { generateSubscriberId } from "@/lib/subscriber-id";
 import { supabase } from "@/lib/supabase";
@@ -44,6 +49,7 @@ type GooglePlaceDetails = {
   url?: string;
   rating?: number;
   user_ratings_total?: number;
+  business_status?: string;
   opening_hours?: {
     open_now?: boolean;
   };
@@ -57,11 +63,9 @@ type GooglePlaceDetails = {
 
 const freePreviewLimit = 3;
 const paidPreviewLimit = 10;
-const freeRadiusLimitMeters = 1609;
+const freeRadiusLimitMeters = FREE_RADIUS_LIMIT_METERS;
 const maxFreeRadiusMeters = 8047;
 const subscriberCounterLimit = 60;
-const freePreviewDailyLimit = Number(process.env.BUSINESS_DATA_FREE_PREVIEW_DAILY_LIMIT ?? "5");
-const freePreviewWindowMs = 24 * 60 * 60 * 1000;
 
 function cleanText(value: unknown, maxLength: number) {
   return String(value ?? "")
@@ -135,29 +139,6 @@ async function addBusinessDataUserToNewsletter(email?: string) {
       return;
     }
   }
-}
-
-function enforceFreePreviewLimit(request: Request, userId?: string) {
-  const identity = getClientIdentity(request);
-  const accountType = userId ? "account" : "ip";
-  const limit = checkKeyedRateLimit({
-    key: userId
-      ? `business-data:free-preview:account:${userId}`
-      : `business-data:free-preview:ip:${identity.ip}`,
-    limit: freePreviewDailyLimit,
-    windowMs: freePreviewWindowMs
-  });
-
-  if (limit.allowed) {
-    return { ok: true as const, accountType, remaining: limit.remaining };
-  }
-
-  return {
-    ok: false as const,
-    accountType,
-    remaining: 0,
-    retryAfterMs: limit.retryAfterMs ?? 0
-  };
 }
 
 function getGooglePlacesKey() {
@@ -377,6 +358,7 @@ async function placeDetails(placeId: string, apiKey: string) {
       "url",
       "rating",
       "user_ratings_total",
+      "business_status",
       "opening_hours",
       "geometry"
     ].join(",")
@@ -439,22 +421,6 @@ export async function POST(request: Request) {
     if (!canExport) {
       if (user?.email) {
         await addBusinessDataUserToNewsletter(user.email);
-      }
-
-      const freePreviewUsage = enforceFreePreviewLimit(request, user?.id);
-
-      if (!freePreviewUsage.ok) {
-        return NextResponse.json(
-          {
-            error: user
-              ? "You have used your 5 free account previews for now. Get the full lead report to keep searching, scan wider areas, and export enriched leads."
-              : "You have used your 5 free previews for this IP address today. Create a free account to get 5 more previews, or get the full lead report.",
-            freePreviewLimit: freePreviewDailyLimit,
-            freePreviewAccountType: freePreviewUsage.accountType,
-            retryAfterMs: freePreviewUsage.retryAfterMs
-          },
-          { status: 402 }
-        );
       }
     }
 
@@ -529,38 +495,40 @@ export async function POST(request: Request) {
       ).values()
     );
 
-    const previewPlaces = uniquePlaces.slice(0, resultLimit);
-    const details = await Promise.all(
-      previewPlaces.map((place) => placeDetails(place.place_id as string, apiKey))
+    const allDetails = await Promise.all(
+      uniquePlaces.map((place) => placeDetails(place.place_id as string, apiKey))
     );
 
-    const results = previewPlaces.map((place, index) => {
-      const detail = details[index];
-      const lat = detail.geometry?.location?.lat ?? null;
-      const lng = detail.geometry?.location?.lng ?? null;
+    const { filteredPlaces, excludedCount, filters } = buildFilteredPlaceSet(
+      uniquePlaces,
+      allDetails,
+      body
+    );
 
-      return {
-        placeId: place.place_id ?? "",
-        name: detail.name ?? place.name ?? "",
-        address: detail.formatted_address ?? place.vicinity ?? "",
-        phone: detail.formatted_phone_number ?? "",
-        website: detail.website ?? "",
-        mapsUrl:
-          detail.url ??
-          (lat && lng
-            ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
-            : ""),
-        rating: detail.rating ?? place.rating ?? null,
-        reviewCount: detail.user_ratings_total ?? place.user_ratings_total ?? null,
-        openNow: detail.opening_hours?.open_now ?? place.opening_hours?.open_now ?? null,
-        lat,
-        lng
-      };
+    const previewPlaces = filteredPlaces.slice(0, resultLimit);
+    const details = previewPlaces.map((place) => {
+      const index = uniquePlaces.findIndex((item) => item.place_id === place.place_id);
+      return allDetails[index] ?? {};
+    });
+
+    const results = previewPlaces.map((place, index) =>
+      mapPlaceToResult(place, details[index] as Record<string, unknown>)
+    );
+
+    const enrichment = await resolveFreeEnrichment({
+      request,
+      userId: user?.id,
+      canExport,
+      category,
+      apiKey,
+      filteredPlaces,
+      placeDetails: details,
+      previewCount: resultLimit
     });
 
     const totalAvailableEstimate = canExport
-      ? uniquePlaces.length
-      : uniquePlaces.length + (nearby.hasMorePages ? 20 : 0);
+      ? filteredPlaces.length
+      : filteredPlaces.length + (nearby.hasMorePages ? 20 : 0);
 
     await logUsageEvent({
       userId: user?.id ?? null,
@@ -580,7 +548,10 @@ export async function POST(request: Request) {
         visitor_country: visitorGeo.country,
         visitor_region: visitorGeo.region,
         visitor_city: visitorGeo.city,
-        result_names: results.map((result) => result.name).filter(Boolean).slice(0, 5)
+        result_names: results.map((result) => result.name).filter(Boolean).slice(0, 5),
+        excluded_count: excludedCount,
+        enriched_preview_count: enrichment.enrichedResults.length,
+        free_runs_used: enrichment.freeRunsUsed
       }
     });
 
@@ -614,7 +585,16 @@ export async function POST(request: Request) {
       previewLimit,
       totalAvailableEstimate,
       lockedCount: Math.max(totalAvailableEstimate - results.length, 0),
-      results
+      excludedCount,
+      filters,
+      results,
+      enrichedResults: enrichment.enrichedResults,
+      enrichmentBlocked: enrichment.enrichmentBlocked,
+      enrichmentMessage: enrichment.enrichmentMessage,
+      freeRunsUsed: enrichment.freeRunsUsed,
+      freeRunsRemaining: enrichment.freeRunsRemaining,
+      freeRunsLimit: enrichment.freeRunsLimit,
+      requiresSignInForEnrichment: enrichment.requiresSignInForEnrichment
     });
   } catch (error) {
     return NextResponse.json(
