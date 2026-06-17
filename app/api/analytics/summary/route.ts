@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 type VisitorEventRow = {
   id: string;
   event_name: string;
+  visitor_id: string;
   session_id: string;
   page_path: string | null;
   page_title: string | null;
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
   const { data, error } = await supabase
     .from("visitor_events")
     .select(
-      "id, event_name, session_id, page_path, page_title, referrer, utm_source, utm_campaign, country, device_type, metadata, created_at, ip_hash"
+      "id, event_name, visitor_id, session_id, page_path, page_title, referrer, utm_source, utm_campaign, country, device_type, metadata, created_at, ip_hash"
     )
     .gte("created_at", twentyFourHoursAgo)
     .order("created_at", { ascending: false })
@@ -77,6 +78,9 @@ export async function GET(request: Request) {
   const pageViews30 = last30Rows.filter((row) => row.event_name === "page_view")
     .length;
   const pageViews24 = rows.filter((row) => row.event_name === "page_view").length;
+  const uniqueVisitors24h = new Set(
+    rows.map((row) => row.visitor_id).filter(Boolean)
+  ).size;
 
   const topPages = countBy(
     last30Rows
@@ -127,6 +131,7 @@ export async function GET(request: Request) {
     active_visitors_5m: activeSessions.size,
     page_views_30m: pageViews30,
     page_views_24h: pageViews24,
+    unique_visitors_24h: uniqueVisitors24h,
     session_duration_30m: sessionDuration30m,
     session_duration_24h: sessionDuration24h,
     top_pages: topPages,

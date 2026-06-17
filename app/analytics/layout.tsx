@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { SiteHeader } from "@/components/layout/SiteHeader";
+
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Analytics Dashboard",
   robots: {
@@ -10,5 +14,10 @@ export const metadata: Metadata = {
 };
 
 export default function AnalyticsLayout({ children }: { children: ReactNode }) {
-  return children;
+  return (
+    <>
+      <SiteHeader />
+      {children}
+    </>
+  );
 }
