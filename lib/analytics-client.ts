@@ -7,6 +7,8 @@ export { ANALYTICS_OPT_OUT_KEY };
 const VISITOR_ID_KEY = "tech-revenue-brief-visitor-id";
 const SESSION_ID_KEY = "tech-revenue-brief-session-id";
 const SESSION_STARTED_AT_KEY = "tech-revenue-brief-session-started-at";
+const LAST_PAGE_PATH_KEY = "tech-revenue-brief-last-page-path";
+const LAST_PAGE_TITLE_KEY = "tech-revenue-brief-last-page-title";
 
 export type AnalyticsClientEvent = {
   event: string;
@@ -139,6 +141,40 @@ function getUtmParams() {
   };
 }
 
+function rememberPageContext(pagePath?: string, pageTitle?: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const resolvedPath = pagePath?.trim() || window.location.pathname;
+  const resolvedTitle = pageTitle?.trim() || document.title;
+
+  if (resolvedPath) {
+    window.sessionStorage.setItem(LAST_PAGE_PATH_KEY, resolvedPath);
+  }
+
+  if (resolvedTitle) {
+    window.sessionStorage.setItem(LAST_PAGE_TITLE_KEY, resolvedTitle);
+  }
+}
+
+function getLastPageContext() {
+  if (typeof window === "undefined") {
+    return { page_path: "/", page_title: "" };
+  }
+
+  return {
+    page_path:
+      window.sessionStorage.getItem(LAST_PAGE_PATH_KEY)?.trim() ||
+      window.location.pathname ||
+      "/",
+    page_title:
+      window.sessionStorage.getItem(LAST_PAGE_TITLE_KEY)?.trim() ||
+      document.title ||
+      ""
+  };
+}
+
 function getDeviceType() {
   if (typeof window === "undefined") {
     return "unknown";
@@ -187,12 +223,20 @@ function sendAnalyticsEvent(event: AnalyticsClientEvent) {
     ...rest
   } = event;
 
+  const lastPage = getLastPageContext();
+  const resolvedPagePath = page_path?.trim() || lastPage.page_path || "/";
+  const resolvedPageTitle = page_title?.trim() || lastPage.page_title || document.title;
+
+  if (eventName === "page_view") {
+    rememberPageContext(resolvedPagePath, resolvedPageTitle);
+  }
+
   const payload = {
     event: eventName,
     visitor_id: getAnalyticsVisitorId(),
     session_id: getAnalyticsSessionId(),
-    page_path: page_path ?? window.location.pathname,
-    page_title: page_title ?? document.title,
+    page_path: resolvedPagePath,
+    page_title: resolvedPageTitle,
     referrer: document.referrer || null,
     device_type: getDeviceType(),
     viewport_width: window.innerWidth,
@@ -230,12 +274,6 @@ function sendAnalyticsEvent(event: AnalyticsClientEvent) {
   };
 
   const body = JSON.stringify(payload);
-
-  if (navigator.sendBeacon) {
-    const blob = new Blob([body], { type: "application/json" });
-    navigator.sendBeacon("/api/analytics/track", blob);
-    return;
-  }
 
   void fetch("/api/analytics/track", {
     method: "POST",

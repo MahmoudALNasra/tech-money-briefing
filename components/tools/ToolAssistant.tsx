@@ -51,8 +51,121 @@ const POSITION_STORAGE_KEY = "trb-assistant-anchor-v2";
 const DRAG_THRESHOLD_PX = 6;
 const DEFAULT_BOTTOM_REM = 6;
 const DEFAULT_RIGHT_PX = 16;
+const DEFAULT_LEFT_PX = 16;
+const MOBILE_BREAKPOINT = 768;
 const FRAME_WIDTH = 148;
 const FRAME_HEIGHT = 156;
+const PANEL_MAX_WIDTH = 460;
+const PANEL_MAX_HEIGHT = 672;
+const PANEL_MIN_HEIGHT = 220;
+const VIEWPORT_MARGIN = 12;
+
+function isMobileViewport() {
+  return typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT;
+}
+
+function getDefaultBottomOffsetPx() {
+  const safeBottom = Number.parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue(
+      "env(safe-area-inset-bottom)"
+    ) || "0"
+  );
+
+  return safeBottom + DEFAULT_BOTTOM_REM * 16;
+}
+
+function getDefaultAnchorPosition(): AnchorPosition {
+  const bottomOffset = getDefaultBottomOffsetPx();
+  const y = window.innerHeight - FRAME_HEIGHT - bottomOffset;
+
+  if (isMobileViewport()) {
+    return clampAnchorPosition(DEFAULT_LEFT_PX, y);
+  }
+
+  const x = window.innerWidth - FRAME_WIDTH - DEFAULT_RIGHT_PX;
+  return clampAnchorPosition(x, y);
+}
+
+function computePanelStyle(anchor: AnchorPosition): CSSProperties {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const mobile = viewportWidth < MOBILE_BREAKPOINT;
+  const panelWidth = Math.min(PANEL_MAX_WIDTH, viewportWidth - VIEWPORT_MARGIN * 2);
+  const preferredHeight = Math.min(viewportHeight * 0.82, PANEL_MAX_HEIGHT);
+
+  if (mobile) {
+    const spaceAbove = anchor.y - VIEWPORT_MARGIN;
+    const spaceBelow =
+      viewportHeight - anchor.y - FRAME_HEIGHT - VIEWPORT_MARGIN;
+    const openAbove = spaceAbove >= spaceBelow;
+    const availableSpace = openAbove ? spaceAbove - 8 : spaceBelow - 8;
+    let panelHeight = Math.min(preferredHeight, availableSpace);
+
+    if (panelHeight < PANEL_MIN_HEIGHT) {
+      const top = VIEWPORT_MARGIN;
+      const bottom = Math.max(
+        VIEWPORT_MARGIN,
+        viewportHeight - anchor.y - FRAME_HEIGHT - 8
+      );
+      panelHeight = Math.min(preferredHeight, viewportHeight - top - bottom);
+
+      if (panelHeight < PANEL_MIN_HEIGHT) {
+        return {
+          left: VIEWPORT_MARGIN,
+          right: VIEWPORT_MARGIN,
+          top,
+          bottom: `calc(env(safe-area-inset-bottom) + ${VIEWPORT_MARGIN}px)`,
+          width: "auto",
+          height: "auto",
+          maxHeight: "none"
+        };
+      }
+
+      return {
+        left: VIEWPORT_MARGIN,
+        right: VIEWPORT_MARGIN,
+        top,
+        bottom,
+        width: "auto",
+        height: panelHeight,
+        maxHeight: panelHeight
+      };
+    }
+
+    if (openAbove) {
+      return {
+        left: VIEWPORT_MARGIN,
+        right: VIEWPORT_MARGIN,
+        bottom: viewportHeight - anchor.y + 8,
+        top: "auto",
+        width: "auto",
+        height: panelHeight,
+        maxHeight: panelHeight
+      };
+    }
+
+    return {
+      left: VIEWPORT_MARGIN,
+      right: VIEWPORT_MARGIN,
+      top: anchor.y + FRAME_HEIGHT + 8,
+      bottom: "auto",
+      width: "auto",
+      height: panelHeight,
+      maxHeight: panelHeight
+    };
+  }
+
+  return {
+    left: Math.min(
+      Math.max(VIEWPORT_MARGIN, anchor.x),
+      Math.max(VIEWPORT_MARGIN, viewportWidth - panelWidth - VIEWPORT_MARGIN)
+    ),
+    right: "auto",
+    bottom: Math.max(VIEWPORT_MARGIN, viewportHeight - anchor.y + 12),
+    width: panelWidth,
+    maxHeight: preferredHeight
+  };
+}
 
 function clampAnchorPosition(
   x: number,
@@ -105,6 +218,7 @@ export function ToolAssistant({
   const [isLoading, setIsLoading] = useState(false);
   const [anchorPosition, setAnchorPosition] = useState<AnchorPosition | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [panelInlineStyle, setPanelInlineStyle] = useState<CSSProperties>();
   const panelRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -124,23 +238,40 @@ export function ToolAssistant({
   const pushToDataLayer = useDataLayer();
 
   useEffect(() => {
+    function syncViewportMode() {
+      setIsMobile(isMobileViewport());
+    }
+
+    syncViewportMode();
+    window.addEventListener("resize", syncViewportMode);
+    return () => window.removeEventListener("resize", syncViewportMode);
+  }, []);
+
+  useEffect(() => {
+    let hasSavedPosition = false;
+
     try {
       const saved =
         window.localStorage.getItem(POSITION_STORAGE_KEY) ??
         window.localStorage.getItem("trb-assistant-anchor-v1");
 
-      if (!saved) {
-        return;
-      }
-
-      const parsed = JSON.parse(saved) as Partial<AnchorPosition>;
-      if (typeof parsed.x === "number" && typeof parsed.y === "number") {
-        const next = { x: parsed.x, y: parsed.y };
-        setAnchorPosition(next);
-        livePositionRef.current = next;
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<AnchorPosition>;
+        if (typeof parsed.x === "number" && typeof parsed.y === "number") {
+          const next = clampAnchorPosition(parsed.x, parsed.y);
+          setAnchorPosition(next);
+          livePositionRef.current = next;
+          hasSavedPosition = true;
+        }
       }
     } catch {
       // Ignore invalid saved positions.
+    }
+
+    if (!hasSavedPosition) {
+      const next = getDefaultAnchorPosition();
+      setAnchorPosition(next);
+      livePositionRef.current = next;
     }
   }, []);
 
@@ -229,14 +360,17 @@ export function ToolAssistant({
       return;
     }
 
-    setPanelInlineStyle({
-      left: Math.min(
-        Math.max(12, anchorPosition.x),
-        Math.max(12, window.innerWidth - 460 - 12)
-      ),
-      right: "auto",
-      bottom: Math.max(12, window.innerHeight - anchorPosition.y + 12)
-    });
+    function updatePanelStyle() {
+      if (!anchorPosition) {
+        return;
+      }
+
+      setPanelInlineStyle(computePanelStyle(anchorPosition));
+    }
+
+    updatePanelStyle();
+    window.addEventListener("resize", updatePanelStyle);
+    return () => window.removeEventListener("resize", updatePanelStyle);
   }, [anchorPosition, isOpen]);
 
   useEffect(() => {
@@ -422,17 +556,34 @@ export function ToolAssistant({
 
   const anchorStyle: CSSProperties = anchorPosition
     ? { left: anchorPosition.x, top: anchorPosition.y, right: "auto", bottom: "auto" }
+    : isMobile
+      ? {
+          left: DEFAULT_LEFT_PX,
+          bottom: `calc(env(safe-area-inset-bottom) + ${DEFAULT_BOTTOM_REM}rem)`,
+          right: "auto",
+          top: "auto"
+        }
+      : {
+          right: DEFAULT_RIGHT_PX,
+          bottom: `calc(env(safe-area-inset-bottom) + ${DEFAULT_BOTTOM_REM}rem)`,
+          left: "auto",
+          top: "auto"
+        };
+
+  const defaultPanelStyle: CSSProperties = isMobile
+    ? {
+        left: VIEWPORT_MARGIN,
+        right: VIEWPORT_MARGIN,
+        bottom: `calc(env(safe-area-inset-bottom) + ${DEFAULT_BOTTOM_REM}rem + ${FRAME_HEIGHT}px)`
+      }
     : {
-        right: DEFAULT_RIGHT_PX,
         bottom: `calc(env(safe-area-inset-bottom) + ${DEFAULT_BOTTOM_REM}rem)`,
-        left: "auto",
-        top: "auto"
+        right: DEFAULT_RIGHT_PX
       };
 
-  const defaultPanelStyle: CSSProperties = {
-    bottom: `calc(env(safe-area-inset-bottom) + ${DEFAULT_BOTTOM_REM}rem)`,
-    right: DEFAULT_RIGHT_PX
-  };
+  const panelUsesComputedHeight = Boolean(
+    panelInlineStyle?.height || panelInlineStyle?.maxHeight === "none"
+  );
 
   return (
     <>
@@ -514,7 +665,9 @@ export function ToolAssistant({
       {isOpen ? (
         <div
           ref={panelRef}
-          className="fixed inset-x-3 z-[80] flex h-[min(82dvh,42rem)] flex-col overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-2xl shadow-stone-950/25 sm:inset-x-auto sm:w-[min(100vw-3rem,460px)] md:bottom-[calc(env(safe-area-inset-bottom)+7rem)]"
+          className={`fixed z-[80] flex flex-col overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-2xl shadow-stone-950/25 sm:inset-x-auto sm:w-[min(100vw-3rem,460px)] md:bottom-[calc(env(safe-area-inset-bottom)+7rem)] ${
+            panelUsesComputedHeight ? "min-h-0" : "h-[min(82dvh,42rem)]"
+          } ${isMobile ? "" : "inset-x-3"}`}
           style={panelInlineStyle ?? defaultPanelStyle}
           role="dialog"
           aria-label="Tool assistant"

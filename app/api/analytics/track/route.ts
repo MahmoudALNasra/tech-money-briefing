@@ -75,9 +75,24 @@ function sanitizeMetadata(value: unknown) {
   );
 }
 
+async function readTrackBody(request: Request) {
+  const text = await request.text();
+
+  if (!text.trim()) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as {
+    const body = await readTrackBody(request);
+    const bodyRecord = body as {
       event?: string;
       visitor_id?: string;
       session_id?: string;
@@ -100,14 +115,14 @@ export async function POST(request: Request) {
       metadata?: Record<string, unknown>;
     };
 
-    const eventName = sanitizeText(body.event, 80);
+    const eventName = sanitizeText(bodyRecord.event, 80);
 
     if (!eventName || !ALLOWED_EVENTS.has(eventName)) {
       return NextResponse.json({ error: "Invalid event." }, { status: 400 });
     }
 
-    const visitorId = sanitizeText(body.visitor_id, 80);
-    const sessionId = sanitizeText(body.session_id, 80);
+    const visitorId = sanitizeText(bodyRecord.visitor_id, 80);
+    const sessionId = sanitizeText(bodyRecord.session_id, 80);
 
     if (!visitorId || !sessionId) {
       return NextResponse.json(
@@ -116,7 +131,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const pagePath = sanitizeText(body.page_path, 240) ?? "/";
+    const pagePath = sanitizeText(bodyRecord.page_path, 240) || "/";
     const parsedArticle = parseArticlePath(pagePath);
     const userAgent = request.headers.get("user-agent");
 
@@ -135,18 +150,18 @@ export async function POST(request: Request) {
       visitor_id: visitorId,
       session_id: sessionId,
       page_path: pagePath,
-      page_title: sanitizeText(body.page_title, 240),
-      referrer: sanitizeText(body.referrer, 500),
-      utm_source: sanitizeText(body.utm_source, 120),
-      utm_medium: sanitizeText(body.utm_medium, 120),
-      utm_campaign: sanitizeText(body.utm_campaign, 120),
-      utm_term: sanitizeText(body.utm_term, 120),
-      utm_content: sanitizeText(body.utm_content, 120),
-      article_id: sanitizeText(body.article_id, 80),
+      page_title: sanitizeText(bodyRecord.page_title, 240),
+      referrer: sanitizeText(bodyRecord.referrer, 500),
+      utm_source: sanitizeText(bodyRecord.utm_source, 120),
+      utm_medium: sanitizeText(bodyRecord.utm_medium, 120),
+      utm_campaign: sanitizeText(bodyRecord.utm_campaign, 120),
+      utm_term: sanitizeText(bodyRecord.utm_term, 120),
+      utm_content: sanitizeText(bodyRecord.utm_content, 120),
+      article_id: sanitizeText(bodyRecord.article_id, 80),
       article_slug:
-        sanitizeText(body.article_slug, 120) ?? parsedArticle.articleSlug,
-      category: sanitizeText(body.category, 80) ?? parsedArticle.category,
-      metadata: sanitizeMetadata(body.metadata),
+        sanitizeText(bodyRecord.article_slug, 120) ?? parsedArticle.articleSlug,
+      category: sanitizeText(bodyRecord.category, 80) ?? parsedArticle.category,
+      metadata: sanitizeMetadata(bodyRecord.metadata),
       country: sanitizeText(request.headers.get("x-vercel-ip-country"), 8),
       region: sanitizeText(
         request.headers.get("x-vercel-ip-country-region"),
@@ -155,17 +170,17 @@ export async function POST(request: Request) {
       city: sanitizeText(request.headers.get("x-vercel-ip-city"), 80),
       ip_hash: hashTrackingValue(ip),
       user_agent_hash: hashTrackingValue(userAgent),
-      device_type: sanitizeText(body.device_type, 40),
+      device_type: sanitizeText(bodyRecord.device_type, 40),
       viewport_width:
-        typeof body.viewport_width === "number"
-          ? Math.round(body.viewport_width)
+        typeof bodyRecord.viewport_width === "number"
+          ? Math.round(bodyRecord.viewport_width)
           : null,
       viewport_height:
-        typeof body.viewport_height === "number"
-          ? Math.round(body.viewport_height)
+        typeof bodyRecord.viewport_height === "number"
+          ? Math.round(bodyRecord.viewport_height)
           : null,
-      timezone: sanitizeText(body.timezone, 80),
-      language: sanitizeText(body.language, 40),
+      timezone: sanitizeText(bodyRecord.timezone, 80),
+      language: sanitizeText(bodyRecord.language, 40),
       host: sanitizeText(request.headers.get("host"), 120)
     });
 

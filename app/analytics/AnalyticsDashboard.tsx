@@ -733,6 +733,9 @@ export function AnalyticsDashboard() {
             <h2 className="text-sm font-black uppercase tracking-[0.18em] text-stone-500">
               Recent events
             </h2>
+            <p className="mt-1 text-xs text-stone-500">
+              Page views and actions from the last 24 hours. Heartbeat pings are hidden.
+            </p>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
@@ -746,7 +749,8 @@ export function AnalyticsDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {(summary?.recent_events ?? []).map((event) => (
+                {(summary?.recent_events ?? []).length > 0 ? (
+                  (summary?.recent_events ?? []).map((event) => (
                   <tr key={event.id} className="border-t border-stone-100">
                     <td className="px-5 py-3 whitespace-nowrap text-stone-500">
                       {formatTime(event.created_at)}
@@ -759,16 +763,23 @@ export function AnalyticsDashboard() {
                         : null}
                     </td>
                     <td className="px-5 py-3 max-w-xs truncate">
-                      {event.page_path ?? "—"}
+                      {event.page_path?.trim() || event.page_title?.trim() || "—"}
                     </td>
                     <td className="px-5 py-3 max-w-xs truncate text-stone-600">
-                      {event.referrer ?? "direct"}
+                      {event.referrer?.trim() || "direct"}
                     </td>
                     <td className="px-5 py-3 text-stone-600">
-                      {event.country ?? "—"}
+                      {event.country?.trim() || "—"}
                     </td>
                   </tr>
-                ))}
+                  ))
+                ) : (
+                  <tr>
+                    <td className="px-5 py-6 text-sm text-stone-500" colSpan={5}>
+                      No page views or actions yet in the last 24 hours.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

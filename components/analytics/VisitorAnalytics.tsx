@@ -13,8 +13,13 @@ export function VisitorAnalytics() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const lastTrackedPath = useRef<string | null>(null);
+  const pathnameRef = useRef(pathname);
   const sessionEndSent = useRef(false);
   const [trackingAllowed, setTrackingAllowed] = useState(false);
+
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,7 +63,7 @@ export function VisitorAnalytics() {
     const interval = window.setInterval(() => {
       trackAnalyticsEvent({
         event: "session_ping",
-        page_path: window.location.pathname,
+        page_path: pathnameRef.current || window.location.pathname,
         page_title: document.title
       });
     }, 30000);

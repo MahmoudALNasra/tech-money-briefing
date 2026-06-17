@@ -125,6 +125,9 @@ export async function GET(request: Request) {
   const topCountries = countBy(last30Rows.map((row) => row.country), 8);
   const sessionDuration30m = computeSessionDurationStats(last30Rows);
   const sessionDuration24h = computeSessionDurationStats(rows);
+  const recentEvents = rows
+    .filter((row) => row.event_name !== "session_ping")
+    .slice(0, 40);
 
   return NextResponse.json({
     generated_at: new Date().toISOString(),
@@ -138,7 +141,7 @@ export async function GET(request: Request) {
     top_referrers: topReferrers,
     top_events: topEvents,
     top_countries: topCountries,
-    recent_events: rows.slice(0, 40).map((row) => ({
+    recent_events: recentEvents.map((row) => ({
       id: row.id,
       event_name: row.event_name,
       page_path: row.page_path,
