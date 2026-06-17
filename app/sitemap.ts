@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import {
   ADSENSE_TRUST_PAGES,
+  isAdsenseReviewMode,
   isAdsenseHiddenCategory
 } from "@/lib/adsense-readiness";
 import {
@@ -16,6 +17,8 @@ import { absoluteUrl } from "@/lib/site";
 export const revalidate = 3600;
 
 function staticSitemapEntries(): MetadataRoute.Sitemap {
+  const reviewMode = isAdsenseReviewMode();
+
   return [
     {
       url: absoluteUrl("/"),
@@ -23,42 +26,46 @@ function staticSitemapEntries(): MetadataRoute.Sitemap {
       changeFrequency: "hourly",
       priority: 1
     },
-    {
-      url: absoluteUrl("/tools"),
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.6
-    },
-    {
-      url: absoluteUrl("/compare"),
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.6
-    },
-    {
-      url: absoluteUrl("/monetization-checklist"),
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.65
-    },
-    {
-      url: absoluteUrl("/monetization-audit"),
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.65
-    },
-    ...COMPARISONS.map((comparison) => ({
-      url: absoluteUrl(`/compare/${comparison.slug}`),
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.55
-    })),
-    ...FREE_TOOLS.map((tool) => ({
-      url: absoluteUrl(tool.href),
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.55
-    })),
+    ...(reviewMode
+      ? []
+      : ([
+          {
+            url: absoluteUrl("/tools"),
+            lastModified: new Date(),
+            changeFrequency: "monthly",
+            priority: 0.6
+          },
+          {
+            url: absoluteUrl("/compare"),
+            lastModified: new Date(),
+            changeFrequency: "monthly",
+            priority: 0.6
+          },
+          {
+            url: absoluteUrl("/monetization-checklist"),
+            lastModified: new Date(),
+            changeFrequency: "monthly",
+            priority: 0.65
+          },
+          {
+            url: absoluteUrl("/monetization-audit"),
+            lastModified: new Date(),
+            changeFrequency: "monthly",
+            priority: 0.65
+          },
+          ...COMPARISONS.map((comparison) => ({
+            url: absoluteUrl(`/compare/${comparison.slug}`),
+            lastModified: new Date(),
+            changeFrequency: "monthly" as const,
+            priority: 0.55
+          })),
+          ...FREE_TOOLS.map((tool) => ({
+            url: absoluteUrl(tool.href),
+            lastModified: new Date(),
+            changeFrequency: "monthly" as const,
+            priority: 0.55
+          }))
+        ] as MetadataRoute.Sitemap)),
     ...ADSENSE_TRUST_PAGES.map((path) => ({
       url: absoluteUrl(path),
       lastModified: new Date(),

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 import { Suspense, useEffect, useRef, useState } from "react";
 
@@ -92,11 +92,16 @@ export function SiteHeader({
   activeCategory
 }: SiteHeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isTopicsOpen, setIsTopicsOpen] = useState(false);
   const [clickedHref, setClickedHref] = useState("");
   const closeTopicsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const navCategories = categories.length > 0 ? categories : getPublicNavCategories();
+  const sourceCategories = categories.length > 0 ? categories : getPublicNavCategories();
+  const navCategories =
+    pathname === "/"
+      ? sourceCategories
+      : sourceCategories.filter((category) => category !== "others");
 
   useEffect(() => {
     return () => {

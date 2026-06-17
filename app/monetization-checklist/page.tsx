@@ -4,7 +4,7 @@ import Link from "next/link";
 import { NewsletterCapture } from "@/components/newsletter/NewsletterCapture";
 import { SponsoredPlacement } from "@/components/monetization/SponsoredPlacement";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { CORE_CATEGORIES } from "@/lib/categories";
+import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -75,7 +75,7 @@ const checklistSections = [
 export default function MonetizationChecklistPage() {
   return (
     <>
-      <SiteHeader categories={[...CORE_CATEGORIES]} />
+      <SiteHeader categories={[...getPublicNavCategories()]} />
       <main className="bg-stone-50 pt-[73px]">
         <section className="border-b border-stone-200 bg-white">
           <div className="mx-auto max-w-3xl px-5 py-10 sm:px-8 sm:py-14">

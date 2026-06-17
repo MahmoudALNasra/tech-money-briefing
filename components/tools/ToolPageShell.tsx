@@ -9,7 +9,7 @@ import { ToolRelatedTools } from "@/components/tools/ToolRelatedTools";
 import { ToolHumanLayer } from "@/components/tools/ToolHumanLayer";
 import { ToolSeoSections } from "@/components/tools/ToolSeoSections";
 import BlurText from "@/components/ui/BlurText";
-import { CORE_CATEGORIES } from "@/lib/categories";
+import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { faqJsonLdFromItems, webApplicationJsonLd } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/site";
 import type { SponsorPlacementContext } from "@/lib/sponsor-config";
@@ -70,7 +70,7 @@ export function ToolPageShell({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(appLd) }}
         />
       ) : null}
-      <SiteHeader categories={[...CORE_CATEGORIES]} />
+      <SiteHeader categories={[...getPublicNavCategories()]} />
       <main className="min-h-screen bg-[var(--bg-base)]">
         <section className="page-hero-band">
           <div

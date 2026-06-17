@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { MemeGenerator } from "@/components/meme/MemeGenerator";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { CORE_CATEGORIES } from "@/lib/categories";
+import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 export default function MemeGeneratorPage() {
   return (
     <>
-      <SiteHeader categories={[...CORE_CATEGORIES]} />
+      <SiteHeader categories={[...getPublicNavCategories()]} />
       <main className="bg-stone-50 pt-[73px]">
         <section className="border-b border-stone-200 bg-white">
           <div className="mx-auto max-w-5xl px-5 py-10 sm:px-8 sm:py-14">
