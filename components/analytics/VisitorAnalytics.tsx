@@ -1,9 +1,10 @@
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
+  ensureAnalyticsEligibility,
   getAnalyticsSessionDurationSeconds,
   trackAnalyticsEvent
 } from "@/lib/analytics-client";
@@ -13,8 +14,27 @@ export function VisitorAnalytics() {
   const searchParams = useSearchParams();
   const lastTrackedPath = useRef<string | null>(null);
   const sessionEndSent = useRef(false);
+  const [trackingAllowed, setTrackingAllowed] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
+    void ensureAnalyticsEligibility().then((excluded) => {
+      if (!cancelled) {
+        setTrackingAllowed(!excluded);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!trackingAllowed) {
+      return;
+    }
+
     const currentPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
     if (lastTrackedPath.current === currentPath) {
@@ -28,9 +48,13 @@ export function VisitorAnalytics() {
       page_path: pathname,
       page_title: document.title
     });
-  }, [pathname, searchParams]);
+  }, [pathname, searchParams, trackingAllowed]);
 
   useEffect(() => {
+    if (!trackingAllowed) {
+      return;
+    }
+
     const interval = window.setInterval(() => {
       trackAnalyticsEvent({
         event: "session_ping",
@@ -40,9 +64,13 @@ export function VisitorAnalytics() {
     }, 30000);
 
     return () => window.clearInterval(interval);
-  }, []);
+  }, [trackingAllowed]);
 
   useEffect(() => {
+    if (!trackingAllowed) {
+      return;
+    }
+
     function sendSessionEnd() {
       if (sessionEndSent.current || document.visibilityState === "visible") {
         return;
@@ -72,7 +100,7 @@ export function VisitorAnalytics() {
       window.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("pagehide", sendSessionEnd);
     };
-  }, []);
+  }, [trackingAllowed]);
 
   return null;
 }

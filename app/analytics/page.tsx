@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { getBusinessDataAuthHeaders } from "@/lib/business-data-client";
 import { formatDuration } from "@/lib/session-duration";
 
 type SessionDurationStats = {
@@ -331,26 +333,56 @@ function ApiCreditCard({ account }: { account: ApiCreditAccount }) {
 export default function AnalyticsDashboardPage() {
   const [tokenInput, setTokenInput] = useState("");
   const [token, setToken] = useState("");
+  const [adminAccess, setAdminAccess] = useState(false);
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [usage, setUsage] = useState<UsageResponse | null>(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
+
+  const canLoadDashboard = Boolean(token) || adminAccess;
 
   useEffect(() => {
-    const queryToken = new URLSearchParams(window.location.search).get("token");
+    let cancelled = false;
 
-    if (!queryToken) {
-      return;
+    async function bootstrapAccess() {
+      const queryToken = new URLSearchParams(window.location.search).get("token");
+
+      if (queryToken) {
+        if (!cancelled) {
+          setToken(queryToken);
+          setTokenInput(queryToken);
+          setIsCheckingAccess(false);
+        }
+        return;
+      }
+
+      try {
+        const headers = await getBusinessDataAuthHeaders();
+        if (!headers.Authorization) {
+          return;
+        }
+
+        const response = await fetch("/api/analytics/summary", { headers });
+        if (!cancelled && response.ok) {
+          setAdminAccess(true);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsCheckingAccess(false);
+        }
+      }
     }
 
-    window.queueMicrotask(() => {
-      setToken(queryToken);
-      setTokenInput(queryToken);
-    });
+    void bootstrapAccess();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    if (!token) {
+    if (!canLoadDashboard) {
       return;
     }
 
@@ -360,9 +392,11 @@ export default function AnalyticsDashboardPage() {
       setIsLoading(true);
 
       try {
+        const headers = await getBusinessDataAuthHeaders();
+        const tokenQuery = token ? `?token=${encodeURIComponent(token)}` : "";
         const [summaryResponse, usageResponse] = await Promise.all([
-          fetch(`/api/analytics/summary?token=${encodeURIComponent(token)}`),
-          fetch(`/api/analytics/usage?token=${encodeURIComponent(token)}`)
+          fetch(`/api/analytics/summary${tokenQuery}`, { headers }),
+          fetch(`/api/analytics/usage${tokenQuery}`, { headers })
         ]);
         const json = (await summaryResponse.json()) as SummaryResponse & { error?: string };
         const usageJson = (await usageResponse.json()) as UsageResponse & { error?: string };
@@ -400,13 +434,13 @@ export default function AnalyticsDashboardPage() {
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [token]);
+  }, [canLoadDashboard, token]);
 
   const updatedLabel = summary?.generated_at
     ? `Updated ${formatTime(summary.generated_at)}`
     : "Waiting for data";
 
-  if (!token) {
+  if (!canLoadDashboard) {
     return (
       <main className="mx-auto flex min-h-screen max-w-lg items-center px-5 py-16">
         <div className="w-full rounded-[2rem] border border-stone-200 bg-white p-8 shadow-xl">
@@ -417,9 +451,17 @@ export default function AnalyticsDashboardPage() {
             Real-time visitor analytics
           </h1>
           <p className="mt-3 text-sm leading-7 text-stone-600">
-            Enter your dashboard token to view live visitors, page views, referrers,
-            and recent events.
+            Enter your dashboard token, or sign in as an admin with MFA at{" "}
+            <Link href="/admin" className="font-semibold text-ink underline">
+              /admin
+            </Link>{" "}
+            and return here.
           </p>
+          {isCheckingAccess ? (
+            <p className="mt-4 text-sm font-semibold text-stone-500">
+              Checking admin access...
+            </p>
+          ) : null}
           <form
             className="mt-6 space-y-3"
             onSubmit={(event) => {
@@ -448,6 +490,17 @@ export default function AnalyticsDashboardPage() {
   return (
     <main className="min-h-screen bg-stone-50 px-5 py-10 sm:px-8">
       <div className="mx-auto max-w-7xl">
+        <div className="mb-6 flex flex-wrap gap-2">
+          <Link
+            href="/admin"
+            className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-stone-600 transition hover:border-stone-300"
+          >
+            Admin
+          </Link>
+          <span className="rounded-full border border-ink bg-ink px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white">
+            Analytics
+          </span>
+        </div>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-stone-500">
@@ -588,7 +641,7 @@ export default function AnalyticsDashboardPage() {
         </section>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-          <RankList title="Live pages" items={summary?.top_pages ?? []} />
+          <RankList title="Top pages (30m)" items={summary?.top_pages ?? []} />
           <RankList title="Referrers" items={summary?.top_referrers ?? []} />
           <RankList title="Top events" items={summary?.top_events ?? []} />
           <RankList title="Countries" items={summary?.top_countries ?? []} />

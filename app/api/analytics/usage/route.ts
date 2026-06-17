@@ -6,7 +6,7 @@ import {
   SUBSCRIPTION_TOKEN_GRANT
 } from "@/lib/business-data-tokens";
 import { getApiCreditUsage } from "@/lib/api-credit-usage";
-import { isAnalyticsDashboardAuthorized } from "@/lib/visitor-analytics";
+import { isAnalyticsDashboardAccessGranted } from "@/lib/visitor-analytics";
 import { supabase } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -44,7 +44,7 @@ type SearchRow = {
 };
 
 export async function GET(request: Request) {
-  if (!isAnalyticsDashboardAuthorized(request)) {
+  if (!(await isAnalyticsDashboardAccessGranted(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

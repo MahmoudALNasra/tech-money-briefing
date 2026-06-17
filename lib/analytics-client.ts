@@ -3,6 +3,7 @@
 import { isLikelyBotUserAgent } from "@/lib/bot-detection";
 
 const ANALYTICS_OPT_OUT_KEY = "tech-revenue-brief-disable-analytics";
+export { ANALYTICS_OPT_OUT_KEY };
 const VISITOR_ID_KEY = "tech-revenue-brief-visitor-id";
 const SESSION_ID_KEY = "tech-revenue-brief-session-id";
 const SESSION_STARTED_AT_KEY = "tech-revenue-brief-session-started-at";
@@ -24,6 +25,38 @@ function analyticsDisabled() {
   }
 
   return window.localStorage.getItem(ANALYTICS_OPT_OUT_KEY) === "true";
+}
+
+let eligibilityPromise: Promise<boolean> | null = null;
+
+export function ensureAnalyticsEligibility() {
+  if (typeof window === "undefined") {
+    return Promise.resolve(false);
+  }
+
+  if (analyticsDisabled()) {
+    return Promise.resolve(true);
+  }
+
+  if (!eligibilityPromise) {
+    eligibilityPromise = fetch("/api/analytics/eligibility", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) {
+          return false;
+        }
+
+        const json = (await response.json()) as { excluded?: boolean };
+        if (json.excluded) {
+          window.localStorage.setItem(ANALYTICS_OPT_OUT_KEY, "true");
+          return true;
+        }
+
+        return false;
+      })
+      .catch(() => false);
+  }
+
+  return eligibilityPromise;
 }
 
 function createId() {
@@ -133,6 +166,16 @@ export function trackAnalyticsEvent(event: AnalyticsClientEvent) {
     return;
   }
 
+  void ensureAnalyticsEligibility().then((excluded) => {
+    if (excluded || analyticsDisabled()) {
+      return;
+    }
+
+    sendAnalyticsEvent(event);
+  });
+}
+
+function sendAnalyticsEvent(event: AnalyticsClientEvent) {
   const {
     event: eventName,
     metadata = {},

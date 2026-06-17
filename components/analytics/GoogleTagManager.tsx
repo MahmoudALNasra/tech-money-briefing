@@ -13,26 +13,45 @@ function getGtmSnippet(containerId: string) {
       var params = new URLSearchParams(w.location.search);
       var shouldDisable = params.get("analytics") === "off" || params.get("noanalytics") === "1";
       var shouldEnable = params.get("analytics") === "on";
+      var optOutKey = ${JSON.stringify(ANALYTICS_OPT_OUT_KEY)};
+
+      function loadGtm() {
+        w[l]=w[l]||[];
+        w[l].push({"gtm.start": new Date().getTime(), event:"gtm.js"});
+        var f=d.getElementsByTagName(s)[0],
+          j=d.createElement(s),
+          dl=l!="dataLayer"?"&l="+l:"";
+        j.async=true;
+        j.src="https://www.googletagmanager.com/gtm.js?id="+i+dl;
+        f.parentNode.insertBefore(j,f);
+      }
 
       if (shouldDisable) {
-        w.localStorage.setItem(${JSON.stringify(ANALYTICS_OPT_OUT_KEY)}, "true");
+        w.localStorage.setItem(optOutKey, "true");
         return;
       }
 
       if (shouldEnable) {
-        w.localStorage.removeItem(${JSON.stringify(ANALYTICS_OPT_OUT_KEY)});
-      } else if (w.localStorage.getItem(${JSON.stringify(ANALYTICS_OPT_OUT_KEY)}) === "true") {
+        w.localStorage.removeItem(optOutKey);
+      } else if (w.localStorage.getItem(optOutKey) === "true") {
         return;
       }
 
-      w[l]=w[l]||[];
-      w[l].push({"gtm.start": new Date().getTime(), event:"gtm.js"});
-      var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),
-        dl=l!="dataLayer"?"&l="+l:"";
-      j.async=true;
-      j.src="https://www.googletagmanager.com/gtm.js?id="+i+dl;
-      f.parentNode.insertBefore(j,f);
+      fetch("/api/analytics/eligibility", { cache: "no-store" })
+        .then(function(response) {
+          return response.ok ? response.json() : { excluded: false };
+        })
+        .then(function(json) {
+          if (json && json.excluded) {
+            w.localStorage.setItem(optOutKey, "true");
+            return;
+          }
+
+          loadGtm();
+        })
+        .catch(function() {
+          loadGtm();
+        });
     })(window,document,"script","dataLayer",${JSON.stringify(containerId)});
   `;
 }

@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { computeSessionDurationStats } from "@/lib/session-duration";
-import { isAnalyticsDashboardAuthorized } from "@/lib/visitor-analytics";
+import {
+  filterExcludedAnalyticsRows,
+  isAnalyticsDashboardAccessGranted
+} from "@/lib/visitor-analytics";
 import { supabase } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -20,6 +23,7 @@ type VisitorEventRow = {
   device_type: string | null;
   metadata: Record<string, unknown> | null;
   created_at: string;
+  ip_hash: string | null;
 };
 
 function countBy<T extends string | null>(
@@ -40,7 +44,7 @@ function countBy<T extends string | null>(
 }
 
 export async function GET(request: Request) {
-  if (!isAnalyticsDashboardAuthorized(request)) {
+  if (!(await isAnalyticsDashboardAccessGranted(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -52,7 +56,7 @@ export async function GET(request: Request) {
   const { data, error } = await supabase
     .from("visitor_events")
     .select(
-      "id, event_name, session_id, page_path, page_title, referrer, utm_source, utm_campaign, country, device_type, metadata, created_at"
+      "id, event_name, session_id, page_path, page_title, referrer, utm_source, utm_campaign, country, device_type, metadata, created_at, ip_hash"
     )
     .gte("created_at", twentyFourHoursAgo)
     .order("created_at", { ascending: false })
@@ -63,7 +67,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Failed to load analytics." }, { status: 500 });
   }
 
-  const rows = (data ?? []) as VisitorEventRow[];
+  const rows = filterExcludedAnalyticsRows((data ?? []) as VisitorEventRow[]);
   const recentRows = rows.filter((row) => row.created_at >= fiveMinutesAgo);
   const last30Rows = rows.filter((row) => row.created_at >= thirtyMinutesAgo);
 
@@ -75,14 +79,14 @@ export async function GET(request: Request) {
   const pageViews24 = rows.filter((row) => row.event_name === "page_view").length;
 
   const topPages = countBy(
-    recentRows
+    last30Rows
       .filter((row) => row.event_name === "page_view")
       .map((row) => row.page_path),
     8
   );
 
   const topReferrers = countBy(
-    recentRows.map((row) => {
+    last30Rows.map((row) => {
       if (row.utm_source) {
         return row.utm_campaign
           ? `${row.utm_source} / ${row.utm_campaign}`
@@ -103,7 +107,7 @@ export async function GET(request: Request) {
   );
 
   const topEvents = countBy(
-    recentRows
+    last30Rows
       .filter(
         (row) =>
           row.event_name !== "page_view" &&
@@ -114,7 +118,7 @@ export async function GET(request: Request) {
     10
   );
 
-  const topCountries = countBy(recentRows.map((row) => row.country), 8);
+  const topCountries = countBy(last30Rows.map((row) => row.country), 8);
   const sessionDuration30m = computeSessionDurationStats(last30Rows);
   const sessionDuration24h = computeSessionDurationStats(rows);
 

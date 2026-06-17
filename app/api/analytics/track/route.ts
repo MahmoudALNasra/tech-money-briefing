@@ -4,6 +4,7 @@ import { isLikelyBotUserAgent } from "@/lib/bot-detection";
 import {
   getClientIp,
   hashTrackingValue,
+  isExcludedAnalyticsIp,
   parseArticlePath
 } from "@/lib/visitor-analytics";
 import { supabase } from "@/lib/supabase";
@@ -124,6 +125,10 @@ export async function POST(request: Request) {
     }
 
     const ip = getClientIp(request);
+
+    if (isExcludedAnalyticsIp(ip)) {
+      return NextResponse.json({ ok: true, skipped: "excluded_ip" });
+    }
 
     const { error } = await supabase.from("visitor_events").insert({
       event_name: eventName,
