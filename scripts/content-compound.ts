@@ -1,5 +1,6 @@
 import { spawn } from "child_process";
 
+import { getAdsenseReviewPublishLimits } from "../lib/adsense-readiness";
 import { loadLocalEnv } from "../lib/load-env";
 
 loadLocalEnv();
@@ -84,9 +85,12 @@ async function runInlineStep<T>(
 }
 
 async function main() {
+  const reviewLimits = getAdsenseReviewPublishLimits();
   const geo = getStringArg("geo", process.env.GOOGLE_TRENDS_GEO ?? "US");
-  const trendsMaxNew = getNumberArg("trends-max-new", 5);
-  const editorialLimit = getNumberArg("editorial-limit", 4);
+  const trendsMaxNew =
+    reviewLimits?.maxTrendsArticles ?? getNumberArg("trends-max-new", 5);
+  const editorialLimit =
+    reviewLimits?.maxEditorialArticles ?? getNumberArg("editorial-limit", 4);
   const compareLimit = getNumberArg("compare-limit", 2);
   const seoImageLimit = getNumberArg("seo-image-limit", 25);
   const gscImproveLimit = getNumberArg("gsc-improve-limit", 3);

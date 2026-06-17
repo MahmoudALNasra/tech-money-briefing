@@ -29,6 +29,18 @@ export function isAdsenseReviewMode() {
   return process.env.ADSENSE_REVIEW_MODE === "true";
 }
 
+export function getAdsenseReviewPublishLimits() {
+  if (!isAdsenseReviewMode()) {
+    return null;
+  }
+
+  return {
+    maxRssArticles: Number(process.env.ADSENSE_REVIEW_MAX_RSS ?? 2),
+    maxEditorialArticles: Number(process.env.ADSENSE_REVIEW_MAX_EDITORIAL ?? 1),
+    maxTrendsArticles: Number(process.env.ADSENSE_REVIEW_MAX_TRENDS ?? 0)
+  };
+}
+
 export function isAdsenseHiddenCategory(category: string) {
   return ADSENSE_HIDDEN_CATEGORIES.includes(
     category as (typeof ADSENSE_HIDDEN_CATEGORIES)[number]

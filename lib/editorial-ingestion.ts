@@ -9,6 +9,8 @@ import {
   ARTICLE_ORIGINALITY_INSTRUCTIONS,
   stripGeneratedSourceFooter
 } from "./article-attribution";
+import { getGenerationQualityInstructions } from "./article-content-quality";
+import { getAdsenseReviewPublishLimits } from "./adsense-readiness";
 import { normalizeArticleContent } from "./article-markdown";
 import { syncLocalizedArticleHeroImage } from "./article-hero-localization";
 import { enrichArticleMedia } from "./article-media";
@@ -58,7 +60,11 @@ const EDITORIAL_SYSTEM_PROMPT =
 export async function runEditorialIngestion(
   options: EditorialIngestionOptions = {}
 ): Promise<EditorialIngestionResult> {
-  const maxNewArticles = options.maxNewArticles ?? 1;
+  const reviewLimits = getAdsenseReviewPublishLimits();
+  const maxNewArticles =
+    options.maxNewArticles ??
+    reviewLimits?.maxEditorialArticles ??
+    Number(process.env.EDITORIAL_MAX_NEW_ARTICLES ?? 1);
   const topics = options.topics?.length
     ? await selectPendingCustomTopics(maxNewArticles, options.topics)
     : await selectPendingTopics(maxNewArticles, options.topicId);
@@ -441,8 +447,8 @@ async function writeEditorialArticle(topic: EditorialTopic): Promise<EditorialAr
             "Internal markdown links must use root-relative paths only. Never add a separate related-links section at the bottom.",
             "When discussing Substack, Zoho, Google Workspace, Google Ads, Cursor, DigitalOcean, or Shopify, mention that Tech Revenue Brief may provide a relevant referral link or referral guide on the page and keep the recommendation balanced.",
             "Do not cite fake statistics or fabricated quotes.",
+            ...getGenerationQualityInstructions(),
             ...ARTICLE_ORIGINALITY_INSTRUCTIONS,
-            "Generate exactly 3 actionable key_takeaways.",
             "meta_description: exactly 2 sentences, under 160 characters total if possible."
           ],
           topic: {

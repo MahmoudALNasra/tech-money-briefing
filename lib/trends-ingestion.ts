@@ -7,6 +7,7 @@ import {
   ARTICLE_ORIGINALITY_INSTRUCTIONS,
   stripGeneratedSourceFooter
 } from "./article-attribution";
+import { getGenerationQualityInstructions } from "./article-content-quality";
 import { normalizeArticleContent } from "./article-markdown";
 import { enrichArticleMedia } from "./article-media";
 import { fetchOpenGraphImage } from "./ingestion";
@@ -686,7 +687,7 @@ async function writeTrendArticle(seed: TrendSeed): Promise<TrendArticle> {
             "Do not include a separate Key Takeaways section inside content because key_takeaways is stored separately.",
             "Do not include a title line inside content; the article title is stored separately.",
             "When relevant, include 2-4 natural internal markdown links inside paragraphs, headings, or useful list items. Use paths like /adsense-revenue-calculator, /ai-headline-generator, /tools, or /compare/beehiiv-vs-substack. Do not add a separate related-links section at the bottom.",
-            "Generate exactly 3 actionable key_takeaways.",
+            ...getGenerationQualityInstructions(),
             "Generate a concise meta_description between 120 and 155 characters. It must fit a search snippet and should not exceed 160 characters.",
             "Use this keyword research plan to cover variants and common misspellings naturally (misspellings only in FAQ or a short note):",
             JSON.stringify(keywordPlan),

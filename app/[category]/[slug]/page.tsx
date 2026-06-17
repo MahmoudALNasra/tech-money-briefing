@@ -333,18 +333,18 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             <div className="rounded-md border border-white/[0.06] bg-[var(--bg-surface)] p-4">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--text-dim)]">
-                Scan Path
+                Reading format
               </p>
               <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
-                Answer first, details second
+                TL;DR first, then details
               </p>
             </div>
             <div className="rounded-md border border-white/[0.06] bg-[var(--bg-surface)] p-4">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--text-dim)]">
-                Trust Cue
+                Editorial process
               </p>
               <p className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
-                Original editor review
+                AI-assisted draft, reviewed before publish
               </p>
             </div>
             <div className="rounded-md border border-white/[0.06] bg-[var(--bg-surface)] p-4">

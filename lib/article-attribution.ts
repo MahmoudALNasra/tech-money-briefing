@@ -8,8 +8,9 @@ export const ARTICLE_ORIGINALITY_INSTRUCTIONS = [
   "Do not copy the source structure, phrasing, or paragraph order. Rebuild the article from Tech Revenue Brief's own practical point of view.",
   "Do not include a visible Source, Original source, Read more, or citation footer unless the article uses a specific quote, statistic, official claim, or source-only fact that needs verification.",
   "Do not include a bottom 'Related links', 'Related on Tech Revenue Brief', or 'Read next' section. Weave internal links into the article body where they make sense.",
-  "Write with a direct, practical, slightly skeptical operator voice: ask whether the tool, tactic, or idea is actually useful, what it costs, what problem it solves, and what would make it worth skipping.",
+  "Write with a direct, practical operator voice. Skepticism should come from specific trade-offs and examples, not from repeating the same 'I would not / Don't assume / Your X' formula in every paragraph.",
   "Prefer real decision questions, simple examples, and business-owner logic over polished corporate language.",
+  "Vary sentence construction and section openings across articles. Do not reuse one rhetorical template as the dominant structure.",
   "Keep the style guide flexible because future owner-written samples may refine the voice."
 ];
 
@@ -475,7 +476,7 @@ export const OWNER_VOICE_ANTI_AI_INSTRUCTIONS = [
 
 export const OWNER_VOICE_REWRITE_GUIDE = [
   "The owner voice is direct, practical, and a little skeptical. It often starts from a real question: do I actually need this, will it save time, is it worth paying for, and what problem does it solve?",
-  "Open with skepticism, not hype: 'I would not treat X like magic' or 'this is useful, but...' — then explain what actually matters in plain business terms.",
+  "Open with a specific hook tied to the topic — a fact, a mistake you've seen, a direct answer, or a contrarian claim. Do not default every article to 'I would not treat X like magic' or the same skepticism opener.",
   "Use survival tests readers can apply: say it out loud, remember it tomorrow, buy a domain, feel okay putting it on an invoice or landing page.",
   "Reframe the job: 'The best use of AI is not X. The best use is Y' — give directions the reader did not think about, not a magic answer machine.",
   "Include concrete mini-scenarios with boring, practical words when useful. 'Directory' and 'scout' are not bad if they tell the customer what the thing does.",
@@ -494,7 +495,9 @@ export const OWNER_VOICE_REWRITE_GUIDE = [
   "Avoid generic numbered workflows unless the topic truly needs numbered steps. If a list is needed, make each item opinionated and specific, not textbook instructions.",
   "Write as if the author has actually used tools, wasted time, compared options, and is warning a friend what to check before spending effort or money.",
   "Keep paragraphs short. Use ## headings that sound specific to the topic, not generic SEO headings.",
-  "Write in first person (I, my, I would) throughout. This is one owner thinking out loud, not a corporate guide.",
+  "Use first person (I, my) when it adds judgment or experience. Do not force 'I would' or 'I would not' into every paragraph — vary rhythm and openings.",
+  "For event-based topics (legal cases, funding, layoffs, launches): include concrete facts from the topic brief — names, dates, amounts, charges, status. Generic vertical advice alone is not enough.",
+  "For advisory topics: each section needs a named tool, number, timeframe, or concrete example — not advice that could apply unchanged to any business.",
   "Do not use tutorial skeletons: no ## FAQ, no numbered step-by-step lists, no checkbox checklists, no 'Common Pitfalls to Avoid', no 'Here's how to' sections."
 ];
 
@@ -760,8 +763,8 @@ export function detectCorporateTakeaways(takeaways: string[]) {
     issues.push("corporate key_takeaways wording");
   }
 
-  if (takeaways.some((item) => !/\b(I|you|your|don't|not)\b/i.test(item))) {
-    issues.push("key_takeaways should sound like advice to a friend");
+  if (takeaways.some((item) => item.trim().length < 20)) {
+    issues.push("key_takeaways too short to be specific");
   }
 
   return issues;

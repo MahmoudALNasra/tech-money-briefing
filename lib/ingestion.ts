@@ -6,6 +6,7 @@ import {
   ARTICLE_ORIGINALITY_INSTRUCTIONS,
   stripGeneratedSourceFooter
 } from "./article-attribution";
+import { getGenerationQualityInstructions } from "./article-content-quality";
 import { normalizeArticleContent } from "./article-markdown";
 import { enrichArticleMedia } from "./article-media";
 import { getOpenAIClient } from "./openai";
@@ -54,7 +55,12 @@ const parser = new Parser({
 const defaultMaxItemsPerSource = Number(
   process.env.INGEST_MAX_ITEMS_PER_SOURCE ?? 25
 );
-const defaultMaxNewArticles = Number(process.env.INGEST_MAX_NEW_ARTICLES ?? 3);
+const defaultMaxNewArticles = Number(
+  process.env.INGEST_MAX_NEW_ARTICLES ??
+    (process.env.ADSENSE_REVIEW_MODE === "true"
+      ? process.env.ADSENSE_REVIEW_MAX_RSS ?? 2
+      : 3)
+);
 
 export const INDUSTRY_ANALYST_SYSTEM_PROMPT =
   "You are an expert industry analyst and technical SEO strategist for a hyper-niche B2B intelligence publication. Your job is to create original information gain for professionals, not generic news rewrites. Return only valid JSON.";
@@ -446,7 +452,8 @@ async function rewriteArticle(input: {
             "Never escape markdown with backslashes.",
             "Use short paragraphs, clear subheadings, and concrete examples so the article renders with the same readable structure as other Tech Revenue Brief guides.",
             "When a chart, screenshot, or video would improve understanding, describe the useful visual honestly rather than implying one is already present.",
-            "Generate exactly 3 actionable key_takeaways as short bullet-ready strings.",
+            ...getGenerationQualityInstructions(),
+            "Pull verifiable facts (who, what, when, amounts, status) from originalContent for news and event stories. Do not replace reporting with generic industry advice.",
             "When relevant, include 2-4 natural internal markdown links inside paragraphs, headings, or useful list items. Use paths like /adsense-revenue-calculator, /ai-headline-generator, /tools, or /compare/beehiiv-vs-substack.",
             "Internal markdown links must use root-relative paths only. Do not put them in a separate related-links section at the bottom.",
             "When discussing Substack, Zoho, Google Workspace, Google Ads, Cursor, DigitalOcean, or Shopify, mention that Tech Revenue Brief may provide a relevant referral link or referral guide on the page and keep the recommendation balanced.",
