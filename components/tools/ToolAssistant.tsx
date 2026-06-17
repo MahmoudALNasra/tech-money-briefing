@@ -47,16 +47,18 @@ const starterPromptsByContext: Record<AssistantContext, string[]> = {
   ]
 };
 
-const POSITION_STORAGE_KEY = "trb-assistant-anchor-v1";
-const DRAG_THRESHOLD_PX = 8;
+const POSITION_STORAGE_KEY = "trb-assistant-anchor-v2";
+const DRAG_THRESHOLD_PX = 6;
 const DEFAULT_BOTTOM_REM = 6;
 const DEFAULT_RIGHT_PX = 16;
+const FRAME_WIDTH = 148;
+const FRAME_HEIGHT = 156;
 
 function clampAnchorPosition(
   x: number,
   y: number,
-  width: number,
-  height: number
+  width = FRAME_WIDTH,
+  height = FRAME_HEIGHT
 ): AnchorPosition {
   const margin = 8;
   const maxX = Math.max(margin, window.innerWidth - width - margin);
@@ -66,6 +68,13 @@ function clampAnchorPosition(
     x: Math.min(Math.max(margin, x), maxX),
     y: Math.min(Math.max(margin, y), maxY)
   };
+}
+
+function applyAnchorPosition(element: HTMLElement, position: AnchorPosition) {
+  element.style.left = `${position.x}px`;
+  element.style.top = `${position.y}px`;
+  element.style.right = "auto";
+  element.style.bottom = "auto";
 }
 
 export function ToolAssistant({
@@ -99,50 +108,97 @@ export function ToolAssistant({
   const [panelInlineStyle, setPanelInlineStyle] = useState<CSSProperties>();
   const panelRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const livePositionRef = useRef<AnchorPosition | null>(null);
+  const dragFrameRef = useRef(0);
   const dragStateRef = useRef({
     pointerId: -1,
     startX: 0,
     startY: 0,
     originX: 0,
     originY: 0,
-    moved: false
+    moved: false,
+    startedOnTrigger: false
   });
   const pushToDataLayer = useDataLayer();
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(POSITION_STORAGE_KEY);
+      const saved =
+        window.localStorage.getItem(POSITION_STORAGE_KEY) ??
+        window.localStorage.getItem("trb-assistant-anchor-v1");
+
       if (!saved) {
         return;
       }
 
       const parsed = JSON.parse(saved) as Partial<AnchorPosition>;
       if (typeof parsed.x === "number" && typeof parsed.y === "number") {
-        setAnchorPosition({ x: parsed.x, y: parsed.y });
+        const next = { x: parsed.x, y: parsed.y };
+        setAnchorPosition(next);
+        livePositionRef.current = next;
       }
     } catch {
       // Ignore invalid saved positions.
     }
   }, []);
 
+  useEffect(() => {
+    if (!anchorPosition || !anchorRef.current) {
+      return;
+    }
+
+    applyAnchorPosition(anchorRef.current, anchorPosition);
+    livePositionRef.current = anchorPosition;
+  }, [anchorPosition]);
+
   const persistAnchorPosition = useCallback((position: AnchorPosition) => {
+    livePositionRef.current = position;
     setAnchorPosition(position);
     window.localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(position));
   }, []);
 
-  const getAnchorRect = useCallback(() => {
-    return anchorRef.current?.getBoundingClientRect() ?? null;
+  const readAnchorPosition = useCallback((): AnchorPosition | null => {
+    if (livePositionRef.current) {
+      return livePositionRef.current;
+    }
+
+    const rect = anchorRef.current?.getBoundingClientRect();
+    if (!rect) {
+      return null;
+    }
+
+    return { x: rect.left, y: rect.top };
   }, []);
 
-  const clampToViewport = useCallback(
+  const clampToViewport = useCallback((x: number, y: number) => {
+    const rect = anchorRef.current?.getBoundingClientRect();
+    const width = rect?.width ?? FRAME_WIDTH;
+    const height = rect?.height ?? FRAME_HEIGHT;
+    return clampAnchorPosition(x, y, width, height);
+  }, []);
+
+  const scheduleDragPosition = useCallback(
     (x: number, y: number) => {
-      const rect = getAnchorRect();
-      const width = rect?.width ?? 180;
-      const height = rect?.height ?? 120;
-      return clampAnchorPosition(x, y, width, height);
+      const next = clampToViewport(x, y);
+      livePositionRef.current = next;
+
+      if (dragFrameRef.current) {
+        return;
+      }
+
+      dragFrameRef.current = window.requestAnimationFrame(() => {
+        dragFrameRef.current = 0;
+        const element = anchorRef.current;
+        const position = livePositionRef.current;
+
+        if (element && position) {
+          applyAnchorPosition(element, position);
+        }
+      });
     },
-    [getAnchorRect]
+    [clampToViewport]
   );
 
   useEffect(() => {
@@ -151,20 +207,21 @@ export function ToolAssistant({
     }
 
     function handleResize() {
-      setAnchorPosition((current) => {
-        if (!current) {
-          return current;
-        }
+      const current = livePositionRef.current ?? anchorPosition;
+      if (!current) {
+        return;
+      }
 
-        const next = clampToViewport(current.x, current.y);
-        window.localStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(next));
-        return next;
-      });
+      const next = clampToViewport(current.x, current.y);
+      persistAnchorPosition(next);
+      if (anchorRef.current) {
+        applyAnchorPosition(anchorRef.current, next);
+      }
     }
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [anchorPosition, clampToViewport]);
+  }, [anchorPosition, clampToViewport, persistAnchorPosition]);
 
   useEffect(() => {
     if (!anchorPosition || !isOpen) {
@@ -205,6 +262,14 @@ export function ToolAssistant({
     messagesEndRef.current?.scrollIntoView({ block: "end" });
   }, [isLoading, isOpen, messages]);
 
+  useEffect(() => {
+    return () => {
+      if (dragFrameRef.current) {
+        window.cancelAnimationFrame(dragFrameRef.current);
+      }
+    };
+  }, []);
+
   const toggleAssistant = useCallback(() => {
     const nextOpen = !isOpen;
     setIsOpen(nextOpen);
@@ -216,29 +281,33 @@ export function ToolAssistant({
     });
   }, [context, isOpen, pushToDataLayer, resolvedHref]);
 
-  const handleAnchorPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handleFramePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) {
       return;
     }
 
-    const rect = getAnchorRect();
-    if (!rect) {
+    const current = readAnchorPosition();
+    if (!current || !anchorRef.current) {
       return;
     }
+
+    applyAnchorPosition(anchorRef.current, current);
 
     dragStateRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      originX: anchorPosition?.x ?? rect.left,
-      originY: anchorPosition?.y ?? rect.top,
-      moved: false
+      originX: current.x,
+      originY: current.y,
+      moved: false,
+      startedOnTrigger: triggerRef.current?.contains(event.target as Node) ?? false
     };
 
     event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
   };
 
-  const handleAnchorPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handleFramePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     const dragState = dragStateRef.current;
     if (dragState.pointerId !== event.pointerId) {
       return;
@@ -247,21 +316,20 @@ export function ToolAssistant({
     const deltaX = event.clientX - dragState.startX;
     const deltaY = event.clientY - dragState.startY;
 
-    if (
-      !dragState.moved &&
-      Math.hypot(deltaX, deltaY) < DRAG_THRESHOLD_PX
-    ) {
+    if (!dragState.moved && Math.hypot(deltaX, deltaY) < DRAG_THRESHOLD_PX) {
       return;
     }
 
-    dragState.moved = true;
-    setIsDragging(true);
-    setAnchorPosition(
-      clampToViewport(dragState.originX + deltaX, dragState.originY + deltaY)
-    );
+    if (!dragState.moved) {
+      dragState.moved = true;
+      setIsDragging(true);
+    }
+
+    scheduleDragPosition(dragState.originX + deltaX, dragState.originY + deltaY);
+    event.preventDefault();
   };
 
-  const finishAnchorPointer = (event: React.PointerEvent<HTMLDivElement>) => {
+  const finishFramePointer = (event: React.PointerEvent<HTMLDivElement>) => {
     const dragState = dragStateRef.current;
     if (dragState.pointerId !== event.pointerId) {
       return;
@@ -272,16 +340,17 @@ export function ToolAssistant({
     }
 
     if (dragState.moved) {
-      const rect = getAnchorRect();
-      if (rect) {
-        persistAnchorPosition(clampToViewport(rect.left, rect.top));
+      const position = livePositionRef.current;
+      if (position) {
+        persistAnchorPosition(position);
       }
-    } else {
+    } else if (dragState.startedOnTrigger) {
       toggleAssistant();
     }
 
     dragStateRef.current.pointerId = -1;
     dragStateRef.current.moved = false;
+    dragStateRef.current.startedOnTrigger = false;
     setIsDragging(false);
   };
 
@@ -351,7 +420,7 @@ export function ToolAssistant({
     }
   }
 
-  const anchorStyle = anchorPosition
+  const anchorStyle: CSSProperties = anchorPosition
     ? { left: anchorPosition.x, top: anchorPosition.y, right: "auto", bottom: "auto" }
     : {
         right: DEFAULT_RIGHT_PX,
@@ -369,54 +438,76 @@ export function ToolAssistant({
     <>
       <div
         ref={anchorRef}
-        className={`fixed z-[80] select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
-        style={anchorStyle}
-        onPointerDown={handleAnchorPointerDown}
-        onPointerMove={handleAnchorPointerMove}
-        onPointerUp={finishAnchorPointer}
-        onPointerCancel={finishAnchorPointer}
+        className={`fixed z-[80] touch-none select-none ${
+          isDragging ? "cursor-grabbing" : "cursor-grab"
+        }`}
+        style={{
+          ...anchorStyle,
+          width: FRAME_WIDTH,
+          height: FRAME_HEIGHT,
+          WebkitTouchCallout: "none"
+        }}
+        onPointerDown={handleFramePointerDown}
+        onPointerMove={handleFramePointerMove}
+        onPointerUp={finishFramePointer}
+        onPointerCancel={finishFramePointer}
       >
-        <span
-          aria-hidden="true"
-          className={`pointer-events-none absolute -top-[5.6rem] right-1 grid h-24 w-20 place-items-center transition duration-300 ${
-            isOpen
-              ? "-translate-y-1 rotate-3 scale-95"
-              : isDragging
-                ? "scale-95"
-                : "motion-safe:animate-bounce"
-          }`}
-        >
-          <span className="absolute inset-x-2 bottom-1 h-10 rounded-full bg-emerald-300/30 blur-xl" />
-          <span className="absolute right-3 top-6 z-10 h-3 w-3 rounded-full bg-lime-300 ring-2 ring-white motion-safe:animate-pulse" />
-          <Image
-            src="/assistant-mascot-body.svg"
-            alt=""
-            width={90}
-            height={120}
-            draggable={false}
-            className="relative h-24 w-20 object-contain"
+        <div className="relative h-full w-full">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 rounded-[2rem]"
           />
-        </span>
-        <div
-          className={`flex h-14 items-center justify-center gap-2 rounded-full bg-gradient-to-br from-indigo-600 to-emerald-500 px-4 text-white shadow-2xl shadow-indigo-900/25 ring-1 ring-white/40 transition ${
-            isOpen ? "scale-95" : isDragging ? "scale-100" : "motion-safe:animate-bounce"
-          } ${isDragging ? "" : "hover:scale-105 hover:shadow-indigo-900/35"}`}
-          aria-label={isOpen ? "Close tool assistant" : "Open tool assistant"}
-          aria-expanded={isOpen}
-          role="button"
-        >
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-xl leading-none text-white">
-            {isOpen ? "×" : "✦"}
-          </span>
-          <span className="text-sm font-black">{isOpen ? "Close" : "Ask AI"}</span>
-          {!isOpen ? (
-            <span className="pointer-events-none absolute -top-[4.5rem] right-[5.5rem] hidden whitespace-nowrap rounded-full border border-stone-200 bg-white px-3 py-1 text-[11px] font-black text-ink shadow-lg shadow-stone-950/10 sm:block">
-              Drag me out of the way
+
+          <div
+            aria-hidden="true"
+            className={`pointer-events-none absolute right-0 top-0 grid h-24 w-20 place-items-center ${
+              isOpen
+                ? "-translate-y-1 rotate-3 scale-95 transition duration-200"
+                : isDragging
+                  ? "scale-[0.98] transition-none"
+                  : "motion-safe:animate-bounce"
+            }`}
+          >
+            <span className="absolute inset-x-2 bottom-1 h-10 rounded-full bg-emerald-300/30 blur-xl" />
+            <span className="absolute right-3 top-6 z-10 h-3 w-3 rounded-full bg-lime-300 ring-2 ring-white motion-safe:animate-pulse" />
+            <Image
+              src="/assistant-mascot-body.svg"
+              alt=""
+              width={90}
+              height={120}
+              draggable={false}
+              className="relative h-24 w-20 object-contain"
+            />
+          </div>
+
+          <button
+            ref={triggerRef}
+            type="button"
+            className={`absolute bottom-0 right-0 flex h-14 min-w-[8.75rem] items-center justify-center gap-2 rounded-full bg-gradient-to-br from-indigo-600 to-emerald-500 px-4 text-white shadow-2xl shadow-indigo-900/25 ring-1 ring-white/40 ${
+              isOpen
+                ? "scale-95 transition duration-200"
+                : isDragging
+                  ? "scale-100 transition-none"
+                  : "motion-safe:animate-bounce transition hover:scale-105 hover:shadow-indigo-900/35"
+            }`}
+            aria-label={isOpen ? "Close tool assistant" : "Open tool assistant"}
+            aria-expanded={isOpen}
+          >
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-xl leading-none text-white">
+              {isOpen ? "×" : "✦"}
             </span>
-          ) : null}
-          <span className="sr-only">
-            {isOpen ? "Close assistant" : "Open assistant. Drag to reposition."}
-          </span>
+            <span className="text-sm font-black">{isOpen ? "Close" : "Ask AI"}</span>
+            {!isOpen ? (
+              <span className="pointer-events-none absolute -top-[4.5rem] right-[5.5rem] hidden whitespace-nowrap rounded-full border border-stone-200 bg-white px-3 py-1 text-[11px] font-black text-ink shadow-lg shadow-stone-950/10 sm:block">
+                Drag me out of the way
+              </span>
+            ) : null}
+            <span className="sr-only">
+              {isOpen
+                ? "Close assistant"
+                : "Tap to open assistant. Drag anywhere on the cat to move."}
+            </span>
+          </button>
         </div>
       </div>
 
