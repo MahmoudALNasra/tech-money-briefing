@@ -1,4 +1,6 @@
 import { enrichArticleMedia, getArticleMedia } from "../lib/article-media";
+import { ensureArticleHeroImageMedia } from "../lib/article-media";
+import { ARTICLE_EDITORIAL_SOURCE_NAME } from "../lib/article-attribution";
 import { getSupabaseClient } from "../lib/supabase";
 import { loadLocalEnv } from "../lib/load-env";
 import { revalidateSiteCache } from "../lib/revalidate-site";
@@ -12,6 +14,9 @@ type ArticleRow = {
   slug: string;
   category: string;
   meta_description: string;
+  image_url: string | null;
+  source_name?: string | null;
+  source_url?: string | null;
 };
 
 function getNumberArg(name: string, fallback: number) {
@@ -42,9 +47,10 @@ async function loadArticles() {
   const limit = getNumberArg("limit", 30);
   const slug = getStringArg("slug");
   const category = getStringArg("category");
+  const editorialOnly = hasFlag("editorial-only");
   let query = supabase
     .from("articles")
-    .select("id,title,slug,category,meta_description")
+    .select("id,title,slug,category,meta_description,image_url,source_name,source_url")
     .eq("status", "published")
     .order("published_at", { ascending: false })
     .limit(limit);
@@ -55,6 +61,10 @@ async function loadArticles() {
 
   if (category) {
     query = query.eq("category", category);
+  }
+
+  if (editorialOnly) {
+    query = query.eq("source_name", ARTICLE_EDITORIAL_SOURCE_NAME);
   }
 
   const { data, error } = await query;
@@ -70,6 +80,7 @@ async function run() {
   const replaceExisting = hasFlag("replace");
   const stopOnQuota = hasFlag("stop-on-quota");
   const delayMs = getNumberArg("delay-ms", 0);
+  const skipImages = hasFlag("skip-images");
   const articles = await loadArticles();
   const result = {
     checked: articles.length,
@@ -83,9 +94,26 @@ async function run() {
     try {
       const existing = await getArticleMedia(article.id);
 
-      if (existing.length > 0 && !replaceExisting) {
-        result.skipped += 1;
-        continue;
+      let insertedSomething = false;
+
+      if (!skipImages) {
+        const hasImage = existing.some((item) => item.provider === "image");
+
+        if (!hasImage) {
+          const heroResult = await ensureArticleHeroImageMedia({
+            articleId: article.id,
+            slug: article.slug,
+            title: article.title,
+            imageUrl: article.image_url,
+            sourceName: article.source_name ?? null,
+            sourceUrl: article.source_url ?? null
+          });
+
+          if (heroResult.inserted > 0) {
+            insertedSomething = true;
+            console.log(`[article-media] added hero image media for ${article.slug}`);
+          }
+        }
       }
 
       const mediaResult = await enrichArticleMedia({
@@ -98,11 +126,21 @@ async function run() {
 
       if (mediaResult.inserted > 0) {
         result.updated += 1;
+        insertedSomething = true;
         console.log(
           `[article-media] added ${mediaResult.inserted} videos for ${article.slug}`
         );
       } else {
-        result.skipped += 1;
+        if (!insertedSomething && !replaceExisting && existing.length > 0) {
+          result.skipped += 1;
+          continue;
+        }
+
+        if (!insertedSomething) {
+          result.skipped += 1;
+        } else {
+          result.updated += 1;
+        }
       }
 
       if (delayMs > 0) {

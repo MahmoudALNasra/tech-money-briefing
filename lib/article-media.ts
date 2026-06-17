@@ -5,6 +5,7 @@ import {
   searchYouTubeVideos,
   type YouTubeVideo
 } from "./youtube";
+import { isImageUrlUsable } from "./article-images";
 
 function mapArticleMedia(row: Record<string, unknown>): ArticleMedia {
   return {
@@ -97,6 +98,78 @@ export async function replaceArticleMedia(
   }
 
   return { inserted: rows.length, skipped: 0 };
+}
+
+export type ArticleHeroImageCandidate = {
+  providerId: string;
+  title: string;
+  imageUrl: string;
+  altText: string;
+  caption: string;
+  sourceName?: string | null;
+  sourceUrl?: string | null;
+};
+
+export async function ensureArticleHeroImageMedia(input: {
+  articleId: string;
+  slug: string;
+  title: string;
+  imageUrl: string | null;
+  sourceName?: string | null;
+  sourceUrl?: string | null;
+}) {
+  if (!(await isImageUrlUsable(input.imageUrl))) {
+    return { inserted: 0, skipped: 1 };
+  }
+
+  const providerId = `hero:${input.slug}`;
+  const { data: existing, error: existingError } = await supabase
+    .from("article_media")
+    .select("id")
+    .eq("article_id", input.articleId)
+    .eq("provider", "image")
+    .eq("provider_id", providerId)
+    .limit(1);
+
+  if (existingError) {
+    if (isMissingTableError(existingError)) {
+      console.warn("[article-media] Skipped: article_media table is missing");
+      return { inserted: 0, skipped: 1 };
+    }
+
+    throw new Error(`Failed to check article hero media: ${existingError.message}`);
+  }
+
+  if ((existing ?? []).length > 0) {
+    return { inserted: 0, skipped: 1 };
+  }
+
+  const imageRow = {
+    article_id: input.articleId,
+    provider: "image",
+    provider_id: providerId,
+    title: input.title,
+    thumbnail_url: input.imageUrl,
+    url: input.imageUrl,
+    position: 3,
+    alt_text: `${input.title} hero image`,
+    caption: "Article cover image",
+    source_name: input.sourceName ?? null,
+    source_url: input.sourceUrl ?? null
+  };
+
+  const { error: insertError } = await supabase.from("article_media").insert([imageRow]);
+
+  if (insertError) {
+    if (isMissingTableError(insertError)) {
+      console.warn("[article-media] Skipped: article_media image columns are missing");
+      return { inserted: 0, skipped: 1 };
+    }
+
+    throw new Error(`Failed to insert article hero image media: ${insertError.message}`);
+  }
+
+  return { inserted: 1, skipped: 0 };
 }
 
 export type ArticleImageCandidate = {
