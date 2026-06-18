@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 
+import {
+  countBy,
+  countLandingPagesByPath,
+  countPageViewsByPath,
+  formatAnalyticsPagePath
+} from "@/lib/analytics-summary";
 import { computeSessionDurationStats } from "@/lib/session-duration";
 import {
   filterExcludedAnalyticsRows,
@@ -26,23 +32,6 @@ type VisitorEventRow = {
   created_at: string;
   ip_hash: string | null;
 };
-
-function countBy<T extends string | null>(
-  rows: T[],
-  limit = 10
-): Array<{ label: string; count: number }> {
-  const counts = new Map<string, number>();
-
-  for (const row of rows) {
-    const label = row?.trim() || "(unknown)";
-    counts.set(label, (counts.get(label) ?? 0) + 1);
-  }
-
-  return [...counts.entries()]
-    .map(([label, count]) => ({ label, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, limit);
-}
 
 export async function GET(request: Request) {
   if (!(await isAnalyticsDashboardAccessGranted(request))) {
@@ -82,12 +71,8 @@ export async function GET(request: Request) {
     rows.map((row) => row.visitor_id).filter(Boolean)
   ).size;
 
-  const topPages = countBy(
-    last30Rows
-      .filter((row) => row.event_name === "page_view")
-      .map((row) => row.page_path),
-    8
-  );
+  const topPages = countPageViewsByPath(last30Rows, 8);
+  const topLandingPages = countLandingPagesByPath(last30Rows, 8);
 
   const topReferrers = countBy(
     last30Rows.map((row) => {
@@ -138,13 +123,14 @@ export async function GET(request: Request) {
     session_duration_30m: sessionDuration30m,
     session_duration_24h: sessionDuration24h,
     top_pages: topPages,
+    top_landing_pages: topLandingPages,
     top_referrers: topReferrers,
     top_events: topEvents,
     top_countries: topCountries,
     recent_events: recentEvents.map((row) => ({
       id: row.id,
       event_name: row.event_name,
-      page_path: row.page_path,
+      page_path: row.page_path ? formatAnalyticsPagePath(row.page_path) : row.page_path,
       page_title: row.page_title,
       referrer: row.referrer,
       country: row.country,

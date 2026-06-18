@@ -26,6 +26,7 @@ type SummaryResponse = {
   session_duration_30m: SessionDurationStats;
   session_duration_24h: SessionDurationStats;
   top_pages: Array<{ label: string; count: number }>;
+  top_landing_pages: Array<{ label: string; count: number }>;
   top_referrers: Array<{ label: string; count: number }>;
   top_events: Array<{ label: string; count: number }>;
   top_countries: Array<{ label: string; count: number }>;
@@ -569,7 +570,7 @@ export function AnalyticsDashboard() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-5rem)] bg-stone-50 px-5 py-10 sm:px-8">
+    <main className="min-h-[calc(100vh-5rem)] bg-stone-50 px-5 py-10 text-ink sm:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex flex-wrap gap-2">
           <Link
@@ -721,7 +722,8 @@ export function AnalyticsDashboard() {
           </div>
         </section>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-6 grid gap-4 lg:grid-cols-2 xl:grid-cols-5">
+          <RankList title="Top landing pages (30m)" items={summary?.top_landing_pages ?? []} />
           <RankList title="Top pages (30m)" items={summary?.top_pages ?? []} />
           <RankList title="Referrers" items={summary?.top_referrers ?? []} />
           <RankList title="Top events" items={summary?.top_events ?? []} />
@@ -762,7 +764,7 @@ export function AnalyticsDashboard() {
                         ? ` (${formatDuration(event.metadata.duration_seconds)})`
                         : null}
                     </td>
-                    <td className="px-5 py-3 max-w-xs truncate">
+                    <td className="max-w-xs truncate px-5 py-3 text-stone-700">
                       {event.page_path?.trim() || event.page_title?.trim() || "—"}
                     </td>
                     <td className="px-5 py-3 max-w-xs truncate text-stone-600">
