@@ -1,20 +1,21 @@
 import type { CachedEnrichmentPayload } from "@/lib/business-data-enrichment-cache";
 import type { BrandedImageCallout } from "@/lib/branded-result-image/types";
+import { safeTrim } from "@/lib/safe-string";
 
-function extractRatingHint(enrichment: CachedEnrichmentPayload) {
-  const haystack = `${enrichment.opportunity_signal} ${enrichment.gbp_profile_signal}`;
+function extractRatingHint(opportunitySignal: string, gbpSignal: string) {
+  const haystack = `${opportunitySignal} ${gbpSignal}`;
   const match = haystack.match(/(\d(?:\.\d)?)\s*(?:★|stars?)/i);
   return match?.[1] ?? null;
 }
 
-function extractReviewHint(enrichment: CachedEnrichmentPayload) {
-  const haystack = `${enrichment.opportunity_signal} ${enrichment.gbp_profile_signal}`;
+function extractReviewHint(opportunitySignal: string, gbpSignal: string) {
+  const haystack = `${opportunitySignal} ${gbpSignal}`;
   const match = haystack.match(/(\d{2,})\+?\s*reviews?/i);
   return match?.[1] ?? null;
 }
 
-function trimCallout(text: string, maxLength = 44) {
-  const normalized = text.trim().replace(/\s+/g, " ");
+function trimCallout(text: unknown, maxLength = 44) {
+  const normalized = safeTrim(text).replace(/\s+/g, " ");
 
   if (normalized.length <= maxLength) {
     return normalized;
@@ -23,16 +24,28 @@ function trimCallout(text: string, maxLength = 44) {
   return `${normalized.slice(0, maxLength - 1).trim()}…`;
 }
 
-function withLeadEmoji(text: string, emoji: string) {
-  const trimmed = text.trim();
+function withLeadEmoji(text: unknown, emoji: string) {
+  const trimmed = safeTrim(text);
+  if (!trimmed) {
+    return emoji;
+  }
+
   return /^[\p{Extended_Pictographic}]/u.test(trimmed) ? trimmed : `${emoji} ${trimmed}`;
 }
 
 export function buildAttentionHooks(enrichment: CachedEnrichmentPayload) {
-  const rating = extractRatingHint(enrichment);
-  const reviews = extractReviewHint(enrichment);
-  const competitors = enrichment.competitor_density_1mi;
-  const gbpSignal = enrichment.gbp_profile_signal.trim();
+  const opportunitySignal = safeTrim(
+    enrichment.opportunity_signal,
+    "Check the gap before you pitch."
+  );
+  const pitchAngle = safeTrim(enrichment.pitch_angle, "Local opportunity");
+  const gbpSignal = safeTrim(enrichment.gbp_profile_signal);
+  const rating = extractRatingHint(opportunitySignal, gbpSignal);
+  const reviews = extractReviewHint(opportunitySignal, gbpSignal);
+  const competitors =
+    typeof enrichment.competitor_density_1mi === "number"
+      ? enrichment.competitor_density_1mi
+      : 0;
   const callouts: BrandedImageCallout[] = [];
 
   let hookQuestion = "🔍 Real /leads scan — what's the gap?";
@@ -97,9 +110,8 @@ export function buildAttentionHooks(enrichment: CachedEnrichmentPayload) {
     });
   }
 
-  const opportunity = enrichment.opportunity_signal.trim();
   const punchLine = withLeadEmoji(
-    opportunity.length > 96 ? `${opportunity.slice(0, 93).trim()}…` : opportunity,
+    opportunitySignal.length > 96 ? `${opportunitySignal.slice(0, 93).trim()}…` : opportunitySignal,
     "💡"
   );
 
@@ -107,7 +119,7 @@ export function buildAttentionHooks(enrichment: CachedEnrichmentPayload) {
     hook_question: hookQuestion,
     punch_line: punchLine,
     callouts: callouts.slice(0, 4),
-    badge_label: trimCallout(enrichment.pitch_angle.trim(), 32)
+    badge_label: trimCallout(pitchAngle, 32)
   };
 }
 

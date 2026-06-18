@@ -6,6 +6,7 @@ import type { SocialDraftSource, SocialSourceType } from "@/lib/social-drafts/ty
 import { SOCIAL_SOURCE_TYPES } from "@/lib/social-drafts/types";
 import { articleUrl } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/site";
+import { safeTrim } from "@/lib/safe-string";
 import { supabase } from "@/lib/supabase";
 
 const PRODUCT_TOPICS = [
@@ -42,9 +43,9 @@ async function collectEnrichmentExample(): Promise<SocialDraftSource> {
       punch_line: picked.brandedImageInput.punch_line,
       badge_label: picked.brandedImageInput.badge_label,
       business_descriptor: picked.business_descriptor,
-      gbp_profile_signal: picked.enrichment.gbp_profile_signal,
-      opportunity_signal: picked.enrichment.opportunity_signal,
-      pitch_angle: picked.enrichment.pitch_angle,
+      gbp_profile_signal: safeTrim(picked.enrichment.gbp_profile_signal),
+      opportunity_signal: safeTrim(picked.enrichment.opportunity_signal),
+      pitch_angle: safeTrim(picked.enrichment.pitch_angle),
       website_reachable: picked.enrichment.website_reachable,
       competitor_density_1mi: picked.enrichment.competitor_density_1mi,
       active_social: picked.enrichment.active_social,

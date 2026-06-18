@@ -5,6 +5,7 @@ import {
 } from "@/lib/branded-result-image/hooks";
 import { pickBrandedImageTheme } from "@/lib/branded-result-image/pick-theme";
 import type { BrandedResultImageInput } from "@/lib/branded-result-image/types";
+import { safeTrim } from "@/lib/safe-string";
 
 function withTheme(
   input: Omit<BrandedResultImageInput, "themeId">,
@@ -43,9 +44,9 @@ export function brandedImageInputFromSocialPayload(
 
   return withTheme(
     {
-      hook_question: payload.hook_question?.trim() || hooks.hook_question,
-      punch_line: payload.punch_line?.trim() || hooks.punch_line,
-      badge_label: payload.badge_label?.trim() || hooks.badge_label,
+      hook_question: safeTrim(payload.hook_question) || hooks.hook_question,
+      punch_line: safeTrim(payload.punch_line) || hooks.punch_line,
+      badge_label: safeTrim(payload.badge_label) || hooks.badge_label,
       callouts: hooks.callouts
     },
     themeSeed

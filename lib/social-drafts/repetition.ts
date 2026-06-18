@@ -1,3 +1,5 @@
+import { safeTrim } from "@/lib/safe-string";
+
 function normalizeOpening(text: string) {
   return text
     .toLowerCase()
@@ -6,9 +8,14 @@ function normalizeOpening(text: string) {
     .trim();
 }
 
-function firstSentence(text: string) {
-  const match = text.trim().match(/^(.+?[.!?])(\s|$)/);
-  return (match?.[1] ?? text.trim().split(/\n/)[0] ?? text).trim();
+function firstSentence(text: string | null | undefined) {
+  const normalized = safeTrim(text);
+  if (!normalized) {
+    return "";
+  }
+
+  const match = normalized.match(/^(.+?[.!?])(\s|$)/);
+  return (match?.[1] ?? normalized.split(/\n/)[0] ?? normalized).trim();
 }
 
 function openingTokens(text: string) {
@@ -23,7 +30,7 @@ function tokenOverlap(a: string[], b: string[]) {
   return union === 0 ? 0 : shared / union;
 }
 
-export function extractOpeningLine(text: string) {
+export function extractOpeningLine(text: string | null | undefined) {
   return firstSentence(text);
 }
 

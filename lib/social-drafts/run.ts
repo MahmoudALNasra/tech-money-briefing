@@ -13,6 +13,7 @@ import { resolveSocialDraftSource } from "@/lib/social-drafts/sources";
 import type { SocialPostDraftRow, SocialSourceType } from "@/lib/social-drafts/types";
 import { uploadSocialDraftBrandedImagePair } from "@/lib/social-draft-branded-images";
 import { absoluteUrl } from "@/lib/site";
+import { safeTrim } from "@/lib/safe-string";
 import { supabase } from "@/lib/supabase";
 
 function mapDraftRow(row: Record<string, unknown>): SocialPostDraftRow {
@@ -155,7 +156,7 @@ export async function runDailySocialDrafts(input?: {
   let brandedImageBuffers: { square: Buffer; landscape: Buffer } | null = null;
 
   if (source.type === "enrichment_example") {
-    const themeSeed = `${sourcePayload.hook_question ?? ""}|${Date.now()}`;
+    const themeSeed = `${safeTrim(sourcePayload.hook_question)}|${Date.now()}`;
     const imageInput = brandedImageInputFromSocialPayload(source.payload, themeSeed);
     sourcePayload = {
       ...sourcePayload,

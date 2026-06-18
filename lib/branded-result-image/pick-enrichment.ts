@@ -1,32 +1,40 @@
 import type { CachedEnrichmentPayload } from "@/lib/business-data-enrichment-cache";
 import { brandedImageInputFromEnrichment } from "@/lib/branded-result-image/normalize";
 import type { BrandedResultImageInput } from "@/lib/branded-result-image/types";
+import { safeTrim } from "@/lib/safe-string";
 import { supabase } from "@/lib/supabase";
 
 function scoreEnrichmentRow(enrichment: CachedEnrichmentPayload) {
+  const opportunitySignal = safeTrim(enrichment.opportunity_signal);
+  const pitchAngle = safeTrim(enrichment.pitch_angle);
+  const gbpSignal = safeTrim(enrichment.gbp_profile_signal);
   let score = 0;
 
   if (!enrichment.website_reachable) {
     score += 3;
   }
 
-  if (enrichment.opportunity_signal.trim().length > 24) {
+  if (opportunitySignal.length > 24) {
     score += 2;
   }
 
-  if (enrichment.pitch_angle.trim().length > 12) {
+  if (pitchAngle.length > 12) {
     score += 2;
   }
 
-  if (enrichment.competitor_density_1mi >= 8) {
+  if ((enrichment.competitor_density_1mi ?? 0) >= 8) {
     score += 1;
   }
 
-  if (/established|review history|unclaimed|no website/i.test(enrichment.gbp_profile_signal)) {
+  if (/established|review history|unclaimed|no website/i.test(gbpSignal)) {
     score += 2;
   }
 
   return score;
+}
+
+function isUsableEnrichment(enrichment: CachedEnrichmentPayload) {
+  return Boolean(safeTrim(enrichment.opportunity_signal) && safeTrim(enrichment.pitch_angle));
 }
 
 export type PickedEnrichmentExample = {
@@ -48,7 +56,7 @@ export async function pickEnrichmentExample(): Promise<PickedEnrichmentExample> 
 
   const ranked = data
     .map((row) => row.enrichment as CachedEnrichmentPayload)
-    .filter((enrichment) => enrichment.opportunity_signal.trim() && enrichment.pitch_angle.trim())
+    .filter(isUsableEnrichment)
     .map((enrichment) => ({ enrichment, score: scoreEnrichmentRow(enrichment) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 12);
@@ -59,12 +67,13 @@ export async function pickEnrichmentExample(): Promise<PickedEnrichmentExample> 
 
   const pick = ranked[Math.floor(Math.random() * ranked.length)].enrichment;
   const brandedImageInput = brandedImageInputFromEnrichment(pick);
+  const pitchAngle = safeTrim(pick.pitch_angle, "local business");
 
   return {
     enrichment: pick,
     brandedImageInput,
-    business_descriptor: pick.pitch_angle.trim().toLowerCase().startsWith("a ")
-      ? pick.pitch_angle.trim()
-      : `a ${pick.pitch_angle.trim().toLowerCase()}`
+    business_descriptor: pitchAngle.toLowerCase().startsWith("a ")
+      ? pitchAngle
+      : `a ${pitchAngle.toLowerCase()}`
   };
 }
