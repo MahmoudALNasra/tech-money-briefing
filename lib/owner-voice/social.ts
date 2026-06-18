@@ -24,6 +24,9 @@ Banned phrasing:
 - Emoji bullet lists, hashtag spam, rocket emoji openings
 - Generic AI transitions and corporate polish
 
+Emojis:
+- A separate polish step may add emojis after this rewrite — keep wording clean here; light inline emojis are fine if natural.
+
 Privacy:
 - Never name a specific real business from enrichment data.
 - Use generalized descriptors only.

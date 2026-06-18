@@ -200,7 +200,7 @@ export function SocialDraftsPanel() {
         throw new Error(json.error ?? "Could not generate social draft.");
       }
 
-      setMessage("New draft generated with owner voice and branded images.");
+      setMessage("New draft generated with owner voice, emojis, and branded images.");
       await loadDrafts();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : String(error));
@@ -219,8 +219,8 @@ export function SocialDraftsPanel() {
           <h1 className="mt-2 text-2xl font-black text-ink">Social drafts for /leads</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
             Review, copy, and post yourself on LinkedIn and Instagram. Nothing auto-publishes.
-            Manual generate always uses an enrichment example with branded images and runs copy
-            through owner voice.
+            Manual generate always uses an enrichment example with branded images (rotating
+            styles), owner voice, and emoji polish on the copy.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

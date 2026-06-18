@@ -1,3 +1,7 @@
+import type { BrandedImageThemeId } from "@/lib/branded-result-image/themes";
+
+export type { BrandedImageThemeId } from "@/lib/branded-result-image/themes";
+
 export type BrandedImageCalloutAccent = "danger" | "warning" | "success" | "info" | "neutral";
 
 export type BrandedImageCallout = {
@@ -11,6 +15,7 @@ export type BrandedResultImageInput = {
   punch_line: string;
   callouts: BrandedImageCallout[];
   badge_label: string;
+  themeId: BrandedImageThemeId;
 };
 
 export type BrandedResultImageVariant = "square" | "landscape";

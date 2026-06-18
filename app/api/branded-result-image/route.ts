@@ -6,6 +6,7 @@ import {
   generateBrandedResultImage
 } from "@/lib/branded-result-image/generate";
 import { brandedImageInputFromSocialPayload } from "@/lib/branded-result-image/normalize";
+import { pickBrandedImageTheme } from "@/lib/branded-result-image/pick-theme";
 import type { BrandedResultImageInput } from "@/lib/branded-result-image/types";
 
 export const runtime = "nodejs";
@@ -27,9 +28,16 @@ export async function POST(request: Request) {
 
   try {
     const body = (await request.json()) as BrandedResultImageInput | Record<string, unknown>;
-    const input =
+    const input: BrandedResultImageInput =
       "hook_question" in body && "punch_line" in body
-        ? (body as BrandedResultImageInput)
+        ? {
+            ...(body as BrandedResultImageInput),
+            themeId:
+              (body as BrandedResultImageInput).themeId ??
+              pickBrandedImageTheme(
+                `${(body as BrandedResultImageInput).hook_question}|${(body as BrandedResultImageInput).badge_label}`
+              )
+          }
         : brandedImageInputFromSocialPayload(body as Record<string, unknown>);
 
     const buffers = await generateBrandedResultImage(input);

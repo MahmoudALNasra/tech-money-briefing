@@ -3,6 +3,7 @@ import type {
   BrandedImageCalloutAccent,
   BrandedResultImageInput
 } from "@/lib/branded-result-image/types";
+import { getBrandedImageTheme, type BrandedImageThemeId } from "@/lib/branded-result-image/themes";
 
 const ACCENT_STYLES: Record<
   BrandedImageCalloutAccent,
@@ -15,20 +16,41 @@ const ACCENT_STYLES: Record<
   neutral: { background: "#f8fafc", border: "#e2e8f0", text: "#334155" }
 };
 
+const NEON_CALLOUT_STYLES: Record<
+  BrandedImageCalloutAccent,
+  { background: string; border: string; text: string }
+> = {
+  danger: { background: "#450a0a", border: "#f87171", text: "#fecaca" },
+  warning: { background: "#422006", border: "#fbbf24", text: "#fde68a" },
+  success: { background: "#052e16", border: "#4ade80", text: "#bbf7d0" },
+  info: { background: "#172554", border: "#60a5fa", text: "#bfdbfe" },
+  neutral: { background: "#1e293b", border: "#64748b", text: "#e2e8f0" }
+};
+
 type RenderTemplateProps = {
   input: BrandedResultImageInput;
   variant: "square" | "landscape";
   logoSrc: string;
 };
 
+function calloutStyles(themeId: BrandedImageThemeId, accent: BrandedImageCalloutAccent) {
+  if (themeId === "neon-midnight") {
+    return NEON_CALLOUT_STYLES[accent];
+  }
+
+  return ACCENT_STYLES[accent];
+}
+
 function CalloutCard({
   callout,
-  compact
+  compact,
+  themeId
 }: {
   callout: BrandedImageCallout;
   compact: boolean;
+  themeId: BrandedImageThemeId;
 }) {
-  const style = ACCENT_STYLES[callout.accent];
+  const style = calloutStyles(themeId, callout.accent);
 
   return (
     <div
@@ -38,7 +60,7 @@ function CalloutCard({
         gap: compact ? 10 : 12,
         background: style.background,
         border: `2px solid ${style.border}`,
-        borderRadius: 20,
+        borderRadius: themeId === "coral-burst" ? 16 : 20,
         padding: compact ? "14px 16px" : "16px 18px",
         flex: 1,
         minWidth: compact ? 220 : 240
@@ -65,10 +87,13 @@ export function createBrandedResultImageElement({
   variant,
   logoSrc
 }: RenderTemplateProps) {
+  const theme = getBrandedImageTheme(input.themeId);
   const isLandscape = variant === "landscape";
   const padding = isLandscape ? 36 : 44;
   const hookSize = isLandscape ? 46 : 52;
   const punchSize = isLandscape ? 24 : 26;
+  const cardBackground = theme.id === "neon-midnight" ? "#0f172a" : "#ffffff";
+  const bodyTextOnDark = theme.id === "neon-midnight";
 
   return (
     <div
@@ -76,7 +101,7 @@ export function createBrandedResultImageElement({
         display: "flex",
         width: "100%",
         height: "100%",
-        background: "linear-gradient(145deg, #0f172a 0%, #1e293b 42%, #064e3b 100%)",
+        background: theme.outerBackground,
         padding,
         boxSizing: "border-box",
         fontFamily:
@@ -88,17 +113,18 @@ export function createBrandedResultImageElement({
           display: "flex",
           flexDirection: "column",
           flex: 1,
-          background: "#ffffff",
-          borderRadius: 28,
+          background: cardBackground,
+          borderRadius: theme.id === "coral-burst" ? 24 : 28,
           overflow: "hidden",
-          boxShadow: "0 28px 80px rgba(0, 0, 0, 0.35)"
+          boxShadow: theme.cardShadow,
+          border: theme.id === "neon-midnight" ? "2px solid #4c1d95" : undefined
         }}
       >
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            background: "linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%)",
+            background: theme.hookBackground,
             padding: isLandscape ? "22px 28px" : "26px 32px"
           }}
         >
@@ -109,10 +135,10 @@ export function createBrandedResultImageElement({
               fontWeight: 900,
               letterSpacing: "0.2em",
               textTransform: "uppercase",
-              color: "#78350f"
+              color: theme.hookEyebrowColor
             }}
           >
-            🔎 Real /leads scan
+            {theme.eyebrowLabel}
           </div>
           <div
             style={{
@@ -121,7 +147,7 @@ export function createBrandedResultImageElement({
               fontSize: hookSize,
               fontWeight: 900,
               lineHeight: 1.08,
-              color: "#0c0a09",
+              color: theme.hookTextColor,
               maxWidth: isLandscape ? 980 : 920
             }}
           >
@@ -153,7 +179,7 @@ export function createBrandedResultImageElement({
                 fontWeight: 800,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                color: "#64748b"
+                color: bodyTextOnDark ? "#94a3b8" : theme.sectionLabelColor
               }}
             >
               Signals we found
@@ -161,9 +187,9 @@ export function createBrandedResultImageElement({
             <div
               style={{
                 display: "flex",
-                background: "#ecfdf5",
-                color: "#065f46",
-                border: "2px solid #6ee7b7",
+                background: theme.badgeBackground,
+                color: theme.badgeColor,
+                border: `2px solid ${theme.badgeBorder}`,
                 borderRadius: 999,
                 padding: "8px 16px",
                 fontSize: isLandscape ? 16 : 17,
@@ -183,7 +209,12 @@ export function createBrandedResultImageElement({
             }}
           >
             {input.callouts.map((callout) => (
-              <CalloutCard key={`${callout.emoji}-${callout.text}`} callout={callout} compact={isLandscape} />
+              <CalloutCard
+                key={`${callout.emoji}-${callout.text}`}
+                callout={callout}
+                compact={isLandscape}
+                themeId={theme.id}
+              />
             ))}
           </div>
 
@@ -192,9 +223,9 @@ export function createBrandedResultImageElement({
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              background: "linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%)",
-              border: "3px solid #34d399",
-              borderRadius: 22,
+              background: theme.punchBackground,
+              border: `3px solid ${theme.punchBorder}`,
+              borderRadius: theme.id === "ocean-signal" ? 18 : 22,
               padding: isLandscape ? "18px 22px" : "22px 24px",
               flex: 1
             }}
@@ -206,10 +237,10 @@ export function createBrandedResultImageElement({
                 fontWeight: 900,
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
-                color: "#047857"
+                color: theme.punchLabelColor
               }}
             >
-              The hook
+              {theme.punchLabel}
             </div>
             <div
               style={{
@@ -218,7 +249,7 @@ export function createBrandedResultImageElement({
                 fontSize: punchSize,
                 fontWeight: 800,
                 lineHeight: 1.35,
-                color: "#064e3b"
+                color: theme.punchTextColor
               }}
             >
               {input.punch_line}
@@ -233,7 +264,7 @@ export function createBrandedResultImageElement({
               gap: 16,
               marginTop: 18,
               paddingTop: 16,
-              borderTop: "2px solid #e2e8f0"
+              borderTop: `2px solid ${theme.footerBorder}`
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -243,7 +274,7 @@ export function createBrandedResultImageElement({
                   display: "flex",
                   fontSize: isLandscape ? 20 : 22,
                   fontWeight: 900,
-                  color: "#0f766e"
+                  color: theme.siteUrlColor
                 }}
               >
                 techrevenuebrief.com/leads
@@ -252,15 +283,15 @@ export function createBrandedResultImageElement({
             <div
               style={{
                 display: "flex",
-                background: "#0f172a",
-                color: "#f8fafc",
+                background: theme.ctaBackground,
+                color: theme.ctaColor,
                 borderRadius: 999,
                 padding: "10px 18px",
                 fontSize: isLandscape ? 16 : 17,
                 fontWeight: 900
               }}
             >
-              Run your free scan →
+              {theme.ctaText}
             </div>
           </div>
         </div>

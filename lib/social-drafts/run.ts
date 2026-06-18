@@ -1,5 +1,6 @@
 import { brandedImageInputFromSocialPayload } from "@/lib/branded-result-image/normalize";
 import { applyOwnerVoiceToSocialDraft } from "@/lib/owner-voice/social";
+import { applySocialEmojiPolish } from "@/lib/owner-voice/social-emojis";
 import {
   encodeBrandedResultImageVariants,
   generateBrandedResultImage
@@ -96,9 +97,11 @@ export async function runDailySocialDrafts(input?: {
   forceSourceType?: SocialSourceType;
   skipEmail?: boolean;
   applyOwnerVoice?: boolean;
+  applyEmojis?: boolean;
 }) {
   const runLabel = input?.runLabel ?? "daily";
   const applyOwnerVoice = input?.applyOwnerVoice !== false;
+  const applyEmojis = input?.applyEmojis !== false;
   const lastSourceType = await getLastSocialSourceType();
   const requestedType = input?.forceSourceType ?? nextSourceType(lastSourceType);
   const resolved = await resolveSocialDraftSource(requestedType);
@@ -131,11 +134,33 @@ export async function runDailySocialDrafts(input?: {
     };
   }
 
+  if (applyEmojis) {
+    const emojiPolished = await applySocialEmojiPolish({
+      linkedin_draft: generated.linkedin_draft,
+      instagram_caption: generated.instagram_caption,
+      source_type: source.type
+    });
+
+    generated = {
+      ...generated,
+      ...emojiPolished
+    };
+    sourcePayload = {
+      ...sourcePayload,
+      _emoji_polish_applied_at: new Date().toISOString()
+    };
+  }
+
   let brandedImageVariants: BrandedResultImageVariants | null = null;
   let brandedImageBuffers: { square: Buffer; landscape: Buffer } | null = null;
 
   if (source.type === "enrichment_example") {
-    const imageInput = brandedImageInputFromSocialPayload(source.payload);
+    const themeSeed = `${sourcePayload.hook_question ?? ""}|${Date.now()}`;
+    const imageInput = brandedImageInputFromSocialPayload(source.payload, themeSeed);
+    sourcePayload = {
+      ...sourcePayload,
+      _branded_image_theme: imageInput.themeId
+    };
     const buffers = await generateBrandedResultImage(imageInput);
     brandedImageBuffers = buffers;
     brandedImageVariants = encodeBrandedResultImageVariants(buffers);
