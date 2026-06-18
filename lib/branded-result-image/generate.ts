@@ -4,6 +4,7 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 
 import { createBrandedResultImageElement } from "@/lib/branded-result-image/render-template";
+import { sanitizeBrandedImageInput } from "@/lib/branded-result-image/sanitize-input";
 import type {
   BrandedResultImageInput,
   BrandedResultImageVariant,
@@ -31,12 +32,13 @@ async function renderBrandedResultVariant(
   input: BrandedResultImageInput,
   variant: BrandedResultImageVariant
 ) {
+  const safeInput = sanitizeBrandedImageInput(input);
   const logoSrc = await getLogoDataUri();
   const size =
     variant === "square" ? BRANDED_IMAGE_SQUARE_SIZE : BRANDED_IMAGE_LANDSCAPE_SIZE;
 
   const response = new ImageResponse(
-    createBrandedResultImageElement({ input, variant, logoSrc }),
+    createBrandedResultImageElement({ input: safeInput, variant, logoSrc }),
     {
       width: size.width,
       height: size.height

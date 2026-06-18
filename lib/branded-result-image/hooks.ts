@@ -50,10 +50,17 @@ export function buildAttentionHooks(
     typeof enrichment.competitor_density_1mi === "number"
       ? enrichment.competitor_density_1mi
       : 0;
-  const category = publicContext.business_category_singular;
-  const categoryLabel = publicContext.business_category_label;
-  const areaPhrase = publicContext.area_phrase;
-  const areaLabel = publicContext.area_label;
+  const category = safeTrim(publicContext.business_category_singular, "local business");
+  const categoryLabel = safeTrim(publicContext.business_category_label, "Local businesses");
+  const areaLabel = safeTrim(publicContext.area_label, "this trade area");
+  const areaPhrase = (() => {
+    const trimmed = safeTrim(publicContext.area_phrase);
+    if (!trimmed) {
+      return " in this trade area";
+    }
+
+    return trimmed.startsWith("in ") ? ` ${trimmed}` : ` in ${trimmed}`;
+  })();
   const callouts: BrandedImageCallout[] = [];
 
   let hookQuestion = `🔍 ${categoryLabel}${areaPhrase} — what's the gap?`;

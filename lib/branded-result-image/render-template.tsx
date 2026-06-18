@@ -117,7 +117,7 @@ export function createBrandedResultImageElement({
           borderRadius: theme.id === "coral-burst" ? 24 : 28,
           overflow: "hidden",
           boxShadow: theme.cardShadow,
-          border: theme.id === "neon-midnight" ? "2px solid #4c1d95" : undefined
+          border: theme.id === "neon-midnight" ? "2px solid #4c1d95" : "2px solid transparent"
         }}
       >
         <div

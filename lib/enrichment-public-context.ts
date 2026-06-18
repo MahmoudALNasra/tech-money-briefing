@@ -222,8 +222,8 @@ export async function resolveEnrichmentPublicContext(input: {
   const finalArea = areaLabel || "this trade area";
 
   return {
-    business_category_label: categoryLabel,
-    business_category_singular: categorySingular,
+    business_category_label: categoryLabel ?? "Local businesses",
+    business_category_singular: categorySingular ?? "local business",
     area_label: finalArea,
     area_phrase:
       finalArea === "this trade area" ? " in this trade area" : buildAreaPhrase(finalArea)
