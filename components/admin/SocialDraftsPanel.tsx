@@ -224,6 +224,18 @@ export function SocialDraftsPanel() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin"
+            className="rounded-full border border-stone-200 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50"
+          >
+            Account ops
+          </Link>
+          <Link
+            href="/admin/article-promotions"
+            className="rounded-full border border-stone-200 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50"
+          >
+            Article promotions
+          </Link>
           <button
             type="button"
             onClick={() => void generateDraft()}
@@ -232,12 +244,6 @@ export function SocialDraftsPanel() {
           >
             {isGenerating ? "Generating…" : "Generate post"}
           </button>
-          <Link
-            href="/admin"
-            className="rounded-full border border-stone-200 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50"
-          >
-            Account ops
-          </Link>
           <button
             type="button"
             onClick={() => void loadDrafts()}

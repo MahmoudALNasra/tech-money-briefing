@@ -9,6 +9,7 @@ export const ARTICLE_ORIGINALITY_INSTRUCTIONS = [
   "Do not include a visible Source, Original source, Read more, or citation footer unless the article uses a specific quote, statistic, official claim, or source-only fact that needs verification.",
   "Do not include a bottom 'Related links', 'Related on Tech Revenue Brief', or 'Read next' section. Weave internal links into the article body where they make sense.",
   "Write with a direct, practical operator voice. Skepticism should come from specific trade-offs and examples, not from repeating the same 'I would not / Don't assume / Your X' formula in every paragraph.",
+  "Article titles must be clear SEO headlines for humans — never append em-dash owner-voice suffixes like '— I would not…' and do not default titles to negation formulas.",
   "Prefer real decision questions, simple examples, and business-owner logic over polished corporate language.",
   "Vary sentence construction and section openings across articles. Do not reuse one rhetorical template as the dominant structure.",
   "Keep the style guide flexible because future owner-written samples may refine the voice."

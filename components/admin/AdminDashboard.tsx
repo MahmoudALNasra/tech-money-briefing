@@ -274,6 +274,12 @@ export function AdminDashboard() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
+            href="/admin/article-promotions"
+            className="rounded-full border border-stone-200 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50"
+          >
+            Article promotions
+          </Link>
+          <Link
             href="/admin/social-drafts"
             className="rounded-full border border-stone-200 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50"
           >
