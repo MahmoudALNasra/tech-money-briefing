@@ -18,6 +18,103 @@ async function copyText(text: string) {
   await navigator.clipboard.writeText(text);
 }
 
+function BrandedImagePreview({
+  draftId,
+  variant,
+  alt
+}: {
+  draftId: string;
+  variant: "square" | "landscape";
+  alt: string;
+}) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let objectUrl: string | null = null;
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const response = await fetch(
+          `/api/social-drafts/${draftId}/branded-image?variant=${variant}`,
+          { headers: await getBusinessDataAuthHeaders() }
+        );
+
+        if (!response.ok) {
+          throw new Error("Could not load branded image.");
+        }
+
+        const blob = await response.blob();
+        if (cancelled) {
+          return;
+        }
+
+        objectUrl = URL.createObjectURL(blob);
+        setSrc(objectUrl);
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : String(loadError));
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [draftId, variant]);
+
+  if (error) {
+    return <p className="mt-3 text-sm text-rose-700">{error}</p>;
+  }
+
+  if (!src) {
+    return <p className="mt-3 text-sm text-stone-500">Loading image…</p>;
+  }
+
+  return (
+    <img src={src} alt={alt} className="mt-3 w-full rounded-2xl border border-emerald-200" />
+  );
+}
+
+async function downloadBrandedImage(
+  draft: SocialPostDraftRow,
+  variant: "square" | "landscape"
+) {
+  const publicUrl =
+    variant === "square" ? draft.branded_image_square_url : draft.branded_image_landscape_url;
+
+  if (publicUrl) {
+    const anchor = document.createElement("a");
+    anchor.href = publicUrl;
+    anchor.download = `social-draft-${draft.id}-${variant}.png`;
+    anchor.target = "_blank";
+    anchor.rel = "noopener noreferrer";
+    anchor.click();
+    return;
+  }
+
+  const response = await fetch(
+    `/api/social-drafts/${draft.id}/branded-image?variant=${variant}`,
+    { headers: await getBusinessDataAuthHeaders() }
+  );
+
+  if (!response.ok) {
+    throw new Error("Could not download branded image.");
+  }
+
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = objectUrl;
+  anchor.download = `social-draft-${draft.id}-${variant}.png`;
+  anchor.click();
+  URL.revokeObjectURL(objectUrl);
+}
+
 export function SocialDraftsPanel() {
   const [drafts, setDrafts] = useState<SocialPostDraftRow[]>([]);
   const [message, setMessage] = useState("");
@@ -93,7 +190,9 @@ export function SocialDraftsPanel() {
           <h1 className="mt-2 text-2xl font-black text-ink">Social drafts for /leads</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
             Review, edit, attach a real screenshot, then post yourself on LinkedIn and Instagram.
-            Nothing here auto-publishes.
+            Nothing here auto-publishes. Branded PNG cards are generated only on{" "}
+            <span className="font-semibold">enrichment example</span> rotation days (every 4th
+            draft). When images exist, copy the public site URLs for Instagram/LinkedIn.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -170,41 +269,137 @@ export function SocialDraftsPanel() {
                 </p>
               ) : null}
 
-              {draft.branded_image_variants ? (
-                <section className="mt-5 grid gap-4 md:grid-cols-2">
-                  <div>
-                    <h2 className="text-sm font-black uppercase tracking-[0.18em] text-stone-500">
-                      Branded image · Square
-                    </h2>
-                    <img
-                      src={`data:image/png;base64,${draft.branded_image_variants.square.base64}`}
-                      alt="Branded square result card for Instagram"
-                      className="mt-3 w-full rounded-2xl border border-emerald-200"
-                    />
-                    <a
-                      href={`/api/social-drafts/${draft.id}/branded-image?variant=square`}
-                      className="mt-2 inline-flex text-xs font-bold uppercase tracking-[0.14em] text-emerald-800"
-                    >
-                      Download square PNG
-                    </a>
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-black uppercase tracking-[0.18em] text-stone-500">
-                      Branded image · Landscape
-                    </h2>
-                    <img
-                      src={`data:image/png;base64,${draft.branded_image_variants.landscape.base64}`}
-                      alt="Branded landscape result card for LinkedIn"
-                      className="mt-3 w-full rounded-2xl border border-emerald-200"
-                    />
-                    <a
-                      href={`/api/social-drafts/${draft.id}/branded-image?variant=landscape`}
-                      className="mt-2 inline-flex text-xs font-bold uppercase tracking-[0.14em] text-emerald-800"
-                    >
-                      Download landscape PNG
-                    </a>
-                  </div>
-                </section>
+              {draft.has_branded_images || draft.branded_image_variants ? (
+                <>
+                  {draft.branded_image_square_url || draft.branded_image_landscape_url ? (
+                    <section className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                      <h2 className="text-sm font-black uppercase tracking-[0.18em] text-emerald-800">
+                        Public image URLs
+                      </h2>
+                      <p className="mt-2 text-sm leading-6 text-emerald-950">
+                        Paste these when you add the image on Instagram or LinkedIn — they point at
+                        your site.
+                      </p>
+                      <div className="mt-3 space-y-3">
+                        {draft.branded_image_square_url ? (
+                          <div className="rounded-xl border border-emerald-200 bg-white p-3">
+                            <p className="text-xs font-black uppercase tracking-[0.14em] text-stone-500">
+                              Instagram · square
+                            </p>
+                            <p className="mt-1 break-all font-mono text-xs text-stone-800">
+                              {draft.branded_image_square_url}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void handleCopy(
+                                  `${draft.id}-square-url`,
+                                  draft.branded_image_square_url ?? ""
+                                )
+                              }
+                              className="mt-2 rounded-full border border-emerald-200 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-emerald-800"
+                            >
+                              {copiedKey === `${draft.id}-square-url` ? "Copied" : "Copy URL"}
+                            </button>
+                          </div>
+                        ) : null}
+                        {draft.branded_image_landscape_url ? (
+                          <div className="rounded-xl border border-emerald-200 bg-white p-3">
+                            <p className="text-xs font-black uppercase tracking-[0.14em] text-stone-500">
+                              LinkedIn · landscape
+                            </p>
+                            <p className="mt-1 break-all font-mono text-xs text-stone-800">
+                              {draft.branded_image_landscape_url}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void handleCopy(
+                                  `${draft.id}-landscape-url`,
+                                  draft.branded_image_landscape_url ?? ""
+                                )
+                              }
+                              className="mt-2 rounded-full border border-emerald-200 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-emerald-800"
+                            >
+                              {copiedKey === `${draft.id}-landscape-url` ? "Copied" : "Copy URL"}
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    </section>
+                  ) : null}
+
+                  <section className="mt-5 grid gap-4 md:grid-cols-2">
+                    <div>
+                      <h2 className="text-sm font-black uppercase tracking-[0.18em] text-stone-500">
+                        Branded image · Square
+                      </h2>
+                      {draft.branded_image_variants ? (
+                        <img
+                          src={`data:image/png;base64,${draft.branded_image_variants.square.base64}`}
+                          alt="Branded square result card for Instagram"
+                          className="mt-3 w-full rounded-2xl border border-emerald-200"
+                        />
+                      ) : draft.branded_image_square_url ? (
+                        <img
+                          src={draft.branded_image_square_url}
+                          alt="Branded square result card for Instagram"
+                          className="mt-3 w-full rounded-2xl border border-emerald-200"
+                        />
+                      ) : (
+                        <BrandedImagePreview
+                          draftId={draft.id}
+                          variant="square"
+                          alt="Branded square result card for Instagram"
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => void downloadBrandedImage(draft, "square")}
+                        className="mt-2 inline-flex text-xs font-bold uppercase tracking-[0.14em] text-emerald-800"
+                      >
+                        Download square PNG
+                      </button>
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-black uppercase tracking-[0.18em] text-stone-500">
+                        Branded image · Landscape
+                      </h2>
+                      {draft.branded_image_variants ? (
+                        <img
+                          src={`data:image/png;base64,${draft.branded_image_variants.landscape.base64}`}
+                          alt="Branded landscape result card for LinkedIn"
+                          className="mt-3 w-full rounded-2xl border border-emerald-200"
+                        />
+                      ) : draft.branded_image_landscape_url ? (
+                        <img
+                          src={draft.branded_image_landscape_url}
+                          alt="Branded landscape result card for LinkedIn"
+                          className="mt-3 w-full rounded-2xl border border-emerald-200"
+                        />
+                      ) : (
+                        <BrandedImagePreview
+                          draftId={draft.id}
+                          variant="landscape"
+                          alt="Branded landscape result card for LinkedIn"
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => void downloadBrandedImage(draft, "landscape")}
+                        className="mt-2 inline-flex text-xs font-bold uppercase tracking-[0.14em] text-emerald-800"
+                      >
+                        Download landscape PNG
+                      </button>
+                    </div>
+                  </section>
+                </>
+              ) : draft.source_type !== "enrichment_example" ? (
+                <p className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
+                  No branded images for this draft — source type is{" "}
+                  <span className="font-semibold">{draft.source_type.replace(/_/g, " ")}</span>.
+                  Images appear on enrichment-example rotation days only.
+                </p>
               ) : null}
 
               <section className="mt-5">

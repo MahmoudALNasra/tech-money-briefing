@@ -63,6 +63,8 @@ export async function pickEnrichmentExample(): Promise<PickedEnrichmentExample> 
   return {
     enrichment: pick,
     brandedImageInput,
-    business_descriptor: brandedImageInput.headline.replace(/^A\s+/i, "a ")
+    business_descriptor: pick.pitch_angle.trim().toLowerCase().startsWith("a ")
+      ? pick.pitch_angle.trim()
+      : `a ${pick.pitch_angle.trim().toLowerCase()}`
   };
 }

@@ -1,30 +1,46 @@
+export type BrandedImageCalloutAccent = "danger" | "warning" | "success" | "info" | "neutral";
+
+export type BrandedImageCallout = {
+  emoji: string;
+  text: string;
+  accent: BrandedImageCalloutAccent;
+};
+
 export type BrandedResultImageInput = {
-  headline: string;
-  pitch_angle: string;
-  opportunity_signal: string;
-  summary_line: string;
-  gbp_profile_signal?: string;
-  competitor_density_1mi?: number;
-  website_reachable?: boolean;
-  active_social?: boolean;
+  hook_question: string;
+  punch_line: string;
+  callouts: BrandedImageCallout[];
+  badge_label: string;
 };
 
 export type BrandedResultImageVariant = "square" | "landscape";
 
+export type BrandedResultImageVariantEntry = {
+  contentType: "image/png";
+  base64: string;
+  width: number;
+  height: number;
+  publicPath?: string;
+};
+
 export type BrandedResultImageVariants = {
-  square: {
-    contentType: "image/png";
-    base64: string;
-    width: number;
-    height: number;
-  };
-  landscape: {
-    contentType: "image/png";
-    base64: string;
-    width: number;
-    height: number;
-  };
+  square: BrandedResultImageVariantEntry;
+  landscape: BrandedResultImageVariantEntry;
 };
 
 export const BRANDED_IMAGE_SQUARE_SIZE = { width: 1080, height: 1080 } as const;
 export const BRANDED_IMAGE_LANDSCAPE_SIZE = { width: 1200, height: 630 } as const;
+
+export function brandedImageVariantPublicUrl(
+  variants: BrandedResultImageVariants | null | undefined,
+  variant: BrandedResultImageVariant,
+  absoluteUrl: (path: string) => string
+) {
+  const publicPath = variants?.[variant]?.publicPath;
+
+  if (!publicPath) {
+    return null;
+  }
+
+  return absoluteUrl(publicPath);
+}

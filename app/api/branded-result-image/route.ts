@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as BrandedResultImageInput | Record<string, unknown>;
     const input =
-      "headline" in body && "pitch_angle" in body
+      "hook_question" in body && "punch_line" in body
         ? (body as BrandedResultImageInput)
         : brandedImageInputFromSocialPayload(body as Record<string, unknown>);
 

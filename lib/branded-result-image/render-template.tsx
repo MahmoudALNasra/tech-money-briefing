@@ -1,16 +1,19 @@
-import type { BrandedResultImageInput } from "@/lib/branded-result-image/types";
+import type {
+  BrandedImageCallout,
+  BrandedImageCalloutAccent,
+  BrandedResultImageInput
+} from "@/lib/branded-result-image/types";
 
-const COLORS = {
-  cardBg: "#ecfdf5",
-  cardBorder: "#a7f3d0",
-  ink: "#0c0a09",
-  stone700: "#44403c",
-  stone600: "#57534e",
-  stone500: "#78716c",
-  emerald700: "#047857",
-  emerald800: "#065f46",
-  white: "#ffffff"
-} as const;
+const ACCENT_STYLES: Record<
+  BrandedImageCalloutAccent,
+  { background: string; border: string; text: string }
+> = {
+  danger: { background: "#fef2f2", border: "#fecaca", text: "#991b1b" },
+  warning: { background: "#fffbeb", border: "#fde68a", text: "#92400e" },
+  success: { background: "#ecfdf5", border: "#a7f3d0", text: "#065f46" },
+  info: { background: "#eff6ff", border: "#bfdbfe", text: "#1e40af" },
+  neutral: { background: "#f8fafc", border: "#e2e8f0", text: "#334155" }
+};
 
 type RenderTemplateProps = {
   input: BrandedResultImageInput;
@@ -18,28 +21,43 @@ type RenderTemplateProps = {
   logoSrc: string;
 };
 
-function metaChips(input: BrandedResultImageInput) {
-  const chips: string[] = [];
+function CalloutCard({
+  callout,
+  compact
+}: {
+  callout: BrandedImageCallout;
+  compact: boolean;
+}) {
+  const style = ACCENT_STYLES[callout.accent];
 
-  if (typeof input.competitor_density_1mi === "number") {
-    chips.push(`${input.competitor_density_1mi} similar businesses within 1 mi`);
-  }
-
-  if (input.website_reachable === false) {
-    chips.push("No reachable website");
-  } else if (input.website_reachable === true) {
-    chips.push("Website reachable");
-  }
-
-  if (input.active_social) {
-    chips.push("Active social links found");
-  }
-
-  if (input.gbp_profile_signal) {
-    chips.push(input.gbp_profile_signal);
-  }
-
-  return chips.slice(0, 3);
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: compact ? 10 : 12,
+        background: style.background,
+        border: `2px solid ${style.border}`,
+        borderRadius: 20,
+        padding: compact ? "14px 16px" : "16px 18px",
+        flex: 1,
+        minWidth: compact ? 220 : 240
+      }}
+    >
+      <div style={{ display: "flex", fontSize: compact ? 28 : 32 }}>{callout.emoji}</div>
+      <div
+        style={{
+          display: "flex",
+          fontSize: compact ? 18 : 20,
+          fontWeight: 800,
+          lineHeight: 1.25,
+          color: style.text
+        }}
+      >
+        {callout.text}
+      </div>
+    </div>
+  );
 }
 
 export function createBrandedResultImageElement({
@@ -48,8 +66,9 @@ export function createBrandedResultImageElement({
   logoSrc
 }: RenderTemplateProps) {
   const isLandscape = variant === "landscape";
-  const padding = isLandscape ? 48 : 56;
-  const chips = metaChips(input);
+  const padding = isLandscape ? 36 : 44;
+  const hookSize = isLandscape ? 46 : 52;
+  const punchSize = isLandscape ? 24 : 26;
 
   return (
     <div
@@ -57,7 +76,7 @@ export function createBrandedResultImageElement({
         display: "flex",
         width: "100%",
         height: "100%",
-        background: "linear-gradient(180deg, #f8fafc 0%, #ecfdf5 100%)",
+        background: "linear-gradient(145deg, #0f172a 0%, #1e293b 42%, #064e3b 100%)",
         padding,
         boxSizing: "border-box",
         fontFamily:
@@ -69,138 +88,180 @@ export function createBrandedResultImageElement({
           display: "flex",
           flexDirection: "column",
           flex: 1,
-          background: COLORS.cardBg,
-          border: `3px solid ${COLORS.cardBorder}`,
-          borderRadius: 32,
-          padding: isLandscape ? 40 : 44,
-          position: "relative",
-          boxShadow: "0 24px 60px rgba(15, 23, 42, 0.12)"
+          background: "#ffffff",
+          borderRadius: 28,
+          overflow: "hidden",
+          boxShadow: "0 28px 80px rgba(0, 0, 0, 0.35)"
         }}
       >
         <div
           style={{
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: 24
+            flexDirection: "column",
+            background: "linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%)",
+            padding: isLandscape ? "22px 28px" : "26px 32px"
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-            <div
-              style={{
-                fontSize: isLandscape ? 18 : 20,
-                fontWeight: 800,
-                letterSpacing: "0.16em",
-                textTransform: "uppercase",
-                color: COLORS.emerald700
-              }}
-            >
-              Fully analyzed
-            </div>
-            <div
-              style={{
-                marginTop: 12,
-                fontSize: isLandscape ? 42 : 48,
-                fontWeight: 900,
-                lineHeight: 1.1,
-                color: COLORS.ink,
-                maxWidth: isLandscape ? 760 : 900
-              }}
-            >
-              {input.headline}
-            </div>
+          <div
+            style={{
+              display: "flex",
+              fontSize: isLandscape ? 14 : 15,
+              fontWeight: 900,
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              color: "#78350f"
+            }}
+          >
+            🔎 Real /leads scan
           </div>
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: COLORS.white,
-              color: COLORS.emerald800,
-              border: `2px solid ${COLORS.cardBorder}`,
-              borderRadius: 999,
-              padding: "12px 20px",
-              fontSize: isLandscape ? 18 : 20,
+              marginTop: 10,
+              fontSize: hookSize,
               fontWeight: 900,
-              maxWidth: isLandscape ? 280 : 320,
-              textAlign: "center"
+              lineHeight: 1.08,
+              color: "#0c0a09",
+              maxWidth: isLandscape ? 980 : 920
             }}
           >
-            {input.pitch_angle}
+            {input.hook_question}
           </div>
-        </div>
-
-        <div
-          style={{
-            marginTop: 28,
-            fontSize: isLandscape ? 24 : 26,
-            fontWeight: 700,
-            lineHeight: 1.35,
-            color: COLORS.stone700
-          }}
-        >
-          {input.opportunity_signal}
-        </div>
-
-        <div
-          style={{
-            marginTop: 24,
-            fontSize: isLandscape ? 22 : 24,
-            lineHeight: 1.5,
-            color: COLORS.stone600,
-            flex: 1
-          }}
-        >
-          {input.summary_line}
-        </div>
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 24 }}>
-          {chips.map((chip) => (
-            <div
-              key={chip}
-              style={{
-                display: "flex",
-                background: COLORS.white,
-                border: `1px solid ${COLORS.cardBorder}`,
-                borderRadius: 999,
-                padding: "10px 16px",
-                fontSize: isLandscape ? 16 : 18,
-                fontWeight: 600,
-                color: COLORS.stone600
-              }}
-            >
-              {chip}
-            </div>
-          ))}
         </div>
 
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            gap: 12,
-            marginTop: 28,
-            paddingTop: 20,
-            borderTop: `1px solid ${COLORS.cardBorder}`
+            flex: 1,
+            flexDirection: "column",
+            padding: isLandscape ? "24px 28px 20px" : "28px 32px 24px"
           }}
         >
-          <img
-            src={logoSrc}
-            width={32}
-            height={32}
-            alt=""
-            style={{ borderRadius: 8 }}
-          />
           <div
             style={{
-              fontSize: isLandscape ? 20 : 22,
-              fontWeight: 800,
-              color: COLORS.emerald800,
-              letterSpacing: "0.02em"
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 16,
+              marginBottom: 18
             }}
           >
-            techrevenuebrief.com/leads
+            <div
+              style={{
+                display: "flex",
+                fontSize: isLandscape ? 16 : 17,
+                fontWeight: 800,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "#64748b"
+              }}
+            >
+              Signals we found
+            </div>
+            <div
+              style={{
+                display: "flex",
+                background: "#ecfdf5",
+                color: "#065f46",
+                border: "2px solid #6ee7b7",
+                borderRadius: 999,
+                padding: "8px 16px",
+                fontSize: isLandscape ? 16 : 17,
+                fontWeight: 900
+              }}
+            >
+              🎯 {input.badge_label}
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 12,
+              marginBottom: 20
+            }}
+          >
+            {input.callouts.map((callout) => (
+              <CalloutCard key={`${callout.emoji}-${callout.text}`} callout={callout} compact={isLandscape} />
+            ))}
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              background: "linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%)",
+              border: "3px solid #34d399",
+              borderRadius: 22,
+              padding: isLandscape ? "18px 22px" : "22px 24px",
+              flex: 1
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                fontSize: isLandscape ? 14 : 15,
+                fontWeight: 900,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                color: "#047857"
+              }}
+            >
+              The hook
+            </div>
+            <div
+              style={{
+                display: "flex",
+                marginTop: 10,
+                fontSize: punchSize,
+                fontWeight: 800,
+                lineHeight: 1.35,
+                color: "#064e3b"
+              }}
+            >
+              {input.punch_line}
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 16,
+              marginTop: 18,
+              paddingTop: 16,
+              borderTop: "2px solid #e2e8f0"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <img src={logoSrc} width={34} height={34} alt="" style={{ borderRadius: 8 }} />
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: isLandscape ? 20 : 22,
+                  fontWeight: 900,
+                  color: "#0f766e"
+                }}
+              >
+                techrevenuebrief.com/leads
+              </div>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                background: "#0f172a",
+                color: "#f8fafc",
+                borderRadius: 999,
+                padding: "10px 18px",
+                fontSize: isLandscape ? 16 : 17,
+                fontWeight: 900
+              }}
+            >
+              Run your free scan →
+            </div>
           </div>
         </div>
       </div>

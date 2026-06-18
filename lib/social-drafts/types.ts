@@ -11,12 +11,13 @@ export type SocialDraftSource =
   | {
       type: "enrichment_example";
       payload: {
-        headline: string;
+        hook_question: string;
+        punch_line: string;
+        badge_label: string;
         business_descriptor: string;
         gbp_profile_signal: string;
         opportunity_signal: string;
         pitch_angle: string;
-        summary_line: string;
         website_reachable: boolean;
         competitor_density_1mi: number;
         active_social?: boolean;
@@ -79,4 +80,7 @@ export type SocialPostDraftRow = {
   posted_instagram_at: string | null;
   email_sent_at: string | null;
   created_at: string;
+  has_branded_images?: boolean;
+  branded_image_square_url?: string | null;
+  branded_image_landscape_url?: string | null;
 };

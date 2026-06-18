@@ -1,4 +1,5 @@
 import { getAdminEmails } from "@/lib/admin-auth";
+import { brandedImageVariantPublicUrl } from "@/lib/branded-result-image/types";
 import { sendEmail } from "@/lib/email";
 import type { SocialPostDraftRow } from "@/lib/social-drafts/types";
 import { absoluteUrl } from "@/lib/site";
@@ -32,12 +33,16 @@ export async function sendSocialDraftEmail(draft: SocialPostDraftRow) {
   }
 
   const adminUrl = absoluteUrl("/admin/social-drafts");
-  const squareImageUrl = draft.branded_image_variants
-    ? absoluteUrl(`/api/social-drafts/${draft.id}/branded-image?variant=square`)
-    : null;
-  const landscapeImageUrl = draft.branded_image_variants
-    ? absoluteUrl(`/api/social-drafts/${draft.id}/branded-image?variant=landscape`)
-    : null;
+  const squareImageUrl =
+    brandedImageVariantPublicUrl(draft.branded_image_variants, "square", absoluteUrl) ??
+    (draft.branded_image_variants
+      ? absoluteUrl(`/api/social-drafts/${draft.id}/branded-image?variant=square`)
+      : null);
+  const landscapeImageUrl =
+    brandedImageVariantPublicUrl(draft.branded_image_variants, "landscape", absoluteUrl) ??
+    (draft.branded_image_variants
+      ? absoluteUrl(`/api/social-drafts/${draft.id}/branded-image?variant=landscape`)
+      : null);
   const subject = `Today's /leads social drafts (${draft.source_type.replace(/_/g, " ")})`;
   const warning = draft.repetition_warning
     ? `\n\nRepetition check: ${draft.repetition_warning}`
@@ -53,12 +58,12 @@ export async function sendSocialDraftEmail(draft: SocialPostDraftRow) {
     draft.instagram_caption,
     "",
     draft.branded_image_variants
-      ? "BRANDED IMAGE ATTACHED (also linked below)"
+      ? "BRANDED IMAGES — paste these public URLs when posting (also attached to this email)"
       : "INSTAGRAM VISUAL DIRECTION (you pick/take the photo)",
     draft.branded_image_variants
       ? [
-          squareImageUrl ? `Square image: ${squareImageUrl}` : null,
-          landscapeImageUrl ? `Landscape image: ${landscapeImageUrl}` : null
+          squareImageUrl ? `Instagram (square): ${squareImageUrl}` : null,
+          landscapeImageUrl ? `LinkedIn (landscape): ${landscapeImageUrl}` : null
         ]
           .filter(Boolean)
           .join("\n")
@@ -85,8 +90,12 @@ export async function sendSocialDraftEmail(draft: SocialPostDraftRow) {
       ${
         draft.branded_image_variants
           ? `<div style="margin:20px 0">
-              <h2 style="font-size:16px;margin:0 0 8px">Branded result card</h2>
-              <p style="color:#4b5563;font-size:14px">Square and landscape PNGs are attached to this email. The watermark is baked into the image file.</p>
+              <h2 style="font-size:16px;margin:0 0 8px">Branded result card — public URLs</h2>
+              <p style="color:#4b5563;font-size:14px">Use these links when you upload the image on Instagram or LinkedIn. PNGs are also attached.</p>
+              <ul style="padding-left:18px;color:#111827">
+                ${squareImageUrl ? `<li><a href="${squareImageUrl}">Square (Instagram)</a></li>` : ""}
+                ${landscapeImageUrl ? `<li><a href="${landscapeImageUrl}">Landscape (LinkedIn)</a></li>` : ""}
+              </ul>
             </div>`
           : ""
       }

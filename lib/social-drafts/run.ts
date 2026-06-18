@@ -8,7 +8,9 @@ import { sendSocialDraftEmail } from "@/lib/social-drafts/email";
 import { generateSocialDraftPair } from "@/lib/social-drafts/generate";
 import { getLastSocialSourceType, nextSourceType } from "@/lib/social-drafts/rotation";
 import { resolveSocialDraftSource } from "@/lib/social-drafts/sources";
-import type { SocialPostDraftRow } from "@/lib/social-drafts/types";
+import type { SocialPostDraftRow, SocialSourceType } from "@/lib/social-drafts/types";
+import { uploadSocialDraftBrandedImagePair } from "@/lib/social-draft-branded-images";
+import { absoluteUrl } from "@/lib/site";
 import { supabase } from "@/lib/supabase";
 
 function mapDraftRow(row: Record<string, unknown>): SocialPostDraftRow {
@@ -42,7 +44,24 @@ export async function listSocialPostDrafts(limit = 20) {
     throw new Error(error.message);
   }
 
-  return (data ?? []).map((row) => mapDraftRow(row as Record<string, unknown>));
+  return (data ?? []).map((row) => summarizeDraftForList(mapDraftRow(row as Record<string, unknown>)));
+}
+
+function summarizeDraftForList(draft: SocialPostDraftRow): SocialPostDraftRow {
+  if (!draft.branded_image_variants) {
+    return draft;
+  }
+
+  const squarePath = draft.branded_image_variants.square.publicPath;
+  const landscapePath = draft.branded_image_variants.landscape.publicPath;
+
+  return {
+    ...draft,
+    branded_image_variants: null,
+    has_branded_images: true,
+    branded_image_square_url: squarePath ? absoluteUrl(squarePath) : null,
+    branded_image_landscape_url: landscapePath ? absoluteUrl(landscapePath) : null
+  };
 }
 
 export async function markSocialDraftPosted(input: {
@@ -71,10 +90,13 @@ export async function markSocialDraftPosted(input: {
   return mapDraftRow(data as Record<string, unknown>);
 }
 
-export async function runDailySocialDrafts(input?: { runLabel?: string }) {
+export async function runDailySocialDrafts(input?: {
+  runLabel?: string;
+  forceSourceType?: SocialSourceType;
+}) {
   const runLabel = input?.runLabel ?? "daily";
   const lastSourceType = await getLastSocialSourceType();
-  const requestedType = nextSourceType(lastSourceType);
+  const requestedType = input?.forceSourceType ?? nextSourceType(lastSourceType);
   const resolved = await resolveSocialDraftSource(requestedType);
   const source = resolved.source;
   const sourcePayload =
@@ -87,10 +109,12 @@ export async function runDailySocialDrafts(input?: { runLabel?: string }) {
   const generated = await generateSocialDraftPair(source);
 
   let brandedImageVariants: BrandedResultImageVariants | null = null;
+  let brandedImageBuffers: { square: Buffer; landscape: Buffer } | null = null;
 
   if (source.type === "enrichment_example") {
     const imageInput = brandedImageInputFromSocialPayload(source.payload);
     const buffers = await generateBrandedResultImage(imageInput);
+    brandedImageBuffers = buffers;
     brandedImageVariants = encodeBrandedResultImageVariants(buffers);
   }
 
@@ -118,6 +142,31 @@ export async function runDailySocialDrafts(input?: { runLabel?: string }) {
   }
 
   const draft = mapDraftRow(data as Record<string, unknown>);
+
+  if (brandedImageVariants && brandedImageBuffers) {
+    try {
+      const { squarePath, landscapePath } = await uploadSocialDraftBrandedImagePair({
+        draftId: draft.id,
+        square: brandedImageBuffers.square,
+        landscape: brandedImageBuffers.landscape
+      });
+
+      brandedImageVariants = {
+        square: { ...brandedImageVariants.square, publicPath: squarePath },
+        landscape: { ...brandedImageVariants.landscape, publicPath: landscapePath }
+      };
+
+      await supabase
+        .from("social_post_drafts")
+        .update({ branded_image_variants: brandedImageVariants })
+        .eq("id", draft.id);
+
+      draft.branded_image_variants = brandedImageVariants;
+    } catch (uploadError) {
+      console.error("Failed to upload social draft branded images:", uploadError);
+    }
+  }
+
   const emailResult = await sendSocialDraftEmail(draft);
 
   if (emailResult.sent) {

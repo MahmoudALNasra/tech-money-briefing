@@ -9,9 +9,9 @@ export {
 } from "@/lib/branded-result-image/types";
 export {
   brandedImageInputFromEnrichment,
-  brandedImageInputFromSocialPayload,
-  buildGeneralizedHeadline
+  brandedImageInputFromSocialPayload
 } from "@/lib/branded-result-image/normalize";
+export { buildAttentionHooks } from "@/lib/branded-result-image/hooks";
 export { pickEnrichmentExample } from "@/lib/branded-result-image/pick-enrichment";
 export {
   decodeBrandedResultImageVariant,
