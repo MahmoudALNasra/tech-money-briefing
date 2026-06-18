@@ -17,6 +17,7 @@ import {
 } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
 import { paginatedCanonicalPath, parsePageParam } from "@/lib/pagination";
+import { buildPageMetadata } from "@/lib/page-metadata";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { normalizeCategory } from "@/lib/slug";
 
@@ -57,39 +58,15 @@ export async function generateMetadata({
     ? CATEGORY_SEO_DESCRIPTIONS[normalizedCategory]
     : `Latest ${label} analysis from ${siteConfig.name}.`;
   const canonicalPath = paginatedCanonicalPath(`/${normalizedCategory}`, page);
-  const url = absoluteUrl(canonicalPath);
-  const image = absoluteUrl("/og-default-v3.png");
 
-  return {
+  return buildPageMetadata({
     title,
     description,
+    path: canonicalPath,
     robots: isAdsenseHiddenCategory(normalizedCategory)
       ? { index: false, follow: true }
-      : { index: true, follow: true },
-    alternates: {
-      canonical: url
-    },
-    openGraph: {
-      title,
-      description,
-      url,
-      type: "website",
-      images: [
-        {
-          url: image,
-          width: 1200,
-          height: 630,
-          alt: title
-        }
-      ]
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: [image]
-    }
-  };
+      : { index: true, follow: true }
+  });
 }
 
 export async function generateStaticParams() {

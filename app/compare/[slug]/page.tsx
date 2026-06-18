@@ -5,6 +5,7 @@ import { ComparisonView } from "@/components/compare/ComparisonView";
 import { BackButton } from "@/components/navigation/BackButton";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { getAllComparisonSlugs, getComparisonBySlug } from "@/lib/comparisons";
+import { buildPageMetadata } from "@/lib/page-metadata";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
 type PageProps = {
@@ -24,31 +25,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const imageUrl = absoluteUrl(`/generated/compare-${comparison.slug}.svg`);
-  const url = absoluteUrl(`/compare/${comparison.slug}`);
+  const title = `${comparison.title} Comparison: Pricing, Features, and Best Fit`;
 
-  return {
-    title: `${comparison.title} Comparison: Pricing, Features, and Best Fit`,
+  return buildPageMetadata({
+    title,
     description: `${comparison.description} - from ${siteConfig.name}.`,
-    publisher: siteConfig.name,
+    path: `/compare/${comparison.slug}`,
     keywords: comparison.keywords,
-    robots: { index: true, follow: true },
-    alternates: {
-      canonical: url
-    },
-    openGraph: {
-      title: `${comparison.title} Comparison: Pricing, Features, and Best Fit`,
-      description: comparison.description,
-      siteName: siteConfig.name,
-      url,
-      images: [{ url: imageUrl, alt: comparison.title }]
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `${comparison.title} Comparison: Pricing, Features, and Best Fit`,
-      description: comparison.description,
-      images: [imageUrl]
+    image: {
+      url: imageUrl,
+      width: 1200,
+      height: 630,
+      alt: comparison.title
     }
-  };
+  });
 }
 
 function comparisonFaqJsonLd(comparison: NonNullable<ReturnType<typeof getComparisonBySlug>>) {

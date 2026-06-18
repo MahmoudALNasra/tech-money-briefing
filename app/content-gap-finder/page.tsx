@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { AdvancedSeoTool } from "@/components/tools/AdvancedSeoTools";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Content Gap Finder",
   description: `Compare your page against competitor URLs and find SEO content gaps, FAQ gaps, and priority edits - from ${siteConfig.name}.`,
-  keywords: [
-    "content gap finder",
+  path: "/content-gap-finder",
+  keywords: ["content gap finder",
     "SEO content gap tool",
     "competitor content analysis",
     "page comparison SEO tool",
-    "content audit tool"
-  ],
+    "content audit tool"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function ContentGapFinderPage() {
   return (

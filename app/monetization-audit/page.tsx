@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
+
+import { buildPageMetadata } from "@/lib/page-metadata";
 import Link from "next/link";
 
 import { MonetizationAuditForm } from "@/components/monetization/MonetizationAuditForm";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free Monetization Audit for Publishers and Operators",
   description: `Submit your site for a practical monetization audit—ads, affiliates, newsletter, and sponsorship gaps—from ${siteConfig.name}.`,
-  keywords: [
-    "monetization audit",
+  path: "/monetization-audit",
+  keywords: ["monetization audit",
     "publisher revenue audit",
     "AdSense audit",
-    "affiliate site review"
-  ],
+    "affiliate site review"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function MonetizationAuditPage() {
   return (

@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { TiktokHookGenerator } from "@/components/tools/ExtendedGenerators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free TikTok Hook Generator",
   description: `Create short-form video hooks and opening lines for TikTok and Reels for free - from ${siteConfig.name}.`,
-  keywords: [
-    "TikTok hook generator",
+  path: "/tiktok-hook-generator",
+  keywords: ["TikTok hook generator",
     "video hook generator",
     "Reels hook ideas",
-    "short form hook generator"
-  ],
+    "short form hook generator"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function TiktokHookGeneratorPage() {
   return (

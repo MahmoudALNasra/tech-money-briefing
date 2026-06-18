@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
@@ -16,7 +16,11 @@ type AdminGateStatus =
   | "allowed"
   | "forbidden";
 
-export function AdminGate() {
+type AdminGateProps = {
+  children?: ReactNode;
+};
+
+export function AdminGate({ children }: AdminGateProps) {
   const router = useRouter();
   const [status, setStatus] = useState<AdminGateStatus>("loading");
   const [factorId, setFactorId] = useState("");
@@ -292,5 +296,5 @@ export function AdminGate() {
     );
   }
 
-  return <AdminDashboard />;
+  return children ?? <AdminDashboard />;
 }

@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { DoomscrollMarket } from "@/components/games/DoomscrollMarket";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Doomscroll Meme Market",
   description: `A hidden brainrot market game from ${siteConfig.name}. Buy good signals, dodge cursed feed objects, and try to keep your timeline alive.`,
+  path: "/doomscroll-market",
   robots: {
     index: false,
     follow: false
   }
-};
+});
 
 export default function DoomscrollMarketPage() {
   return (

@@ -5,19 +5,20 @@ import Link from "next/link";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import FadeContent from "@/components/ui/FadeContent";
 import { COMPARISONS } from "@/lib/comparisons";
+import { buildPageMetadata } from "@/lib/page-metadata";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Software Comparisons for Publishers and Operators",
   description: `Side-by-side comparisons of newsletters, SEO tools, ecommerce platforms, AI apps, and ad stacks from ${siteConfig.name}.`,
+  path: "/compare",
   keywords: [
     "software comparisons",
     "newsletter platform comparison",
     "SEO tool comparison",
     "SaaS comparison guides"
-  ],
-  robots: { index: true, follow: true }
-};
+  ]
+});
 
 export default function CompareHubPage() {
   const featuredComparisons = COMPARISONS.slice(0, 3);

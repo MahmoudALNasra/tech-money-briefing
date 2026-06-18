@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { InfoPage } from "@/components/layout/InfoPage";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Privacy Policy",
-  description:
-    "Read how Tech Revenue Brief handles newsletter signups, analytics, advertising data, campaign tracking, and basic site privacy choices."
-};
+  description: "Read how Tech Revenue Brief handles newsletter signups, analytics, advertising data, campaign tracking, and basic site privacy choices.",
+  path: "/privacy"
+});
 
 export default function PrivacyPage() {
   return (

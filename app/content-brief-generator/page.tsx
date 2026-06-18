@@ -1,24 +1,22 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { ContentBriefGenerator } from "@/components/tools/TextGenerators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free Content Brief Generator",
   description: `Generate a practical SEO content brief with headings, FAQ ideas, search intent, and CTA prompts for free - from ${siteConfig.name}.`,
-  keywords: [
-    "content brief generator",
+  path: "/content-brief-generator",
+  keywords: ["content brief generator",
     "SEO brief generator",
     "blog outline generator",
     "content outline tool",
-    "free SEO content tool"
-  ],
-  alternates: {
-    canonical: absoluteUrl("/content-brief-generator")
-  },
+    "free SEO content tool"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function ContentBriefGeneratorPage() {
   return (

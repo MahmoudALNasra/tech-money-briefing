@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { InfoPage } from "@/components/layout/InfoPage";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Editorial Policy",
-  description:
-    "Learn how Tech Revenue Brief discovers topics, uses AI assistance, handles corrections, and separates advertising."
-};
+  description: "Learn how Tech Revenue Brief discovers topics, uses AI assistance, handles corrections, and separates advertising.",
+  path: "/editorial-policy"
+});
 
 export default function EditorialPolicyPage() {
   return (

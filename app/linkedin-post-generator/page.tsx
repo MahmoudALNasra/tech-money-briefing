@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { LinkedinPostGenerator } from "@/components/tools/TextGenerators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free LinkedIn Post Generator",
   description: `Generate LinkedIn post drafts for founders, creators, marketers, and operators for free - from ${siteConfig.name}.`,
-  keywords: [
-    "LinkedIn post generator",
+  path: "/linkedin-post-generator",
+  keywords: ["LinkedIn post generator",
     "free LinkedIn post generator",
     "LinkedIn content ideas",
     "founder LinkedIn posts",
-    "B2B social post generator"
-  ],
+    "B2B social post generator"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function LinkedinPostGeneratorPage() {
   return (

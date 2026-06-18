@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { YoutubeTitleGenerator } from "@/components/tools/ExtendedGenerators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free YouTube Title Generator",
   description: `Generate clickable YouTube title ideas from a topic or keyword for free - from ${siteConfig.name}.`,
-  keywords: [
-    "YouTube title generator",
+  path: "/youtube-title-generator",
+  keywords: ["YouTube title generator",
     "free YouTube title ideas",
-    "video title generator"
-  ],
+    "video title generator"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function YoutubeTitleGeneratorPage() {
   return (

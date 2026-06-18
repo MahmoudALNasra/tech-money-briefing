@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { CacPaybackCalculator } from "@/components/tools/RevenueCalculators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free CAC Payback Calculator",
   description: `Estimate CAC payback period, gross LTV, and LTV:CAC for SaaS and subscription businesses for free - from ${siteConfig.name}.`,
-  keywords: [
-    "CAC payback calculator",
+  path: "/cac-payback-calculator",
+  keywords: ["CAC payback calculator",
     "customer acquisition cost calculator",
     "LTV CAC calculator",
     "SaaS payback calculator",
-    "startup metrics calculator"
-  ],
+    "startup metrics calculator"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function CacPaybackCalculatorPage() {
   return (

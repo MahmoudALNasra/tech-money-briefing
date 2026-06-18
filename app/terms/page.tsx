@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { InfoPage } from "@/components/layout/InfoPage";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Terms",
-  description:
-    "Review the Tech Revenue Brief terms for informational content, third-party links, acceptable use, no guaranteed results, and site changes."
-};
+  description: "Review the Tech Revenue Brief terms for informational content, third-party links, acceptable use, no guaranteed results, and site changes.",
+  path: "/terms"
+});
 
 export default function TermsPage() {
   return (

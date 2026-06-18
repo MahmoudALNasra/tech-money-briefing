@@ -1,27 +1,28 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { ImageCompressorTool } from "@/components/tools/ImageCompressorTool";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free Image Compressor and PNG Converter",
   description: `Compress an image, convert photos to PNG, JPG, or WebP, resize pictures, and download the optimized file for free - from ${siteConfig.name}.`,
-  keywords: [
-    "free image compressor",
+  path: "/image-compressor",
+  keywords: ["free image compressor",
     "PNG converter",
     "convert image to PNG",
     "compress image online",
     "resize image",
     "image converter",
     "JPG to PNG",
-    "WebP converter"
-  ],
+    "WebP converter"],
   robots: {
     index: true,
     follow: true
   }
-};
+});
 
 export default function ImageCompressorPage() {
   return (

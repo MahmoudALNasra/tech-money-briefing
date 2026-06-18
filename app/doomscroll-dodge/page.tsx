@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { DoomscrollDodge } from "@/components/games/DoomscrollDodge";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Doomscroll Dodge",
   description: `A hidden brainrot dodging game from ${siteConfig.name}. Catch revenue signals and avoid fake gurus, bots, ragebait, and AI slop.`,
+  path: "/doomscroll-dodge",
   robots: {
     index: false,
     follow: false
   }
-};
+});
 
 export default function DoomscrollDodgePage() {
   return (

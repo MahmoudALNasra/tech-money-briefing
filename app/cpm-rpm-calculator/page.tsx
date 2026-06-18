@@ -1,26 +1,27 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { CpmRpmCalculator } from "@/components/tools/RevenueCalculators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free CPM and RPM Calculator",
   description: `Calculate CPM revenue, RPM revenue, effective page RPM, and monthly publisher earnings for free - from ${siteConfig.name}.`,
-  keywords: [
-    "CPM calculator",
+  path: "/cpm-rpm-calculator",
+  keywords: ["CPM calculator",
     "RPM calculator",
     "ad revenue calculator",
     "publisher revenue calculator",
     "page RPM calculator",
     "CPM to revenue",
-    "website revenue calculator"
-  ],
+    "website revenue calculator"],
   robots: {
     index: true,
     follow: true
   }
-};
+});
 
 export default function CpmRpmCalculatorPage() {
   return (

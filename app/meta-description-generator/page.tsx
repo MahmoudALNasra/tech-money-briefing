@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { MetaDescriptionGenerator } from "@/components/tools/ExtendedGenerators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free Meta Description Generator",
   description: `Draft meta description ideas for articles, tools, and landing pages for free - from ${siteConfig.name}.`,
-  keywords: [
-    "meta description generator",
+  path: "/meta-description-generator",
+  keywords: ["meta description generator",
     "SEO meta description tool",
-    "free meta description writer"
-  ],
+    "free meta description writer"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function MetaDescriptionGeneratorPage() {
   return (

@@ -1,25 +1,26 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { AiHeadlineGenerator } from "@/components/tools/TextGenerators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free AI Headline Generator",
   description: `Generate headline ideas for blog posts, articles, newsletters, social posts, and tech content for free - from ${siteConfig.name}.`,
-  keywords: [
-    "AI headline generator",
+  path: "/ai-headline-generator",
+  keywords: ["AI headline generator",
     "free headline generator",
     "blog headline generator",
     "article title generator",
     "social headline generator",
-    "newsletter headline ideas"
-  ],
+    "newsletter headline ideas"],
   robots: {
     index: true,
     follow: true
   }
-};
+});
 
 export default function AiHeadlineGeneratorPage() {
   return (

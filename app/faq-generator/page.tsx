@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { FaqGenerator } from "@/components/tools/TextGenerators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free FAQ Generator",
   description: `Generate FAQ questions for articles, tools, product pages, and SEO content for free - from ${siteConfig.name}.`,
-  keywords: [
-    "FAQ generator",
+  path: "/faq-generator",
+  keywords: ["FAQ generator",
     "free FAQ generator",
     "FAQ question generator",
     "SEO FAQ tool",
-    "content FAQ ideas"
-  ],
+    "content FAQ ideas"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function FaqGeneratorPage() {
   return (

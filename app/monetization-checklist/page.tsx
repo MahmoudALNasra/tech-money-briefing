@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { buildPageMetadata } from "@/lib/page-metadata";
 import Link from "next/link";
 
 import { NewsletterCapture } from "@/components/newsletter/NewsletterCapture";
@@ -7,17 +9,16 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Publisher Monetization Checklist (AdSense, Affiliates, Newsletter)",
   description: `A practical checklist for AdSense approval, affiliate pages, newsletter capture, sponsorships, and tool-led SEO—from ${siteConfig.name}.`,
-  keywords: [
-    "publisher monetization checklist",
+  path: "/monetization-checklist",
+  keywords: ["publisher monetization checklist",
     "AdSense approval checklist",
     "affiliate site checklist",
-    "newsletter monetization"
-  ],
+    "newsletter monetization"],
   robots: { index: true, follow: true }
-};
+});
 
 const checklistSections = [
   {

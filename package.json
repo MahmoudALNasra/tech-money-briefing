@@ -60,6 +60,7 @@
     "gsc:oauth-token": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/google-oauth-refresh-token.ts",
     "seo:gsc-stats": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/seo-gsc-stats.ts",
     "ingest:watch": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/ingest-cron.ts --max-new=5 --scan=25",
+    "social-drafts:once": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/social-drafts-once.ts",
     "add-source": "node --env-file=.env.local scripts/add-source.js",
     "normalize:categories": "node --env-file=.env.local scripts/normalize-categories.js",
     "articles:draft-no-image": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/draft-articles-without-images.ts",

@@ -1,6 +1,36 @@
 import type { Article } from "@/lib/types";
 import { ARTICLE_EDITORIAL_SOURCE_NAME } from "@/lib/article-attribution";
 import { absoluteUrl, siteConfig } from "@/lib/site";
+import { siteSocialProfiles } from "@/lib/page-metadata";
+
+export function organizationWebsiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteConfig.url}/#organization`,
+        name: siteConfig.name,
+        url: siteConfig.url,
+        logo: {
+          "@type": "ImageObject",
+          url: absoluteUrl("/logo.svg")
+        },
+        sameAs: [siteSocialProfiles.instagram, siteSocialProfiles.linkedin]
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteConfig.url}/#website`,
+        url: siteConfig.url,
+        name: siteConfig.name,
+        description: siteConfig.description,
+        publisher: {
+          "@id": `${siteConfig.url}/#organization`
+        }
+      }
+    ]
+  };
+}
 
 export function articleUrl(article: Pick<Article, "category" | "slug">) {
   return absoluteUrl(`/${article.category}/${article.slug}`);

@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
-
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { ToolsHub } from "@/components/tools/ToolsHub";
+import { buildPageMetadata } from "@/lib/page-metadata";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free Tools for Creators, Publishers, and Marketers",
   description: `Free online tools from ${siteConfig.name}: SEO analyzers, content generators, AdSense calculator, CPM calculator, headline generator, and more.`,
+  path: "/tools",
   keywords: [
     "free online tools",
     "SEO tools",
@@ -14,12 +14,8 @@ export const metadata: Metadata = {
     "SERP intent analyzer",
     "AdSense calculator",
     "content brief generator"
-  ],
-  robots: {
-    index: true,
-    follow: true
-  }
-};
+  ]
+});
 
 const featuredToolHrefs = [
   "/keyword-cluster-tool",

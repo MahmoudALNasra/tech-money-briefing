@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { ContactForm } from "@/components/contact/ContactForm";
 import { InfoPage } from "@/components/layout/InfoPage";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Contact",
-  description:
-    "Contact Tech Revenue Brief for corrections, source suggestions, sponsorship questions, referral guide feedback, and editorial partnerships.",
-  alternates: {
-    canonical: "/contact"
-  }
-};
+  description: "Contact Tech Revenue Brief for corrections, source suggestions, sponsorship questions, referral guide feedback, and editorial partnerships.",
+  path: "/contact"
+});
 
 export default function ContactPage() {
   return (

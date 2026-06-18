@@ -265,16 +265,27 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-2">
-        <span className="rounded-full border border-ink bg-ink px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white">
-          Admin
-        </span>
-        <Link
-          href="/analytics"
-          className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-stone-600 transition hover:border-stone-300"
-        >
-          Analytics
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-stone-400">
+            Secure workspace
+          </p>
+          <h1 className="mt-2 text-2xl font-black text-ink">Account operations</h1>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/admin/social-drafts"
+            className="rounded-full border border-stone-200 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50"
+          >
+            Social drafts
+          </Link>
+          <Link
+            href="/analytics"
+            className="rounded-full border border-stone-200 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50"
+          >
+            Analytics
+          </Link>
+        </div>
       </div>
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
       <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm sm:p-8">

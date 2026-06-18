@@ -36,6 +36,7 @@ import {
   faqJsonLd,
   newsArticleJsonLd
 } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/page-metadata";
 import { siteConfig } from "@/lib/site";
 import { normalizeCategory } from "@/lib/slug";
 import { calculateReadingTime } from "@/lib/utils";
@@ -134,37 +135,22 @@ export async function generateMetadata({
   const url = articleUrl(article);
   const image = articleImage(article, resolvedHero);
 
-  return {
+  return buildPageMetadata({
     title: article.title,
     description: article.meta_description,
-    publisher: siteConfig.name,
+    path: `/${article.category}/${article.slug}`,
+    type: "article",
+    publishedTime: article.published_at ?? undefined,
+    section: article.category,
+    image: {
+      url: image,
+      width: 1200,
+      height: 630,
+      alt: articleImageAlt(article)
+    },
     keywords: articleKeywords(article),
-    robots: articleRobotsForAdsense(article),
-    alternates: {
-      canonical: url
-    },
-    openGraph: {
-      type: "article",
-      url,
-      title: article.title,
-      description: article.meta_description,
-      siteName: siteConfig.name,
-      publishedTime: article.published_at ?? undefined,
-      section: article.category,
-      images: [
-        {
-          url: image,
-          alt: article.title
-        }
-      ]
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: article.title,
-      description: article.meta_description,
-      images: [image]
-    }
-  };
+    robots: articleRobotsForAdsense(article)
+  });
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {

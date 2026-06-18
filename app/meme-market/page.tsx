@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { MemeMarket } from "@/components/games/MemeMarket";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Meme Market",
   description: `A hidden meme trading game from ${siteConfig.name}. Buy and sell cursed internet trends before they become cringe.`,
+  path: "/meme-market",
   robots: {
     index: false,
     follow: false
   }
-};
+});
 
 export default function MemeMarketPage() {
   return (

@@ -1,26 +1,27 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { SocialImageTool } from "@/components/tools/SocialImageTools";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free Twitter/X Card Preview Generator",
   description: `Make a Twitter/X card preview image for free. Add headline text, upload a background photo, customize colors, and download a 1200x628 PNG - from ${siteConfig.name}.`,
-  keywords: [
-    "Twitter card generator",
+  path: "/x-card-generator",
+  keywords: ["Twitter card generator",
     "X card preview generator",
     "social card maker",
     "Open Graph image generator",
     "free social image generator",
     "upload photo add text",
-    "1200x628 image"
-  ],
+    "1200x628 image"],
   robots: {
     index: true,
     follow: true
   }
-};
+});
 
 export default function XCardGeneratorPage() {
   return (

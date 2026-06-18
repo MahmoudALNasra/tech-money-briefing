@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { InfoPage } from "@/components/layout/InfoPage";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Advertise",
-  description:
-    "Advertise with Tech Revenue Brief to reach founders, creators, marketers, ecommerce operators, and AI tool buyers reading high-intent guides."
-};
+  description: "Advertise with Tech Revenue Brief to reach founders, creators, marketers, ecommerce operators, and AI tool buyers reading high-intent guides.",
+  path: "/advertise"
+});
 
 export default function AdvertisePage() {
   return (

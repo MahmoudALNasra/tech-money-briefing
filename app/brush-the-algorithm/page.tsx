@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { BrushTheAlgorithm } from "@/components/games/BrushTheAlgorithm";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Brush the Algorithm",
   description: `A silly hidden browser game from ${siteConfig.name}. Brush the algorithm gremlin, survive the rage meter, then read real tech revenue briefings.`,
+  path: "/brush-the-algorithm",
   robots: {
     index: false,
     follow: false
   }
-};
+});
 
 export default function BrushTheAlgorithmPage() {
   return (

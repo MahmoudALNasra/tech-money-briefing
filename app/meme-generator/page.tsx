@@ -1,33 +1,29 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { MemeGenerator } from "@/components/meme/MemeGenerator";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free Meme Generator - Upload a Photo and Add Text",
   description: `Use this free meme generator to upload a photo, add top and bottom text, customize the caption, and download a PNG meme - from ${siteConfig.name}.`,
-  keywords: [
-    "free meme generator",
+  path: "/meme-generator",
+  keywords: ["free meme generator",
     "meme generator",
     "upload photo meme generator",
     "add text to photo",
     "make a meme",
     "meme maker",
     "download meme PNG",
-    "custom meme generator"
-  ],
+    "custom meme generator"],
   robots: {
     index: true,
     follow: true
-  },
-  openGraph: {
-    title: "Free Meme Generator - Upload a Photo and Add Text",
-    description:
-      "Upload your own photo or pick an original template, add meme text, customize the caption, and download a PNG."
   }
-};
+});
 
 export default function MemeGeneratorPage() {
   return (

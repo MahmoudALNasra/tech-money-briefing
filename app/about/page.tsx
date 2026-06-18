@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { InfoPage } from "@/components/layout/InfoPage";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "About",
-  description: `About ${siteConfig.name}, a briefing site for tech monetization, online business, and builder revenue.`
-};
+  description: `About ${siteConfig.name}, a briefing site for tech monetization, online business, and builder revenue.`,
+  path: "/about"
+});
 
 export default function AboutPage() {
   return (

@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { AdvancedSeoTool } from "@/components/tools/AdvancedSeoTools";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Keyword Cluster Tool",
   description: `Cluster SEO keywords by search intent using OpenAI and Google autocomplete suggestions - from ${siteConfig.name}.`,
-  keywords: [
-    "keyword cluster tool",
+  path: "/keyword-cluster-tool",
+  keywords: ["keyword cluster tool",
     "SEO keyword clustering",
     "keyword research tool",
     "keyword clustering tool",
-    "search intent clustering"
-  ],
+    "search intent clustering"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function KeywordClusterToolPage() {
   return (

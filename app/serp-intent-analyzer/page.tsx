@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { AdvancedSeoTool } from "@/components/tools/AdvancedSeoTools";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "SERP Intent Analyzer",
   description: `Analyze live Google search results to understand search intent, page types, and content gaps - from ${siteConfig.name}.`,
-  keywords: [
-    "SERP intent analyzer",
+  path: "/serp-intent-analyzer",
+  keywords: ["SERP intent analyzer",
     "search intent tool",
     "Google SERP analysis",
     "SEO content gap tool",
-    "Serper SERP tool"
-  ],
+    "Serper SERP tool"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function SerpIntentAnalyzerPage() {
   return (

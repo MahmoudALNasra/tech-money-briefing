@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { UtmBuilder } from "@/components/tools/ExtendedGenerators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free UTM Link Builder",
   description: `Build campaign tracking URLs with utm_source, utm_medium, and utm_campaign for free - from ${siteConfig.name}.`,
-  keywords: [
-    "UTM builder",
+  path: "/utm-builder",
+  keywords: ["UTM builder",
     "UTM link generator",
     "campaign URL builder",
-    "free UTM tool"
-  ],
+    "free UTM tool"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function UtmBuilderPage() {
   return (

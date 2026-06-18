@@ -1,26 +1,27 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { AdsenseRevenueCalculator } from "@/components/tools/RevenueCalculators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free AdSense Revenue Calculator",
   description: `Estimate AdSense revenue from pageviews, ad slots, viewability, CTR, and CPC with this free calculator - from ${siteConfig.name}.`,
-  keywords: [
-    "AdSense revenue calculator",
+  path: "/adsense-revenue-calculator",
+  keywords: ["AdSense revenue calculator",
     "Google AdSense calculator",
     "website ad revenue calculator",
     "AdSense RPM calculator",
     "AdSense earnings estimator",
     "blog revenue calculator",
-    "publisher revenue calculator"
-  ],
+    "publisher revenue calculator"],
   robots: {
     index: true,
     follow: true
   }
-};
+});
 
 export default function AdsenseRevenueCalculatorPage() {
   return (

@@ -1,26 +1,27 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { SocialImageTool } from "@/components/tools/SocialImageTools";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free YouTube Thumbnail Maker - Add Text to a Photo",
   description: `Create a YouTube thumbnail online for free. Upload a photo, add bold thumbnail text, customize colors, and download a 1280x720 PNG - from ${siteConfig.name}.`,
-  keywords: [
-    "free YouTube thumbnail maker",
+  path: "/youtube-thumbnail-maker",
+  keywords: ["free YouTube thumbnail maker",
     "YouTube thumbnail generator",
     "add text to thumbnail",
     "upload photo thumbnail",
     "thumbnail maker",
     "1280x720 thumbnail",
-    "download thumbnail PNG"
-  ],
+    "download thumbnail PNG"],
   robots: {
     index: true,
     follow: true
   }
-};
+});
 
 export default function YoutubeThumbnailMakerPage() {
   return (

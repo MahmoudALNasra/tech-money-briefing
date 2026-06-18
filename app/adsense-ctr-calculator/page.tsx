@@ -1,19 +1,20 @@
 import type { Metadata } from "next";
 
+import { buildPageMetadata } from "@/lib/page-metadata";
+
 import { AdsenseCtrCalculator } from "@/components/tools/RevenueCalculators";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import { siteConfig } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata = buildPageMetadata({
   title: "Free AdSense CTR Calculator",
   description: `Calculate CTR, RPM, and estimated revenue from impressions and clicks for free - from ${siteConfig.name}.`,
-  keywords: [
-    "AdSense CTR calculator",
+  path: "/adsense-ctr-calculator",
+  keywords: ["AdSense CTR calculator",
     "website CTR calculator",
-    "publisher CTR tool"
-  ],
+    "publisher CTR tool"],
   robots: { index: true, follow: true }
-};
+});
 
 export default function AdsenseCtrCalculatorPage() {
   return (
