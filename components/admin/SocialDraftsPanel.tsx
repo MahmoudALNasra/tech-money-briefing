@@ -119,6 +119,7 @@ export function SocialDraftsPanel() {
   const [drafts, setDrafts] = useState<SocialPostDraftRow[]>([]);
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const loadDrafts = useCallback(async () => {
@@ -180,6 +181,34 @@ export function SocialDraftsPanel() {
     window.setTimeout(() => setCopiedKey(null), 1500);
   }
 
+  async function generateDraft() {
+    setIsGenerating(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/admin/social-drafts/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(await getBusinessDataAuthHeaders())
+        },
+        body: JSON.stringify({ forceSourceType: "enrichment_example" })
+      });
+      const json = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(json.error ?? "Could not generate social draft.");
+      }
+
+      setMessage("New draft generated with owner voice and branded images.");
+      await loadDrafts();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -189,13 +218,20 @@ export function SocialDraftsPanel() {
           </p>
           <h1 className="mt-2 text-2xl font-black text-ink">Social drafts for /leads</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-            Review, edit, attach a real screenshot, then post yourself on LinkedIn and Instagram.
-            Nothing here auto-publishes. Branded PNG cards are generated only on{" "}
-            <span className="font-semibold">enrichment example</span> rotation days (every 4th
-            draft). When images exist, copy the public site URLs for Instagram/LinkedIn.
+            Review, copy, and post yourself on LinkedIn and Instagram. Nothing auto-publishes.
+            Manual generate always uses an enrichment example with branded images and runs copy
+            through owner voice.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => void generateDraft()}
+            disabled={isGenerating}
+            className="rounded-full bg-emerald-700 px-4 py-2 text-sm font-black text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isGenerating ? "Generating…" : "Generate post"}
+          </button>
           <Link
             href="/admin"
             className="rounded-full border border-stone-200 px-4 py-2 text-sm font-black text-stone-700 transition hover:bg-stone-50"
@@ -213,7 +249,13 @@ export function SocialDraftsPanel() {
       </div>
 
       {message ? (
-        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800">
+        <p
+          className={`rounded-2xl border px-4 py-3 text-sm font-semibold ${
+            message.includes("generated")
+              ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+              : "border-rose-200 bg-rose-50 text-rose-800"
+          }`}
+        >
           {message}
         </p>
       ) : null}
@@ -222,7 +264,8 @@ export function SocialDraftsPanel() {
         <p className="text-sm text-stone-500">Loading drafts...</p>
       ) : drafts.length === 0 ? (
         <div className="rounded-[2rem] border border-dashed border-stone-200 bg-white p-8 text-sm text-stone-600">
-          No drafts yet. The daily cron writes here and emails configured recipients.
+          No drafts yet. Click <span className="font-semibold">Generate post</span> or wait for the
+          daily cron.
         </div>
       ) : (
         <div className="space-y-5">

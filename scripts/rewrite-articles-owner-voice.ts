@@ -1249,36 +1249,96 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function run() {
+export type OwnerVoiceRewriteOptions = {
+  limit?: number;
+  all?: boolean;
+  category?: string;
+  slug?: string;
+  since?: string;
+  dryRun?: boolean;
+  draftOnFail?: boolean;
+  onlyOthers?: boolean;
+  bulkTouchedOnly?: boolean;
+  includeDrafts?: boolean;
+  delayMs?: number;
+};
+
+export type OwnerVoiceRewriteResult = {
+  checked: number;
+  updated: number;
+  drafted: number;
+  dryRun: boolean;
+  bulkTouchedOnly: boolean;
+  links: string[];
+  errors: string[];
+};
+
+function parseArgvOptions(): OwnerVoiceRewriteOptions {
   const fetchAll = hasFlag("all");
-  const limit = fetchAll ? undefined : getNumberArg("limit", 5);
-  const category = getStringArg("category");
-  const slug = getStringArg("slug");
-  const since = getStringArg("since");
-  const dryRun = hasFlag("dry-run");
-  const draftOnFail = hasFlag("draft-on-fail");
-  const onlyOthers = hasFlag("others-only");
-  const bulkTouchedOnly = hasFlag("bulk-touched-only");
-  const includeDrafts = hasFlag("include-drafts") || Boolean(since);
-  const delayMs = getNumberArg("delay-ms", 0);
+
+  return {
+    all: fetchAll,
+    limit: fetchAll ? undefined : getNumberArg("limit", 5),
+    category: getStringArg("category"),
+    slug: getStringArg("slug"),
+    since: getStringArg("since"),
+    dryRun: hasFlag("dry-run"),
+    draftOnFail: hasFlag("draft-on-fail"),
+    onlyOthers: hasFlag("others-only"),
+    bulkTouchedOnly: hasFlag("bulk-touched-only"),
+    includeDrafts: hasFlag("include-drafts") || Boolean(getStringArg("since")),
+    delayMs: getNumberArg("delay-ms", 0)
+  };
+}
+
+export async function listPendingOwnerVoiceArticles(limit = 10) {
   const articles = await loadArticles({
     limit,
-    category,
-    slug,
+    onlyOthers: false,
+    fetchAll: false,
+    bulkTouchedOnly: false,
+    includeDrafts: false
+  });
+
+  return articles.map((article) => ({
+    id: article.id,
+    slug: article.slug,
+    title: article.title,
+    category: article.category,
+    published_path: articlePath(article)
+  }));
+}
+
+export async function runOwnerVoiceRewrite(
+  input: OwnerVoiceRewriteOptions = {}
+): Promise<OwnerVoiceRewriteResult> {
+  const fetchAll = input.all ?? false;
+  const limit = fetchAll ? undefined : (input.limit ?? 5);
+  const since = input.since;
+  const dryRun = input.dryRun ?? false;
+  const draftOnFail = input.draftOnFail ?? false;
+  const onlyOthers = input.onlyOthers ?? false;
+  const bulkTouchedOnly = input.bulkTouchedOnly ?? false;
+  const includeDrafts = input.includeDrafts ?? Boolean(since);
+  const delayMs = input.delayMs ?? 0;
+  const articles = await loadArticles({
+    limit,
+    category: input.category,
+    slug: input.slug,
     since,
     onlyOthers,
     fetchAll,
     bulkTouchedOnly,
     includeDrafts
   });
-  const result = {
+  const result: OwnerVoiceRewriteResult = {
     checked: articles.length,
     updated: 0,
     drafted: 0,
     dryRun,
     bulkTouchedOnly,
-    links: [] as string[],
-    errors: [] as string[]
+    links: [],
+    errors: []
   };
 
   console.log(
@@ -1355,6 +1415,11 @@ async function run() {
     }
   }
 
+  return result;
+}
+
+async function runCli() {
+  const result = await runOwnerVoiceRewrite(parseArgvOptions());
   console.log(JSON.stringify(result, null, 2));
 
   if (result.errors.length > 0) {
@@ -1362,7 +1427,11 @@ async function run() {
   }
 }
 
-run().catch((error) => {
-  console.error("[owner-voice] Rewrite failed", error);
-  process.exitCode = 1;
-});
+const invokedDirectly = process.argv[1]?.replace(/\\/g, "/").includes("rewrite-articles-owner-voice");
+
+if (invokedDirectly) {
+  runCli().catch((error) => {
+    console.error("[owner-voice] Rewrite failed", error);
+    process.exitCode = 1;
+  });
+}

@@ -1,4 +1,5 @@
 import { brandedImageInputFromSocialPayload } from "@/lib/branded-result-image/normalize";
+import { applyOwnerVoiceToSocialDraft } from "@/lib/owner-voice/social";
 import {
   encodeBrandedResultImageVariants,
   generateBrandedResultImage
@@ -93,20 +94,42 @@ export async function markSocialDraftPosted(input: {
 export async function runDailySocialDrafts(input?: {
   runLabel?: string;
   forceSourceType?: SocialSourceType;
+  skipEmail?: boolean;
+  applyOwnerVoice?: boolean;
 }) {
   const runLabel = input?.runLabel ?? "daily";
+  const applyOwnerVoice = input?.applyOwnerVoice !== false;
   const lastSourceType = await getLastSocialSourceType();
   const requestedType = input?.forceSourceType ?? nextSourceType(lastSourceType);
   const resolved = await resolveSocialDraftSource(requestedType);
   const source = resolved.source;
-  const sourcePayload =
+  let sourcePayload: Record<string, unknown> =
     resolved.fallback_from != null
       ? {
           ...source.payload,
           _rotation_note: `Planned source "${resolved.fallback_from}" was unavailable; used "${source.type}" instead.`
         }
-      : source.payload;
-  const generated = await generateSocialDraftPair(source);
+      : { ...source.payload };
+  let generated = await generateSocialDraftPair(source);
+
+  if (applyOwnerVoice) {
+    const voiced = await applyOwnerVoiceToSocialDraft({
+      linkedin_draft: generated.linkedin_draft,
+      instagram_caption: generated.instagram_caption,
+      instagram_visual_direction: generated.instagram_visual_direction,
+      source_type: source.type,
+      source_payload: sourcePayload
+    });
+
+    generated = {
+      ...generated,
+      ...voiced
+    };
+    sourcePayload = {
+      ...sourcePayload,
+      _owner_voice_applied_at: new Date().toISOString()
+    };
+  }
 
   let brandedImageVariants: BrandedResultImageVariants | null = null;
   let brandedImageBuffers: { square: Buffer; landscape: Buffer } | null = null;
@@ -167,7 +190,9 @@ export async function runDailySocialDrafts(input?: {
     }
   }
 
-  const emailResult = await sendSocialDraftEmail(draft);
+  const emailResult = input?.skipEmail
+    ? { sent: false, skipped: true, reason: "skipped" as const }
+    : await sendSocialDraftEmail(draft);
 
   if (emailResult.sent) {
     await supabase

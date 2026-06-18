@@ -23,6 +23,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (process.env.DISABLE_AUTO_ARTICLE_PUBLISH === "true") {
+    return NextResponse.json({
+      ok: true,
+      skipped: true,
+      reason: "auto_article_publish_disabled"
+    });
+  }
+
   try {
     const result = await runIngestion({
       maxNewArticles: 3,
