@@ -15,6 +15,8 @@ export type BrandedResultImageInput = {
   punch_line: string;
   callouts: BrandedImageCallout[];
   badge_label: string;
+  business_category_label: string;
+  area_label: string;
   themeId: BrandedImageThemeId;
 };
 

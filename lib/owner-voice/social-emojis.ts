@@ -6,6 +6,7 @@ const SOCIAL_EMOJI_SYSTEM_PROMPT = `You add emojis to social post copy for Tech 
 
 Rules:
 - Keep the same facts, claims, and sentence meaning. Do not rewrite the voice or add new information.
+- Preserve business category and area mentions from the source (business_category_label, area_label).
 - LinkedIn: add 3-6 emojis woven into the body (hook line, one mid-post, CTA if present). No emoji-only lines.
 - Instagram: add 5-8 emojis — a little more expressive than LinkedIn, still professional.
 - Use question marks, attention emojis (❓⚠️🔍💡📍🔥✅❌), and topic-relevant emojis where they fit naturally.

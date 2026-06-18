@@ -29,7 +29,7 @@ Emojis:
 
 Privacy:
 - Never name a specific real business from enrichment data.
-- Use generalized descriptors only.
+- Keep business_category_label, business_category_singular, and area_label when present in the source facts.
 
 ${JSON.stringify(OWNER_VOICE_AI_VOCABULARY_AVOID, null, 2)}
 

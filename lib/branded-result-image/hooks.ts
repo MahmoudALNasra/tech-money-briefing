@@ -1,4 +1,5 @@
 import type { CachedEnrichmentPayload } from "@/lib/business-data-enrichment-cache";
+import type { EnrichmentPublicContext } from "@/lib/enrichment-public-context";
 import type { BrandedImageCallout } from "@/lib/branded-result-image/types";
 import { safeTrim } from "@/lib/safe-string";
 
@@ -33,7 +34,10 @@ function withLeadEmoji(text: unknown, emoji: string) {
   return /^[\p{Extended_Pictographic}]/u.test(trimmed) ? trimmed : `${emoji} ${trimmed}`;
 }
 
-export function buildAttentionHooks(enrichment: CachedEnrichmentPayload) {
+export function buildAttentionHooks(
+  enrichment: CachedEnrichmentPayload,
+  publicContext: EnrichmentPublicContext
+) {
   const opportunitySignal = safeTrim(
     enrichment.opportunity_signal,
     "Check the gap before you pitch."
@@ -46,27 +50,43 @@ export function buildAttentionHooks(enrichment: CachedEnrichmentPayload) {
     typeof enrichment.competitor_density_1mi === "number"
       ? enrichment.competitor_density_1mi
       : 0;
+  const category = publicContext.business_category_singular;
+  const categoryLabel = publicContext.business_category_label;
+  const areaPhrase = publicContext.area_phrase;
+  const areaLabel = publicContext.area_label;
   const callouts: BrandedImageCallout[] = [];
 
-  let hookQuestion = "🔍 Real /leads scan — what's the gap?";
+  let hookQuestion = `🔍 ${categoryLabel}${areaPhrase} — what's the gap?`;
 
   if (!enrichment.website_reachable && reviews) {
-    hookQuestion = `❓ ${reviews}+ Google reviews… but NO website?`;
+    hookQuestion = `❓ ${reviews}+ reviews for a ${category}${areaPhrase}… but NO website?`;
   } else if (!enrichment.website_reachable && rating) {
-    hookQuestion = `❓ ${rating}★ rating… but NO website?`;
+    hookQuestion = `❓ ${rating}★ ${category}${areaPhrase}… but NO website?`;
   } else if (!enrichment.website_reachable) {
-    hookQuestion = "🚨 Local business found — zero reachable website?";
+    hookQuestion = `🚨 ${categoryLabel}${areaPhrase} — zero reachable website?`;
   } else if (competitors >= 10) {
-    hookQuestion = `⚠️ ${competitors} rivals within 1 mile — who's winning?`;
+    hookQuestion = `⚠️ ${competitors} ${categoryLabel.toLowerCase()} within 1 mi${areaPhrase} — who's winning?`;
   } else if (/unclaimed/i.test(gbpSignal)) {
-    hookQuestion = "📍 Unclaimed Google profile — easy win?";
+    hookQuestion = `📍 Unclaimed Google profile for a ${category}${areaPhrase}?`;
   } else if (!enrichment.active_social) {
-    hookQuestion = "📱 Website's up… but social links missing?";
+    hookQuestion = `📱 ${categoryLabel}${areaPhrase} — website up, social missing?`;
   } else if (rating && reviews) {
-    hookQuestion = `⭐ ${rating}★ & ${reviews}+ reviews — still room to grow?`;
+    hookQuestion = `⭐ ${rating}★ ${category} with ${reviews}+ reviews${areaPhrase} — room to grow?`;
   } else if (competitors >= 6) {
-    hookQuestion = `🔥 Crowded market (${competitors} nearby) — who gets the click?`;
+    hookQuestion = `🔥 Crowded ${categoryLabel.toLowerCase()} market${areaPhrase} (${competitors} nearby)`;
   }
+
+  callouts.push({
+    emoji: "🏷️",
+    text: trimCallout(categoryLabel, 36),
+    accent: "info"
+  });
+
+  callouts.push({
+    emoji: "📍",
+    text: trimCallout(areaLabel, 36),
+    accent: "neutral"
+  });
 
   callouts.push({
     emoji: enrichment.website_reachable ? "✅" : "❌",
@@ -76,8 +96,8 @@ export function buildAttentionHooks(enrichment: CachedEnrichmentPayload) {
 
   if (typeof competitors === "number") {
     callouts.push({
-      emoji: competitors >= 8 ? "🔥" : "📍",
-      text: `${competitors} similar businesses within 1 mi`,
+      emoji: competitors >= 8 ? "🔥" : "📌",
+      text: `${competitors} similar within 1 mi`,
       accent: competitors >= 8 ? "warning" : "info"
     });
   }
@@ -96,13 +116,15 @@ export function buildAttentionHooks(enrichment: CachedEnrichmentPayload) {
     });
   }
 
-  callouts.push({
-    emoji: enrichment.active_social ? "🔗" : "📵",
-    text: enrichment.active_social ? "Social links found" : "No active social",
-    accent: enrichment.active_social ? "success" : "warning"
-  });
+  if (callouts.length < 5) {
+    callouts.push({
+      emoji: enrichment.active_social ? "🔗" : "📵",
+      text: enrichment.active_social ? "Social links found" : "No active social",
+      accent: enrichment.active_social ? "success" : "warning"
+    });
+  }
 
-  if (gbpSignal && callouts.length < 4) {
+  if (gbpSignal && callouts.length < 6) {
     callouts.push({
       emoji: /unclaimed/i.test(gbpSignal) ? "🚨" : "📋",
       text: trimCallout(gbpSignal),
@@ -119,25 +141,49 @@ export function buildAttentionHooks(enrichment: CachedEnrichmentPayload) {
     hook_question: hookQuestion,
     punch_line: punchLine,
     callouts: callouts.slice(0, 4),
-    badge_label: trimCallout(pitchAngle, 32)
+    badge_label: trimCallout(pitchAngle, 32),
+    business_category_label: categoryLabel,
+    area_label: areaLabel
   };
 }
 
-export function buildAttentionHooksFromPayload(payload: {
-  website_reachable?: boolean;
-  competitor_density_1mi?: number;
-  active_social?: boolean;
-  opportunity_signal?: string;
-  pitch_angle?: string;
-  gbp_profile_signal?: string;
-}) {
-  return buildAttentionHooks({
-    pitch_angle: String(payload.pitch_angle ?? "Local opportunity"),
-    opportunity_signal: String(payload.opportunity_signal ?? "Check the gap before you pitch."),
-    business_opportunity_summary: "",
-    gbp_profile_signal: String(payload.gbp_profile_signal ?? ""),
-    competitor_density_1mi: payload.competitor_density_1mi ?? 0,
-    website_reachable: payload.website_reachable ?? false,
-    active_social: payload.active_social ?? false
-  } as CachedEnrichmentPayload);
+export function buildAttentionHooksFromPayload(
+  payload: {
+    website_reachable?: boolean;
+    competitor_density_1mi?: number;
+    active_social?: boolean;
+    opportunity_signal?: string;
+    pitch_angle?: string;
+    gbp_profile_signal?: string;
+    business_category_label?: string;
+    business_category_singular?: string;
+    area_label?: string;
+    area_phrase?: string;
+  },
+  publicContext?: EnrichmentPublicContext
+) {
+  const context =
+    publicContext ??
+    ({
+      business_category_label: safeTrim(payload.business_category_label, "Local businesses"),
+      business_category_singular: safeTrim(
+        payload.business_category_singular,
+        "local business"
+      ),
+      area_label: safeTrim(payload.area_label, "this trade area"),
+      area_phrase: safeTrim(payload.area_phrase, " in this trade area")
+    } satisfies EnrichmentPublicContext);
+
+  return buildAttentionHooks(
+    {
+      pitch_angle: String(payload.pitch_angle ?? "Local opportunity"),
+      opportunity_signal: String(payload.opportunity_signal ?? "Check the gap before you pitch."),
+      business_opportunity_summary: "",
+      gbp_profile_signal: String(payload.gbp_profile_signal ?? ""),
+      competitor_density_1mi: payload.competitor_density_1mi ?? 0,
+      website_reachable: payload.website_reachable ?? false,
+      active_social: payload.active_social ?? false
+    } as CachedEnrichmentPayload,
+    context
+  );
 }

@@ -23,7 +23,9 @@ Banned phrasing:
 
 Privacy:
 - Never name a specific real business from enrichment data.
-- Use generalized descriptors only ("a bakery", "a local HVAC shop").
+- You MAY name the business category (e.g. "bakery", "HVAC company") and the area (e.g. "Austin, TX") when those fields are in the source payload.
+- Use business_category_label / business_category_singular and area_label from the payload to make posts feel specific.
+- Do not invent a category or city that is not in the payload.
 
 Instagram visual direction:
 - Suggest what photo/screenshot a human should attach.

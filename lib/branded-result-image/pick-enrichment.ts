@@ -1,8 +1,19 @@
 import type { CachedEnrichmentPayload } from "@/lib/business-data-enrichment-cache";
 import { brandedImageInputFromEnrichment } from "@/lib/branded-result-image/normalize";
 import type { BrandedResultImageInput } from "@/lib/branded-result-image/types";
+import {
+  resolveEnrichmentPublicContext,
+  type EnrichmentPublicContext
+} from "@/lib/enrichment-public-context";
 import { safeTrim } from "@/lib/safe-string";
 import { supabase } from "@/lib/supabase";
+
+type CacheRow = {
+  place_id: string;
+  search_category: string | null;
+  area_label: string | null;
+  enrichment: CachedEnrichmentPayload;
+};
 
 function scoreEnrichmentRow(enrichment: CachedEnrichmentPayload) {
   const opportunitySignal = safeTrim(enrichment.opportunity_signal);
@@ -41,12 +52,13 @@ export type PickedEnrichmentExample = {
   enrichment: CachedEnrichmentPayload;
   brandedImageInput: BrandedResultImageInput;
   business_descriptor: string;
+  publicContext: EnrichmentPublicContext;
 };
 
 export async function pickEnrichmentExample(): Promise<PickedEnrichmentExample> {
   const { data, error } = await supabase
     .from("enriched_business_cache")
-    .select("enrichment")
+    .select("place_id, search_category, area_label, enrichment")
     .order("enriched_at", { ascending: false })
     .limit(120);
 
@@ -54,10 +66,9 @@ export async function pickEnrichmentExample(): Promise<PickedEnrichmentExample> 
     throw new Error("No enrichment cache rows available.");
   }
 
-  const ranked = data
-    .map((row) => row.enrichment as CachedEnrichmentPayload)
-    .filter(isUsableEnrichment)
-    .map((enrichment) => ({ enrichment, score: scoreEnrichmentRow(enrichment) }))
+  const ranked = (data as CacheRow[])
+    .filter((row) => isUsableEnrichment(row.enrichment))
+    .map((row) => ({ row, score: scoreEnrichmentRow(row.enrichment) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 12);
 
@@ -65,15 +76,23 @@ export async function pickEnrichmentExample(): Promise<PickedEnrichmentExample> 
     throw new Error("No usable enrichment examples in cache.");
   }
 
-  const pick = ranked[Math.floor(Math.random() * ranked.length)].enrichment;
-  const brandedImageInput = brandedImageInputFromEnrichment(pick);
-  const pitchAngle = safeTrim(pick.pitch_angle, "local business");
+  const pickRow = ranked[Math.floor(Math.random() * ranked.length)].row;
+  const pick = pickRow.enrichment;
+  const publicContext = await resolveEnrichmentPublicContext({
+    enrichment: pick,
+    search_category: pickRow.search_category,
+    area_label: pickRow.area_label,
+    place_id: pickRow.place_id
+  });
+  const brandedImageInput = brandedImageInputFromEnrichment(pick, publicContext);
+  const pitchAngle = safeTrim(pick.pitch_angle, publicContext.business_category_singular);
 
   return {
     enrichment: pick,
     brandedImageInput,
+    publicContext,
     business_descriptor: pitchAngle.toLowerCase().startsWith("a ")
       ? pitchAngle
-      : `a ${pitchAngle.toLowerCase()}`
+      : `a ${publicContext.business_category_singular}${publicContext.area_phrase}`
   };
 }

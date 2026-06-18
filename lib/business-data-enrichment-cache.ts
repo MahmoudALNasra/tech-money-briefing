@@ -74,6 +74,8 @@ export async function upsertCachedEnrichment(input: {
   placeId: string;
   sourcePlaceDataHash: string;
   enrichment: CachedEnrichmentPayload;
+  searchCategory?: string | null;
+  areaLabel?: string | null;
 }) {
   const now = new Date().toISOString();
 
@@ -82,6 +84,8 @@ export async function upsertCachedEnrichment(input: {
       place_id: input.placeId,
       source_place_data_hash: input.sourcePlaceDataHash,
       enrichment: input.enrichment,
+      search_category: input.searchCategory ?? null,
+      area_label: input.areaLabel ?? null,
       enriched_at: now,
       updated_at: now
     },

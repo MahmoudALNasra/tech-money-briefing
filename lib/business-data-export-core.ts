@@ -11,6 +11,7 @@ import {
   upsertCachedEnrichment
 } from "@/lib/business-data-enrichment-cache";
 import { computeCompetitorDensity } from "@/lib/business-data-search-filters";
+import { parsePublicAreaLabel } from "@/lib/enrichment-public-context";
 
 export const REPORT_BATCH_SIZE = 2;
 
@@ -464,7 +465,9 @@ export async function processPlacesBatch(input: {
         await upsertCachedEnrichment({
           placeId,
           sourcePlaceDataHash: placeHash,
-          enrichment: enrichmentFields
+          enrichment: enrichmentFields,
+          searchCategory: input.category,
+          areaLabel: parsePublicAreaLabel(detail.formatted_address ?? place.vicinity ?? "")
         });
       }
     }

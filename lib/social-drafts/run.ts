@@ -156,7 +156,7 @@ export async function runDailySocialDrafts(input?: {
   let brandedImageBuffers: { square: Buffer; landscape: Buffer } | null = null;
 
   if (source.type === "enrichment_example") {
-    const themeSeed = `${safeTrim(sourcePayload.hook_question)}|${Date.now()}`;
+    const themeSeed = `${safeTrim(sourcePayload.business_category_label)}|${safeTrim(sourcePayload.area_label)}|${Date.now()}`;
     const imageInput = brandedImageInputFromSocialPayload(source.payload, themeSeed);
     sourcePayload = {
       ...sourcePayload,

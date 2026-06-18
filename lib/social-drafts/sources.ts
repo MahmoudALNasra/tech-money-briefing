@@ -38,10 +38,14 @@ async function collectEnrichmentExample(): Promise<SocialDraftSource> {
 
   return {
     type: "enrichment_example",
-    payload: {
+      payload: {
       hook_question: picked.brandedImageInput.hook_question,
       punch_line: picked.brandedImageInput.punch_line,
       badge_label: picked.brandedImageInput.badge_label,
+      business_category_label: picked.publicContext.business_category_label,
+      business_category_singular: picked.publicContext.business_category_singular,
+      area_label: picked.publicContext.area_label,
+      area_phrase: picked.publicContext.area_phrase,
       business_descriptor: picked.business_descriptor,
       gbp_profile_signal: safeTrim(picked.enrichment.gbp_profile_signal),
       opportunity_signal: safeTrim(picked.enrichment.opportunity_signal),

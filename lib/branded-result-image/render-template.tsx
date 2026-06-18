@@ -143,6 +143,17 @@ export function createBrandedResultImageElement({
           <div
             style={{
               display: "flex",
+              marginTop: 8,
+              fontSize: isLandscape ? 18 : 20,
+              fontWeight: 800,
+              color: theme.hookEyebrowColor
+            }}
+          >
+            🏷️ {input.business_category_label} · 📍 {input.area_label}
+          </div>
+          <div
+            style={{
+              display: "flex",
               marginTop: 10,
               fontSize: hookSize,
               fontWeight: 900,

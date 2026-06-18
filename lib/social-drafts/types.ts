@@ -14,6 +14,10 @@ export type SocialDraftSource =
         hook_question: string;
         punch_line: string;
         badge_label: string;
+        business_category_label: string;
+        business_category_singular: string;
+        area_label: string;
+        area_phrase: string;
         business_descriptor: string;
         gbp_profile_signal: string;
         opportunity_signal: string;
