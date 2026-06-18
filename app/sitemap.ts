@@ -53,6 +53,12 @@ function staticSitemapEntries(): MetadataRoute.Sitemap {
             changeFrequency: "monthly",
             priority: 0.65
           },
+          {
+            url: absoluteUrl("/local-business-insights"),
+            lastModified: new Date(),
+            changeFrequency: "weekly",
+            priority: 0.55
+          },
           ...COMPARISONS.map((comparison) => ({
             url: absoluteUrl(`/compare/${comparison.slug}`),
             lastModified: new Date(),

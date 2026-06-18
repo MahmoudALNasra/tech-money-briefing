@@ -8,6 +8,7 @@ import {
   getLocalBusinessInsightsSnapshot
 } from "@/lib/local-business-insights";
 import { buildPageMetadata } from "@/lib/page-metadata";
+import { localBusinessInsightsDatasetJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 
 export const metadata = buildPageMetadata({
@@ -30,6 +31,12 @@ export default async function LocalBusinessInsightsPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(localBusinessInsightsDatasetJsonLd(snapshot))
+        }}
+      />
       <SiteHeader categories={[...getPublicNavCategories()]} />
       <main className="min-h-screen bg-[var(--bg-base)]">
         <section className="page-hero-band">

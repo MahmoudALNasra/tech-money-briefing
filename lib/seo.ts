@@ -147,6 +147,50 @@ export function webApplicationJsonLd(input: {
   };
 }
 
+const LOCAL_BUSINESS_INSIGHTS_VARIABLES = [
+  "Percentage of businesses without a reachable website",
+  "Percentage of businesses without a public email candidate",
+  "Percentage of businesses with active social presence",
+  "Percentage of businesses with a dedicated contact page",
+  "Average competitor count within approximately one mile"
+] as const;
+
+export function localBusinessInsightsDatasetJsonLd(input: {
+  generatedAt: string;
+  sampleSize: number;
+  methodology: string;
+  ready: boolean;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: "Local Business Digital Presence Statistics",
+    description: input.methodology,
+    url: absoluteUrl("/local-business-insights"),
+    dateModified: input.generatedAt,
+    isAccessibleForFree: true,
+    creator: {
+      "@id": `${siteConfig.url}/#organization`
+    },
+    publisher: {
+      "@id": `${siteConfig.url}/#organization`
+    },
+    license: absoluteUrl("/editorial-policy"),
+    variableMeasured: LOCAL_BUSINESS_INSIGHTS_VARIABLES.map((name) => ({
+      "@type": "PropertyValue",
+      name
+    })),
+    ...(input.ready
+      ? {
+          size: `${input.sampleSize} anonymized local businesses`,
+          temporalCoverage: input.generatedAt.slice(0, 10)
+        }
+      : {
+          size: `${input.sampleSize} businesses (below publication threshold)`
+        })
+  };
+}
+
 function extractFaqItems(content: string) {
   const normalized = content.replace(/\\([#*_`])/g, "$1");
   const faqStart = normalized.search(/^##\s+FAQ\b/im);

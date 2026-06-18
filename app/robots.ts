@@ -11,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
       "/tools",
       "/compare",
       "/leads",
+      "/local-business-insights",
       "/login",
       "/signup",
       "/profile",
