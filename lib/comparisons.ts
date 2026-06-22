@@ -6,6 +6,11 @@ export type ComparisonRow = {
 
 import generatedComparisonsJson from "@/data/generated-comparisons.json";
 
+export type ComparisonFaqItem = {
+  question: string;
+  answer: string;
+};
+
 export type ComparisonPage = {
   slug: string;
   title: string;
@@ -19,7 +24,44 @@ export type ComparisonPage = {
   monetizationAngle: string;
   relatedToolHrefs: string[];
   keywords: string[];
+  seoTitle?: string;
+  metaDescription?: string;
+  quickAnswer?: string;
+  relatedComparisonHrefs?: string[];
+  faqQuestions?: ComparisonFaqItem[];
 };
+
+export function getComparisonMetadataTitle(comparison: ComparisonPage) {
+  return (
+    comparison.seoTitle ??
+    `${comparison.title}: Pricing, Features & Best Fit`
+  );
+}
+
+export function getComparisonMetadataDescription(comparison: ComparisonPage) {
+  return comparison.metaDescription ?? comparison.description;
+}
+
+export function getComparisonFaqItems(comparison: ComparisonPage): ComparisonFaqItem[] {
+  if (comparison.faqQuestions?.length) {
+    return comparison.faqQuestions;
+  }
+
+  return [
+    {
+      question: `Is ${comparison.productA} better than ${comparison.productB}?`,
+      answer: `${comparison.productA} is better for ${comparison.bestForA.join(", ")}. ${comparison.productB} is better for ${comparison.bestForB.join(", ")}.`
+    },
+    {
+      question: `What is the main difference between ${comparison.productA} and ${comparison.productB}?`,
+      answer: comparison.summary
+    },
+    {
+      question: `Which searches does this ${comparison.productA} vs ${comparison.productB} guide cover?`,
+      answer: `This guide covers ${comparison.keywords.join(", ")} and related software comparison questions.`
+    }
+  ];
+}
 
 const CURATED_COMPARISONS: ComparisonPage[] = [
   {
@@ -383,24 +425,52 @@ const CURATED_COMPARISONS: ComparisonPage[] = [
   {
     slug: "cursor-vs-github-copilot",
     title: "Cursor vs GitHub Copilot",
+    seoTitle: "Cursor vs GitHub Copilot (2026): IDE, Pricing & Solo Devs",
+    metaDescription:
+      "Cursor vs GitHub Copilot compared for AI coding, codebase context, IDE lock-in, team pricing, and solo founder workflows shipping sites and tools.",
     description:
       "Compare Cursor and GitHub Copilot for AI-assisted coding, team workflows, and shipping speed.",
     productA: "Cursor",
     productB: "GitHub Copilot",
+    quickAnswer:
+      "Cursor is the better pick when you want an AI-native editor with agents and whole-repo context. GitHub Copilot wins when your team already lives in VS Code or JetBrains and mainly needs fast inline completions inside existing workflows.",
     summary:
       "Cursor is an AI-native editor built around chat, agents, and codebase context. GitHub Copilot fits developers who want inline suggestions inside VS Code, JetBrains, and the wider GitHub ecosystem.",
     bestForA: ["Greenfield projects", "Agent-style edits", "Teams wanting an AI-first IDE"],
     bestForB: ["Existing IDE workflows", "GitHub-centric teams", "Inline autocomplete at scale"],
     decisionRows: [
       { label: "IDE model", left: "AI-native editor", right: "Plugin across IDEs" },
+      { label: "Monthly cost (solo)", left: "Paid tiers for full agent use", right: "Lower entry on individual plans" },
       { label: "Codebase context", left: "Strong", right: "Good" },
-      { label: "Team adoption", left: "Growing", right: "Mature" },
       { label: "Best fit", left: "Builders shipping fast", right: "Enterprise dev shops" }
     ],
     monetizationAngle:
       "Faster shipping supports more landing pages, tools, and comparisons. Pair AI coding with headline and brief generators so output stays publishable.",
     relatedToolHrefs: ["/ai-headline-generator", "/content-brief-generator", "/blog-title-generator"],
-    keywords: ["cursor vs github copilot", "AI coding tools comparison"]
+    relatedComparisonHrefs: ["/compare/frase-vs-surfer", "/compare/digitalocean-vs-render"],
+    faqQuestions: [
+      {
+        question: "Is Cursor worth it over GitHub Copilot?",
+        answer:
+          "Cursor is worth it when you want multi-file edits, agents, and repo-wide context in one editor. Copilot is enough when you mainly need autocomplete inside the IDE you already use."
+      },
+      {
+        question: "Can I use Copilot inside Cursor?",
+        answer:
+          "Cursor is its own editor with built-in AI models. Most teams pick one primary AI coding stack instead of stacking both tools for the same workflow."
+      },
+      {
+        question: "Cursor vs Copilot for shipping a Next.js site?",
+        answer:
+          "Cursor tends to help more when you are creating pages, refactors, and content-heavy UI changes across files. Copilot helps more when you are typing inside an established IDE workflow."
+      }
+    ],
+    keywords: [
+      "cursor vs github copilot",
+      "github copilot vs cursor",
+      "cursor vs copilot",
+      "AI coding tools comparison"
+    ]
   },
   {
     slug: "digitalocean-vs-render",

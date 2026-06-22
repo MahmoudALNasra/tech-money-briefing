@@ -1,5 +1,9 @@
 import { COMPARISONS, type ComparisonPage } from "./comparisons";
 import { searchPublishedArticles } from "./articles";
+import {
+  getPinnedInternalLinksForArticle,
+  mergeInternalLinks
+} from "./seo-pinned-internal-links";
 import { getRecommendedToolsForText } from "./tool-recommendations";
 import type { Article, ArticleSummary } from "./types";
 
@@ -207,12 +211,16 @@ export async function getInternalLinksForArticle(article: Article) {
     );
   }
 
-  const items = [
-    ...comparisons,
-    ...extraTools,
-    ...(crossCategory ? [crossCategory] : []),
-    ...hubs
-  ].slice(0, 6);
+  const items = mergeInternalLinks(
+    getPinnedInternalLinksForArticle(article.slug),
+    [
+      ...comparisons,
+      ...extraTools,
+      ...(crossCategory ? [crossCategory] : []),
+      ...hubs
+    ],
+    6
+  );
 
   return items;
 }

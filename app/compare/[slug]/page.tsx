@@ -4,9 +4,15 @@ import { notFound } from "next/navigation";
 import { ComparisonView } from "@/components/compare/ComparisonView";
 import { BackButton } from "@/components/navigation/BackButton";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
-import { getAllComparisonSlugs, getComparisonBySlug } from "@/lib/comparisons";
+import {
+  getAllComparisonSlugs,
+  getComparisonBySlug,
+  getComparisonFaqItems,
+  getComparisonMetadataDescription,
+  getComparisonMetadataTitle
+} from "@/lib/comparisons";
 import { buildPageMetadata } from "@/lib/page-metadata";
-import { absoluteUrl, siteConfig } from "@/lib/site";
+import { absoluteUrl } from "@/lib/site";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -25,11 +31,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const imageUrl = absoluteUrl(`/generated/compare-${comparison.slug}.svg`);
-  const title = `${comparison.title} Comparison: Pricing, Features, and Best Fit`;
 
   return buildPageMetadata({
-    title,
-    description: `${comparison.description} - from ${siteConfig.name}.`,
+    title: getComparisonMetadataTitle(comparison),
+    description: getComparisonMetadataDescription(comparison),
     path: `/compare/${comparison.slug}`,
     keywords: comparison.keywords,
     image: {
@@ -45,32 +50,14 @@ function comparisonFaqJsonLd(comparison: NonNullable<ReturnType<typeof getCompar
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: `Is ${comparison.productA} better than ${comparison.productB}?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `${comparison.productA} is better for ${comparison.bestForA.join(", ")}. ${comparison.productB} is better for ${comparison.bestForB.join(", ")}.`
-        }
-      },
-      {
-        "@type": "Question",
-        name: `What is the main difference between ${comparison.productA} and ${comparison.productB}?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: comparison.summary
-        }
-      },
-      {
-        "@type": "Question",
-        name: `Which keywords does this ${comparison.productA} vs ${comparison.productB} comparison cover?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: comparison.keywords.join(", ")
-        }
+    mainEntity: getComparisonFaqItems(comparison).map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer
       }
-    ]
+    }))
   };
 }
 
@@ -88,6 +75,7 @@ export default async function ComparisonPage({ params }: PageProps) {
       title={comparison.title}
       description={comparison.description}
       secondaryCopy={`${comparison.productA} vs ${comparison.productB} for operators who care about revenue, workflow, and distribution.`}
+      toolHref={`/compare/${comparison.slug}`}
       monetizationContext="compare"
       newsletterSource={`compare_${comparison.slug}`}
     >

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ToolCard } from "@/components/tools/ToolCard";
 import type { ComparisonPage } from "@/lib/comparisons";
 import { FREE_TOOLS } from "@/lib/free-tools";
+import { getRelatedComparisonLinks } from "@/lib/seo-pinned-internal-links";
 import {
   getReferralLinkForProduct,
   isExternalReferralUrl,
@@ -17,6 +18,13 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
   const relatedTools = FREE_TOOLS.filter((tool) =>
     comparison.relatedToolHrefs.includes(tool.href)
   );
+  const relatedComparisons = getRelatedComparisonLinks(
+    comparison.relatedComparisonHrefs
+  );
+  const faqItems =
+    comparison.faqQuestions?.length
+      ? comparison.faqQuestions
+      : null;
   const referralLinks = [
     getReferralLinkForProduct(comparison.productA),
     getReferralLinkForProduct(comparison.productB)
@@ -31,6 +39,16 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
         <h2 className="mt-3 text-2xl font-black text-ink">
           {comparison.productA} vs {comparison.productB}: which one should you choose?
         </h2>
+        {comparison.quickAnswer ? (
+          <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-800">
+              Quick answer
+            </p>
+            <p className="mt-2 text-base leading-8 text-stone-800">
+              {comparison.quickAnswer}
+            </p>
+          </div>
+        ) : null}
         <div className="mt-4 space-y-4 text-base leading-8 text-stone-700">
           <p>
             This {comparison.productA} vs {comparison.productB} comparison is
@@ -212,6 +230,31 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
         </section>
       ) : null}
 
+      {relatedComparisons.length > 0 ? (
+        <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-stone-400">
+            Related comparisons
+          </p>
+          <h2 className="mt-2 text-2xl font-black text-ink">
+            Compare similar tools next
+          </h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {relatedComparisons.map((related) => (
+              <Link
+                key={related.slug}
+                href={`/compare/${related.slug}`}
+                className="rounded-2xl border border-stone-200 bg-stone-50 p-4 transition hover:border-stone-400"
+              >
+                <p className="font-bold text-ink">{related.title}</p>
+                <p className="mt-2 text-sm leading-6 text-stone-600">
+                  {related.description}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {relatedTools.length > 0 ? (
         <section>
           <h2 className="text-2xl font-black text-ink">Related free tools</h2>
@@ -231,6 +274,17 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
           Common questions about {comparison.productA} vs {comparison.productB}
         </h2>
         <div className="mt-5 space-y-5">
+          {faqItems
+            ? faqItems.map((item) => (
+                <div key={item.question}>
+                  <h3 className="text-lg font-black text-ink">{item.question}</h3>
+                  <p className="mt-2 text-sm leading-7 text-stone-700">
+                    {item.answer}
+                  </p>
+                </div>
+              ))
+            : (
+            <>
           <div>
             <h3 className="text-lg font-black text-ink">
               Is {comparison.productA} better than {comparison.productB}?
@@ -266,6 +320,8 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
               operators.
             </p>
           </div>
+            </>
+            )}
         </div>
       </section>
 
