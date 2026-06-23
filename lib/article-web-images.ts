@@ -1,4 +1,5 @@
 import { isImageUrlUsable } from "@/lib/article-images";
+import { buildArticleImageAlts } from "@/lib/article-image-alt";
 import { localizeRemoteArticleImageUrls } from "@/lib/article-local-images";
 import {
   replaceArticleImageMedia,
@@ -115,7 +116,7 @@ export async function enrichArticleWebImages(input: {
       title,
       imageUrl,
       thumbnailUrl: result.thumbnailUrl,
-      altText: `Illustration related to ${input.title}`,
+      altText: "",
       caption: null,
       sourceName,
       sourceUrl: result.link ?? null
@@ -124,6 +125,20 @@ export async function enrichArticleWebImages(input: {
     if (candidates.length >= limit) {
       break;
     }
+  }
+
+  const alts = await buildArticleImageAlts({
+    articleTitle: input.title,
+    category: input.category,
+    metaDescription: input.metaDescription,
+    images: candidates.map((candidate) => ({
+      referenceTitle: candidate.title,
+      sourceName: candidate.sourceName
+    }))
+  });
+
+  for (const [index, candidate] of candidates.entries()) {
+    candidate.altText = alts[index] ?? candidate.title;
   }
 
   const localizedCandidates: ArticleImageCandidate[] = [];

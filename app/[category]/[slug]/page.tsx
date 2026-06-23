@@ -93,26 +93,6 @@ function ArticleInlineImage({
         sizes="(min-width: 768px) 768px, 100vw"
         className="h-auto max-h-[30rem] w-full object-contain"
       />
-      {image.source_url && image.source_name ? (
-        <figcaption className="border-t border-stone-200 px-5 py-3 text-xs leading-5 text-stone-600">
-          <a
-            href={image.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold underline"
-          >
-            Source: {image.source_name}
-          </a>
-        </figcaption>
-      ) : image.source_name ? (
-        <figcaption className="border-t border-stone-200 px-5 py-3 text-xs leading-5 text-stone-600">
-          Source: {image.source_name}
-        </figcaption>
-      ) : image.caption ? (
-        <figcaption className="border-t border-stone-200 px-5 py-3 text-xs leading-5 text-stone-600">
-          {image.caption}
-        </figcaption>
-      ) : null}
     </figure>
   );
 }
@@ -181,7 +161,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     heroImageUrl,
     inlineImages.map((image) => ({
       url: image.url,
-      caption: image.caption
+      caption: image.alt_text ?? image.caption ?? image.title
     }))
   );
   const faqLd = faqJsonLd(article);
