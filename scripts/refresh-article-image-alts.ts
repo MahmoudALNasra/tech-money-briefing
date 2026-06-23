@@ -1,5 +1,6 @@
 import { buildArticleImageAlts } from "../lib/article-image-alt";
 import { loadLocalEnv } from "../lib/load-env";
+import { revalidateSiteCache } from "../lib/revalidate-site";
 import { getSupabaseClient } from "../lib/supabase";
 
 loadLocalEnv();
@@ -18,6 +19,24 @@ function hasFlag(name: string) {
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function needsAltRefresh(current: string | null | undefined) {
+  const alt = current?.trim() ?? "";
+
+  if (!alt) {
+    return true;
+  }
+
+  if (/^illustration related to this article$/i.test(alt)) {
+    return true;
+  }
+
+  if (alt.length < 48) {
+    return true;
+  }
+
+  return false;
 }
 
 async function run() {
@@ -84,7 +103,11 @@ async function run() {
 
       for (const [index, row] of media.entries()) {
         const alt = alts[index];
-        if (!alt || alt === row.alt_text) {
+        if (!alt) {
+          continue;
+        }
+
+        if (!needsAltRefresh(row.alt_text) && alt === row.alt_text) {
           continue;
         }
 
@@ -116,6 +139,14 @@ async function run() {
   }
 
   console.log(JSON.stringify(result, null, 2));
+
+  if (!slug && result.updated > 0) {
+    try {
+      await revalidateSiteCache({ tags: ["articles"] });
+    } catch (error) {
+      console.warn("[article:image-alts] Revalidate failed", error);
+    }
+  }
 
   if (result.errors.length > 0) {
     process.exitCode = 1;

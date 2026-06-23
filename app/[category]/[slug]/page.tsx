@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Fragment } from "react";
 
 import { ArticleReadTracker } from "@/components/analytics/ArticleReadTracker";
+import { ArticleContent } from "@/components/articles/ArticleContent";
 import { ArticleInternalLinks } from "@/components/articles/ArticleInternalLinks";
 import { ArticleShareToolbar } from "@/components/articles/ArticleShareToolbar";
 import { ArticleReferralLinks } from "@/components/articles/ArticleReferralLinks";
@@ -23,8 +23,7 @@ import { getArticleMedia } from "@/lib/article-media";
 import { resolveArticleHeroImage } from "@/lib/article-images";
 import {
   getContentHeadings,
-  normalizeArticleContent,
-  renderArticleBlock
+  normalizeArticleContent
 } from "@/lib/article-markdown";
 import { getArticleBySlug } from "@/lib/articles";
 import { getPublicNavCategories } from "@/lib/adsense-readiness";
@@ -180,6 +179,30 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const readingTime = calculateReadingTime(article.content);
   const tableOfContents = getContentHeadings(contentBlocks);
   const url = articleUrl(article);
+  const inlineImageSlots = contentBlocks.flatMap((_, index) => {
+    if (index <= 0 || index % 3 !== 0) {
+      return [];
+    }
+
+    const imageIndex = Math.floor(index / 3);
+    const inlineImage = inlineImages[imageIndex - 1];
+
+    if (!inlineImage) {
+      return [];
+    }
+
+    return [
+      {
+        index,
+        node: (
+          <ArticleInlineImage
+            image={inlineImage}
+            priority={imageIndex === 1}
+          />
+        )
+      }
+    ];
+  });
 
   return (
     <>
@@ -351,25 +374,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
 
           <div className="article-content prose prose-invert prose-lg mt-10 max-w-none scroll-mt-24 prose-headings:scroll-mt-24 prose-strong:text-[var(--text-primary)] prose-li:marker:text-[var(--accent-blue)]">
-            {contentBlocks.map((block, index) => {
-              const imageIndex = Math.floor(index / 3);
-              const inlineImage =
-                index > 0 && index % 3 === 0
-                  ? inlineImages[imageIndex - 1]
-                  : null;
-
-              return (
-                <Fragment key={`${block}-${index}`}>
-                  {renderArticleBlock(block)}
-                  {inlineImage ? (
-                    <ArticleInlineImage
-                      image={inlineImage}
-                      priority={imageIndex === 1}
-                    />
-                  ) : null}
-                </Fragment>
-              );
-            })}
+            <ArticleContent
+              article={article}
+              blocks={contentBlocks}
+              inlineImageSlots={inlineImageSlots}
+            />
           </div>
 
           <ArticleVideoSection media={articleMedia} />

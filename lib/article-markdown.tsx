@@ -1,51 +1,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import {
+  canUseAutoLink,
+  getBaseAutoLinkRules,
+  recordAutoLink,
+  type ArticleAutoLinkBudget,
+  type AutoLinkRule
+} from "@/lib/article-auto-links";
+
 const CALLOUT_PREFIX = /^>>\s+/;
-
-type AutoLinkRule = {
-  href: string;
-  pattern: RegExp;
-};
-
-const AUTO_LINK_RULES: AutoLinkRule[] = [
-  { href: "/adsense-revenue-calculator", pattern: /\b(?:AdSense revenue calculator|AdSense RPM calculator|RPM calculator)\b/i },
-  { href: "/adsense-ctr-calculator", pattern: /\b(?:AdSense CTR calculator|CTR calculator)\b/i },
-  { href: "/cpm-rpm-calculator", pattern: /\b(?:CPM calculator|RPM calculator|CPM and RPM calculator)\b/i },
-  { href: "/utm-builder", pattern: /\b(?:UTM builder|UTM link builder|UTM parameters?)\b/i },
-  { href: "/keyword-cluster-tool", pattern: /\b(?:keyword cluster tool|keyword clustering)\b/i },
-  { href: "/content-brief-generator", pattern: /\b(?:content brief generator|SEO content brief)\b/i },
-  { href: "/meta-description-generator", pattern: /\b(?:meta description generator|meta descriptions?)\b/i },
-  { href: "/blog-title-generator", pattern: /\b(?:blog title generator|blog titles?)\b/i },
-  { href: "/youtube-title-generator", pattern: /\b(?:YouTube title generator|YouTube titles?)\b/i },
-  { href: "/youtube-thumbnail-maker", pattern: /\b(?:YouTube thumbnail maker|YouTube thumbnails?)\b/i },
-  { href: "/newsletter-revenue-calculator", pattern: /\b(?:newsletter revenue calculator|newsletter revenue)\b/i },
-  { href: "/newsletter-subject-line-generator", pattern: /\b(?:newsletter subject line generator|subject lines?)\b/i },
-  { href: "/image-compressor", pattern: /\b(?:image compressor|Core Web Vitals|LCP)\b/i },
-  { href: "/leads", pattern: /\b(?:business data generator|local lead list|competitor research)\b/i },
-  { href: "/serp-intent-analyzer", pattern: /\b(?:SERP intent analyzer|SERP intent)\b/i },
-  { href: "/content-gap-finder", pattern: /\b(?:content gap finder|content gaps?)\b/i },
-  { href: "https://chatgpt.com/", pattern: /\bChatGPT\b/i },
-  { href: "https://claude.ai/", pattern: /\bClaude\b/i },
-  { href: "https://gemini.google.com/", pattern: /\bGemini\b/i },
-  { href: "https://www.perplexity.ai/", pattern: /\bPerplexity\b/i },
-  { href: "https://www.midjourney.com/", pattern: /\bMidjourney\b/i },
-  { href: "https://cursor.com/", pattern: /\bCursor\b/i },
-  { href: "https://github.com/features/copilot", pattern: /\bGitHub Copilot\b/i },
-  { href: "https://analytics.google.com/", pattern: /\b(?:Google Analytics|GA4)\b/i },
-  { href: "https://search.google.com/search-console", pattern: /\bGoogle Search Console\b/i },
-  { href: "https://www.google.com/business/", pattern: /\bGoogle Business Profile\b/i },
-  { href: "https://pagespeed.web.dev/", pattern: /\b(?:PageSpeed Insights|Lighthouse)\b/i },
-  { href: "https://www.notion.com/product/ai", pattern: /\bNotion AI\b/i },
-  { href: "https://supabase.com/", pattern: /\bSupabase\b/i },
-  { href: "https://www.shopify.com/", pattern: /\bShopify\b/i },
-  { href: "https://woocommerce.com/", pattern: /\bWooCommerce\b/i },
-  { href: "https://substack.com/", pattern: /\bSubstack\b/i },
-  { href: "https://www.beehiiv.com/", pattern: /\bBeehiiv\b/i },
-  { href: "https://ahrefs.com/", pattern: /\bAhrefs\b/i },
-  { href: "https://moz.com/", pattern: /\bMoz\b/i },
-  { href: "https://www.semrush.com/", pattern: /\bSemrush\b/i }
-];
 
 function normalizeArticleHref(href: string) {
   if (href.startsWith("/")) {
@@ -65,11 +29,16 @@ function normalizeArticleHref(href: string) {
   return href;
 }
 
-function renderAutoLinkedText(text: string, keyPrefix: string) {
+function renderAutoLinkedText(
+  text: string,
+  keyPrefix: string,
+  rules: AutoLinkRule[],
+  options?: ArticleRenderOptions
+) {
   const nodes: ReactNode[] = [];
-  const usedHrefs = new Set<string>();
   let cursor = 0;
   let linkIndex = 0;
+  const budget = options?.autoLinkBudget;
 
   while (cursor < text.length) {
     const rest = text.slice(cursor);
@@ -81,8 +50,8 @@ function renderAutoLinkedText(text: string, keyPrefix: string) {
         }
       | null = null;
 
-    for (const rule of AUTO_LINK_RULES) {
-      if (usedHrefs.has(rule.href)) {
+    for (const rule of rules) {
+      if (budget && !canUseAutoLink(budget, rule.href)) {
         continue;
       }
 
@@ -92,7 +61,13 @@ function renderAutoLinkedText(text: string, keyPrefix: string) {
         continue;
       }
 
-      if (!best || match.index < best.index || (match.index === best.index && match[0].length > best.text.length)) {
+      if (
+        !best ||
+        match.index < best.index ||
+        (match.index === best.index &&
+          (match[0].length > best.text.length ||
+            (match[0].length === best.text.length && rule.priority > best.rule.priority)))
+      ) {
         best = { rule, index: match.index, text: match[0] };
       }
     }
@@ -129,7 +104,10 @@ function renderAutoLinkedText(text: string, keyPrefix: string) {
       );
     }
 
-    usedHrefs.add(href);
+    if (budget) {
+      recordAutoLink(budget, href);
+    }
+
     cursor += best.index + best.text.length;
     linkIndex += 1;
   }
@@ -229,7 +207,12 @@ export function normalizeArticleContent(content: string) {
     .trim();
 }
 
-function renderTextSegment(text: string, keyPrefix: string) {
+function resolveAutoLinkRules(options?: ArticleRenderOptions) {
+  return options?.autoLinkRules ?? getBaseAutoLinkRules();
+}
+
+function renderTextSegment(text: string, keyPrefix: string, options?: ArticleRenderOptions) {
+  const rules = resolveAutoLinkRules(options);
   const nodes: ReactNode[] = [];
   let cursor = 0;
   let partIndex = 0;
@@ -241,7 +224,14 @@ function renderTextSegment(text: string, keyPrefix: string) {
 
   while ((match = combined.exec(text)) !== null) {
     if (match.index > cursor) {
-      nodes.push(...renderAutoLinkedText(text.slice(cursor, match.index), `${keyPrefix}-plain-${partIndex}`));
+      nodes.push(
+        ...renderAutoLinkedText(
+          text.slice(cursor, match.index),
+          `${keyPrefix}-plain-${partIndex}`,
+          rules,
+          options
+        )
+      );
     }
 
     const token = match[0];
@@ -297,14 +287,21 @@ function renderTextSegment(text: string, keyPrefix: string) {
   }
 
   if (cursor < text.length) {
-    nodes.push(...renderAutoLinkedText(text.slice(cursor), `${keyPrefix}-plain-end`));
+    nodes.push(
+      ...renderAutoLinkedText(text.slice(cursor), `${keyPrefix}-plain-end`, rules, options)
+    );
   }
 
   return nodes;
 }
 
-export function renderInlineContent(text: string) {
-  return renderTextSegment(text, "inline");
+export type ArticleRenderOptions = {
+  autoLinkRules?: AutoLinkRule[];
+  autoLinkBudget?: ArticleAutoLinkBudget;
+};
+
+export function renderInlineContent(text: string, options?: ArticleRenderOptions) {
+  return renderTextSegment(text, "inline", options);
 }
 
 export function headingId(text: string) {
@@ -352,7 +349,7 @@ function CalloutBlock({ children }: { children: ReactNode }) {
   );
 }
 
-export function renderArticleBlock(block: string) {
+export function renderArticleBlock(block: string, options?: ArticleRenderOptions) {
   const headingMatch = block.match(/^(#{2,4})\s+(.+)$/);
 
   if (headingMatch) {
@@ -362,14 +359,14 @@ export function renderArticleBlock(block: string) {
     if (headingMatch[1].length >= 3) {
       return (
         <h3 key={block} id={id} className="text-ink">
-          {renderInlineContent(label)}
+          {renderInlineContent(label, options)}
         </h3>
       );
     }
 
     return (
       <h2 key={block} id={id} className="text-ink">
-        {renderInlineContent(label)}
+        {renderInlineContent(label, options)}
       </h2>
     );
   }
@@ -385,8 +382,8 @@ export function renderArticleBlock(block: string) {
 
     return (
       <div key={block} className="contents">
-        {renderArticleBlock(headingBlock)}
-        {bodyBlocks.map((bodyBlock) => renderArticleBlock(bodyBlock))}
+        {renderArticleBlock(headingBlock, options)}
+        {bodyBlocks.map((bodyBlock) => renderArticleBlock(bodyBlock, options))}
       </div>
     );
   }
@@ -396,7 +393,7 @@ export function renderArticleBlock(block: string) {
   if (lines.length === 1 && CALLOUT_PREFIX.test(lines[0])) {
     return (
       <CalloutBlock key={block}>
-        {renderInlineContent(lines[0].replace(CALLOUT_PREFIX, ""))}
+        {renderInlineContent(lines[0].replace(CALLOUT_PREFIX, ""), options)}
       </CalloutBlock>
     );
   }
@@ -422,7 +419,7 @@ export function renderArticleBlock(block: string) {
       <div key={block} className="not-prose my-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5">
         {title ? (
           <p className="text-sm font-black uppercase tracking-[0.18em] text-emerald-800">
-            {renderInlineContent(title)}
+            {renderInlineContent(title, options)}
           </p>
         ) : null}
         <ul className={title ? "mt-3 space-y-2" : "space-y-2"}>
@@ -442,7 +439,7 @@ export function renderArticleBlock(block: string) {
                 >
                   ✓
                 </span>
-                <span>{renderInlineContent(label)}</span>
+                <span>{renderInlineContent(label, options)}</span>
               </li>
             );
           })}
@@ -458,12 +455,12 @@ export function renderArticleBlock(block: string) {
       <ListTag key={block} className="marker:text-emerald-600">
         {lines.map((line) => (
           <li key={line} className="pl-1">
-            {renderInlineContent(line.replace(/^([-*]|\d+\.)\s+/, ""))}
+            {renderInlineContent(line.replace(/^([-*]|\d+\.)\s+/, ""), options)}
           </li>
         ))}
       </ListTag>
     );
   }
 
-  return <p key={block}>{renderInlineContent(block)}</p>;
+  return <p key={block}>{renderInlineContent(block, options)}</p>;
 }
