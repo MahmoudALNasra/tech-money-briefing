@@ -111,12 +111,19 @@ export function mergeInternalLinks(
   return merged;
 }
 
+function normalizeComparisonSlug(hrefOrSlug: string) {
+  return hrefOrSlug
+    .trim()
+    .replace(/^\/compare\//, "")
+    .replace(/^\//, "");
+}
+
 export function getRelatedComparisonLinks(slugs: string[] | undefined) {
   if (!slugs?.length) {
     return [] as ComparisonPage[];
   }
 
   return slugs
-    .map((slug) => getComparisonBySlug(slug))
-    .filter((comparison): comparison is ComparisonPage => comparison !== null);
+    .map((hrefOrSlug) => getComparisonBySlug(normalizeComparisonSlug(hrefOrSlug)))
+    .filter((comparison): comparison is ComparisonPage => Boolean(comparison));
 }
