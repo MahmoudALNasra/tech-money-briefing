@@ -1,9 +1,9 @@
 export type {
   OwnerVoiceRewriteOptions,
   OwnerVoiceRewriteResult
-} from "../../scripts/rewrite-articles-owner-voice";
+} from "./rewrite-articles";
 
 export {
   listPendingOwnerVoiceArticles,
   runOwnerVoiceRewrite as runOwnerVoiceOnNewestArticles
-} from "../../scripts/rewrite-articles-owner-voice";
+} from "./rewrite-articles";

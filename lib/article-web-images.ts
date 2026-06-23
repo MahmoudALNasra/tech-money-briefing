@@ -1,4 +1,5 @@
 import { isImageUrlUsable } from "@/lib/article-images";
+import { localizeRemoteArticleImageUrls } from "@/lib/article-local-images";
 import {
   replaceArticleImageMedia,
   type ArticleImageCandidate
@@ -81,9 +82,11 @@ async function fetchSerperImages(query: string, limit: number) {
 
 export async function enrichArticleWebImages(input: {
   articleId: string;
+  slug: string;
   title: string;
   category: string;
   metaDescription?: string;
+  publishedAt?: string | null;
   limit?: number;
 }) {
   const limit = input.limit ?? 3;
@@ -123,5 +126,25 @@ export async function enrichArticleWebImages(input: {
     }
   }
 
-  return replaceArticleImageMedia(input.articleId, candidates);
+  const localizedCandidates: ArticleImageCandidate[] = [];
+
+  for (const [index, candidate] of candidates.entries()) {
+    const localized = await localizeRemoteArticleImageUrls({
+      imageUrl: candidate.imageUrl,
+      thumbnailUrl: candidate.thumbnailUrl,
+      slug: `${input.slug}-inline-${index + 1}`,
+      title: candidate.title || input.title,
+      publishedAt: input.publishedAt
+    });
+
+    if (localized) {
+      localizedCandidates.push({
+        ...candidate,
+        imageUrl: localized.imageUrl,
+        thumbnailUrl: localized.thumbnailUrl
+      });
+    }
+  }
+
+  return replaceArticleImageMedia(input.articleId, localizedCandidates);
 }

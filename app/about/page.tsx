@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { buildPageMetadata } from "@/lib/page-metadata";
+import { buildPageMetadata, siteSocialProfiles } from "@/lib/page-metadata";
 
 import { InfoPage } from "@/components/layout/InfoPage";
 import { siteConfig } from "@/lib/site";
@@ -59,6 +59,26 @@ export default function AboutPage() {
         category briefings that help founders, marketers, and operators make
         better revenue decisions. We avoid publishing thin pages, duplicate
         summaries, or off-topic trend noise.
+      </p>
+      <h2>Find Us</h2>
+      <p>
+        Follow {siteConfig.name} on{" "}
+        <a href={siteSocialProfiles.linkedin} rel="noopener noreferrer" target="_blank">
+          LinkedIn
+        </a>
+        ,{" "}
+        <a href={siteSocialProfiles.instagram} rel="noopener noreferrer" target="_blank">
+          Instagram
+        </a>
+        ,{" "}
+        <a href={siteSocialProfiles.github} rel="noopener noreferrer" target="_blank">
+          GitHub
+        </a>
+        , and{" "}
+        <a href={siteSocialProfiles.crunchbase} rel="noopener noreferrer" target="_blank">
+          Crunchbase
+        </a>
+        .
       </p>
       <p>
         Questions, corrections, or partnership requests can be sent through our{" "}

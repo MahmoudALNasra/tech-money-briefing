@@ -191,7 +191,8 @@ export async function replaceArticleImageMedia(
     .from("article_media")
     .delete()
     .eq("article_id", articleId)
-    .eq("provider", "image");
+    .eq("provider", "image")
+    .not("provider_id", "like", "hero:%");
 
   if (deleteError) {
     if (isMissingTableError(deleteError)) {

@@ -4,8 +4,12 @@ import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export const siteSocialProfiles = {
   instagram: "https://www.instagram.com/techrevenuebrief/",
-  linkedin: "https://www.linkedin.com/company/tech-revenue-brief"
+  linkedin: "https://www.linkedin.com/company/tech-revenue-brief",
+  github: "https://github.com/Tech-Revenue-Brief",
+  crunchbase: "https://www.crunchbase.com/organization/tech-revenue-brief"
 } as const;
+
+export const siteSocialProfileUrls = Object.values(siteSocialProfiles);
 
 export const defaultOgImage = {
   url: absoluteUrl("/og-default-v3.png"),

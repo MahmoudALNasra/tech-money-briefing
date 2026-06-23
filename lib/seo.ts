@@ -1,7 +1,7 @@
 import type { Article } from "@/lib/types";
 import { ARTICLE_EDITORIAL_SOURCE_NAME } from "@/lib/article-attribution";
 import { absoluteUrl, siteConfig } from "@/lib/site";
-import { siteSocialProfiles } from "@/lib/page-metadata";
+import { siteSocialProfileUrls } from "@/lib/page-metadata";
 
 export function organizationWebsiteJsonLd() {
   return {
@@ -16,7 +16,7 @@ export function organizationWebsiteJsonLd() {
           "@type": "ImageObject",
           url: absoluteUrl("/logo.svg")
         },
-        sameAs: [siteSocialProfiles.instagram, siteSocialProfiles.linkedin]
+        sameAs: siteSocialProfileUrls
       },
       {
         "@type": "WebSite",

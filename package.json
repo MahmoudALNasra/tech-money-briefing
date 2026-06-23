@@ -45,6 +45,8 @@
     "articles:backfill-media": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-media.ts",
     "articles:backfill-hero-images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-hero-images.ts",
     "articles:backfill-web-images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-web-images.ts",
+    "articles:backfill-inline-images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-inline-images.ts",
+    "articles:backfill-inline-images:all": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-inline-images.ts --all --delay-ms=400",
     "articles:backfill-media:slow": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-article-media.ts --limit=1000 --delay-ms=65000 --stop-on-quota",
     "articles:publish-no-image-drafts": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/publish-no-image-drafts.ts",
     "articles:fix-rss-dates": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/fix-rss-publish-dates.ts",

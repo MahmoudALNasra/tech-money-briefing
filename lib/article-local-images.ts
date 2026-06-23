@@ -135,3 +135,47 @@ export async function importArticleImageToSite(input: {
 
   return `/media/articles/${storagePath}`;
 }
+
+export async function localizeRemoteArticleImageUrls(input: {
+  imageUrl: string;
+  thumbnailUrl?: string | null;
+  slug: string;
+  title?: string;
+  publishedAt?: string | null;
+}) {
+  const localizedUrl = await importArticleImageToSite({
+    imageUrl: input.imageUrl,
+    slug: input.slug,
+    title: input.title,
+    publishedAt: input.publishedAt
+  });
+
+  if (!localizedUrl || !isSiteHostedArticleImage(localizedUrl)) {
+    return null;
+  }
+
+  const thumbnailSource = input.thumbnailUrl?.trim();
+
+  if (
+    thumbnailSource &&
+    thumbnailSource.startsWith("http") &&
+    thumbnailSource !== input.imageUrl
+  ) {
+    const localizedThumbnail = await importArticleImageToSite({
+      imageUrl: thumbnailSource,
+      slug: `${input.slug}-thumb`,
+      title: input.title,
+      publishedAt: input.publishedAt
+    });
+
+    return {
+      imageUrl: localizedUrl,
+      thumbnailUrl: localizedThumbnail ?? localizedUrl
+    };
+  }
+
+  return {
+    imageUrl: localizedUrl,
+    thumbnailUrl: localizedUrl
+  };
+}

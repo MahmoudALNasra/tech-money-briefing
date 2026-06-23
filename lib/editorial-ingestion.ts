@@ -13,6 +13,7 @@ import { getGenerationQualityInstructions } from "./article-content-quality";
 import { getAdsenseReviewPublishLimits } from "./adsense-readiness";
 import { normalizeArticleContent } from "./article-markdown";
 import { syncLocalizedArticleHeroImage } from "./article-hero-localization";
+import { syncArticleInlineImages } from "./article-inline-images";
 import { enrichArticleMedia } from "./article-media";
 import {
   articleExistsBySourceUrl,
@@ -155,6 +156,22 @@ export async function runEditorialIngestion(
           title: article.title,
           publishedAt
         });
+
+        try {
+          await syncArticleInlineImages({
+            articleId: String(insertedArticle.id),
+            slug,
+            title: article.title,
+            category: topic.category,
+            metaDescription: article.meta_description,
+            publishedAt
+          });
+        } catch (inlineImageError) {
+          console.warn(
+            `[editorial] Inline image sync skipped for ${slug}`,
+            inlineImageError instanceof Error ? inlineImageError.message : inlineImageError
+          );
+        }
       }
     } catch (error) {
       result.errors.push(

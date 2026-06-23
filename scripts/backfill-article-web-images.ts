@@ -1,4 +1,4 @@
-import { enrichArticleWebImages } from "../lib/article-web-images";
+import { syncArticleInlineImages } from "../lib/article-inline-images";
 import { loadLocalEnv } from "../lib/load-env";
 import { getSupabaseClient } from "../lib/supabase";
 
@@ -10,6 +10,7 @@ type ArticleRow = {
   slug: string;
   category: string;
   meta_description: string;
+  published_at: string | null;
 };
 
 function getNumberArg(name: string, fallback: number) {
@@ -36,7 +37,7 @@ async function run() {
 
   let query = supabase
     .from("articles")
-    .select("id,title,slug,category,meta_description")
+    .select("id,title,slug,category,meta_description,published_at")
     .eq("status", "published")
     .order("published_at", { ascending: false })
     .limit(limit);
@@ -64,17 +65,21 @@ async function run() {
 
   for (const article of (data ?? []) as ArticleRow[]) {
     try {
-      const imageResult = await enrichArticleWebImages({
+      const imageResult = await syncArticleInlineImages({
         articleId: article.id,
+        slug: article.slug,
         title: article.title,
         category: article.category,
         metaDescription: article.meta_description,
+        publishedAt: article.published_at,
         limit: imageLimit
       });
 
-      result.inserted += imageResult.inserted;
+      result.inserted += imageResult.inserted + imageResult.localized;
       result.skipped += imageResult.skipped;
-      console.log(`[article:web-images] ${article.slug}: inserted ${imageResult.inserted}`);
+      console.log(
+        `[article:web-images] ${article.slug}: ${imageResult.action} inserted=${imageResult.inserted} localized=${imageResult.localized}`
+      );
     } catch (error) {
       result.errors.push(
         `${article.slug}: ${error instanceof Error ? error.message : String(error)}`

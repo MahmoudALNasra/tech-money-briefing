@@ -3,6 +3,8 @@
  * Aimed at AdSense readiness: varied structure, concrete facts, no templated voice.
  */
 
+import { OWNER_VOICE_AUTHENTICITY_CRITERIA } from "./owner-voice/authenticity";
+
 export const ARTICLE_KEY_TAKEAWAY_INSTRUCTIONS = [
   "Generate exactly 3 key_takeaways as short standalone sentences.",
   "Each takeaway must summarize one specific point from THIS article — a fact, number, named tool, decision, or concrete next step tied to the topic.",
@@ -34,7 +36,8 @@ export const ARTICLE_STRUCTURAL_VARIATION_INSTRUCTIONS = [
 export const ARTICLE_OWNER_VOICE_VARIATION_INSTRUCTIONS = [
   "First-person operator voice is welcome, but it must not collapse into a single template. Use 'I' when it adds judgment; do not force 'I would not' openers on every section.",
   "Skepticism should come from specific trade-offs and examples, not from repeating the same negation pattern in every paragraph.",
-  "Match the gold-standard rhythm (plain, practical, specific) without copying its exact opener every time."
+  "Match the gold-standard rhythm (plain, practical, specific) without copying its exact opener every time.",
+  ...OWNER_VOICE_AUTHENTICITY_CRITERIA
 ];
 
 export function getGenerationQualityInstructions() {
@@ -96,10 +99,20 @@ export function detectOverusedRhetoricalPattern(content: string) {
   const issues: string[] = [];
   const iWouldNot = (content.match(/\bI would not\b/gi) ?? []).length;
 
-  if (iWouldNot >= 4) {
+  if (iWouldNot >= 3) {
     issues.push(
       `repeated "I would not" pattern (${iWouldNot} times) — vary rhetorical framing`
     );
+  }
+
+  const iWouldCheck = (content.match(/\bI would check that first\b/gi) ?? []).length;
+  if (iWouldCheck >= 1) {
+    issues.push('automated "I would check that first" filler — rewrite opener naturally');
+  }
+
+  const boxToCheck = /\blike a box to check\b/i.test(content);
+  if (boxToCheck) {
+    issues.push('templated "like a box to check" opener — use a specific scenario instead');
   }
 
   const dontAssume = (content.match(/\bDon'?t assume\b/gi) ?? []).length;

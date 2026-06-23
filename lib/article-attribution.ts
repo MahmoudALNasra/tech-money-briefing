@@ -1,3 +1,5 @@
+import { OWNER_VOICE_AUTHENTICITY_PASSED_EXCERPT } from "@/lib/owner-voice/authenticity";
+
 export const ARTICLE_EDITORIAL_SOURCE_NAME = "Tech Revenue Brief Editors";
 
 export const ARTICLE_EDITORIAL_SOURCE_NOTE =
@@ -411,8 +413,14 @@ The best pricing work is not picking a clever tier name. It is figuring out why 
 
 That is the part people miss. The risk is not only a fine or a bad headline. The risk is that customers stop believing you know what your own system is doing.
 
-The best time to ask those questions is before the product becomes hard to change.`
+The best time to ask those questions is before the product becomes hard to change.`,
+  OWNER_VOICE_AUTHENTICITY_PASSED_EXCERPT
 ];
+
+export {
+  OWNER_VOICE_AUTHENTICITY_CRITERIA,
+  OWNER_VOICE_AUTHENTICITY_PASSED_EXCERPT
+} from "@/lib/owner-voice/authenticity";
 
 /** LLM clichés and inflated vocabulary — high predictability / low perplexity signals. */
 export const OWNER_VOICE_AI_VOCABULARY_AVOID = {
@@ -472,7 +480,9 @@ export const OWNER_VOICE_ANTI_AI_INSTRUCTIONS = [
   "Add information gain: include at least one specific named example, tool, platform, number, or first-hand scenario that generic summaries would skip.",
   "Add entity depth: mention concrete specifics for the topic (product names, metrics, workflows, customer types) instead of generic advice anyone could paste.",
   "Do not cover the same generic subtopics in the same order as every other article on the topic. Pick one angle and go deep on it.",
-  "No summary closer. End on one sharp practical sentence, not a recap."
+  "No summary closer. End on one sharp practical sentence, not a recap.",
+  "Never open with 'I would not treat [topic] like a box to check' or stack 'I would check that first' filler — those are automated-patch patterns that fail external AI detectors.",
+  "Never use tutorial headings like 'What X can actually do' or 'Regular analysis is crucial' — use opinionated, topic-specific headings instead."
 ];
 
 export const OWNER_VOICE_REWRITE_GUIDE = [
@@ -499,7 +509,8 @@ export const OWNER_VOICE_REWRITE_GUIDE = [
   "Use first person (I, my) when it adds judgment or experience. Do not force 'I would' or 'I would not' into every paragraph — vary rhythm and openings.",
   "For event-based topics (legal cases, funding, layoffs, launches): include concrete facts from the topic brief — names, dates, amounts, charges, status. Generic vertical advice alone is not enough.",
   "For advisory topics: each section needs a named tool, number, timeframe, or concrete example — not advice that could apply unchanged to any business.",
-  "Do not use tutorial skeletons: no ## FAQ, no numbered step-by-step lists, no checkbox checklists, no 'Common Pitfalls to Avoid', no 'Here's how to' sections."
+  "Do not use tutorial skeletons: no ## FAQ, no numbered step-by-step lists, no checkbox checklists, no 'Common Pitfalls to Avoid', no 'Here's how to' sections.",
+  "Match detector-passed authenticity: open with a specific scenario or mistake (not a reusable 'I would not treat X like…' template), use topic-specific headings, include at least one number or concrete detail, and end on one sharp sentence — no recap."
 ];
 
 /** Short excerpt from the manually approved gold-standard article. Match this voice and structure. */
@@ -747,7 +758,17 @@ export const OWNER_VOICE_BANNED_PATTERNS: RegExp[] = [
   /\bparadigm\b/i,
   /\bultimately\b/i,
   /\bat the end of the day\b/i,
-  /\bas we look to the future\b/i
+  /\bas we look to the future\b/i,
+  /\blike a box to check\b/i,
+  /\bsupercharge\b/i,
+  /\benhance\s+.+\s+effectiveness\b/i,
+  /\bprovide\s+insights\b/i,
+  /^##\s+what\s+.+\s+can\s+actually\s+do\b/im,
+  /^##\s+regular\s+analysis\s+is\s+crucial\b/im,
+  /\*\*Automation\*\*:/i,
+  /\*\*Personalization\*\*:/i,
+  /\bThat part matters\.\s*\n\nI would check that first\b/i,
+  /\buse them wisely, and they will serve\b/i
 ];
 
 export function detectOwnerVoiceTemplateSignals(content: string) {

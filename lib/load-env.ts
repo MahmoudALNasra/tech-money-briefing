@@ -7,7 +7,11 @@ import { resolve } from "path";
  */
 export function loadLocalEnv() {
   for (const filename of [".env.local", ".env"]) {
-    const filePath = resolve(process.cwd(), filename);
+    const filePath = resolve(
+      /* turbopackIgnore: true */
+      process.cwd(),
+      filename
+    );
 
     if (!existsSync(filePath)) {
       continue;

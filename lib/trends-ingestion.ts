@@ -2,6 +2,7 @@ import Parser from "rss-parser";
 
 import { isAdsenseReviewMode } from "./adsense-readiness";
 import { syncLocalizedArticleHeroImage } from "./article-hero-localization";
+import { syncArticleInlineImages } from "./article-inline-images";
 import {
   ARTICLE_EDITORIAL_SOURCE_NAME,
   ARTICLE_ORIGINALITY_INSTRUCTIONS,
@@ -232,6 +233,22 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
           title: article.title,
           publishedAt
         });
+
+        try {
+          await syncArticleInlineImages({
+            articleId: String(insertedArticle.id),
+            slug,
+            title: article.title,
+            category: TREND_CATEGORY,
+            metaDescription: article.meta_description,
+            publishedAt
+          });
+        } catch (inlineImageError) {
+          console.warn(
+            `[trends] Inline image sync skipped for ${slug}`,
+            inlineImageError instanceof Error ? inlineImageError.message : inlineImageError
+          );
+        }
       }
     } catch (error) {
       result.errors.push(
