@@ -115,8 +115,8 @@ export async function enrichArticleWebImages(input: {
       title,
       imageUrl,
       thumbnailUrl: result.thumbnailUrl,
-      altText: `${title} related to ${input.title}`,
-      caption: `${title} — image source: ${sourceName}`,
+      altText: `Illustration related to ${input.title}`,
+      caption: null,
       sourceName,
       sourceUrl: result.link ?? null
     });

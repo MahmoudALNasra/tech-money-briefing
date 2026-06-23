@@ -93,24 +93,24 @@ function ArticleInlineImage({
         sizes="(min-width: 768px) 768px, 100vw"
         className="h-auto max-h-[30rem] w-full object-contain"
       />
-      {image.caption || image.source_name ? (
+      {image.source_url && image.source_name ? (
         <figcaption className="border-t border-stone-200 px-5 py-3 text-xs leading-5 text-stone-600">
-          {image.caption ? <span>{image.caption}</span> : null}
-          {image.source_url && image.source_name ? (
-            <>
-              {" "}
-              <a
-                href={image.source_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold underline"
-              >
-                Source: {image.source_name}
-              </a>
-            </>
-          ) : image.source_name ? (
-            <span> Source: {image.source_name}</span>
-          ) : null}
+          <a
+            href={image.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold underline"
+          >
+            Source: {image.source_name}
+          </a>
+        </figcaption>
+      ) : image.source_name ? (
+        <figcaption className="border-t border-stone-200 px-5 py-3 text-xs leading-5 text-stone-600">
+          Source: {image.source_name}
+        </figcaption>
+      ) : image.caption ? (
+        <figcaption className="border-t border-stone-200 px-5 py-3 text-xs leading-5 text-stone-600">
+          {image.caption}
         </figcaption>
       ) : null}
     </figure>

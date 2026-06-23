@@ -178,7 +178,7 @@ export type ArticleImageCandidate = {
   imageUrl: string;
   thumbnailUrl?: string | null;
   altText: string;
-  caption: string;
+  caption?: string | null;
   sourceName?: string | null;
   sourceUrl?: string | null;
 };
