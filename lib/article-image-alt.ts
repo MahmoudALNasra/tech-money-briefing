@@ -51,6 +51,23 @@ const CATEGORY_VISUALS: Record<string, string[]> = {
   ]
 };
 
+const BANNED_ALT_PATTERNS = [
+  /^illustration\b/i,
+  /^graphic\b/i,
+  /^visual guide\b/i,
+  /^infographic\b/i,
+  /^visual representation\b/i,
+  /^image of\b/i,
+  /\bshowcasing\b/i,
+  /\billustrating\b/i,
+  /\bdepicting\b/i,
+  /\bhighlighting\b/i
+];
+
+function isWeakAlt(text: string) {
+  return BANNED_ALT_PATTERNS.some((pattern) => pattern.test(text.trim()));
+}
+
 function clampAlt(text: string) {
   const normalized = text.replace(/\s+/g, " ").trim();
 
@@ -193,11 +210,16 @@ export async function buildArticleImageAlts(input: {
     }
 
     const parsed = JSON.parse(raw) as { alts: string[] };
+    const heuristicAlts = buildHeuristicArticleImageAlts(input);
+
     return parsed.alts.map((alt, index) => {
       const trimmed = alt.trim();
-      return trimmed.length >= ALT_MIN
-        ? clampAlt(trimmed)
-        : buildHeuristicArticleImageAlts(input)[index];
+
+      if (trimmed.length < ALT_MIN || isWeakAlt(trimmed)) {
+        return heuristicAlts[index];
+      }
+
+      return clampAlt(trimmed);
     });
   } catch {
     return buildHeuristicArticleImageAlts(input);
