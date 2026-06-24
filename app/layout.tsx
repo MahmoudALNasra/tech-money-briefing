@@ -8,9 +8,10 @@ import { DeferredAdSense } from "@/components/analytics/DeferredAdSense";
 import { GoogleTagManager } from "@/components/analytics/GoogleTagManager";
 import { VisitorAnalytics } from "@/components/analytics/VisitorAnalyticsShell";
 import { OAuthRedirectRecovery } from "@/components/auth/OAuthRedirectRecovery";
-import { SiteFooter } from "@/components/layout/SiteFooter";
-import { SiteScrollProgress } from "@/components/layout/SiteScrollProgress";
-import { ReferralNudge } from "@/components/referrals/ReferralNudge";
+import {
+  ConditionalAnalyticsShell,
+  ConditionalSiteChrome
+} from "@/components/layout/ConditionalSiteChrome";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { organizationWebsiteJsonLd } from "@/lib/seo";
 
@@ -110,9 +111,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             __html: `(function(){function cleanNode(node){if(!node||node.nodeType!==1)return;node.removeAttribute("data-google-analytics-opt-out");node.removeAttribute("bis_skin_checked");if(node.querySelectorAll){node.querySelectorAll("[data-google-analytics-opt-out],[bis_skin_checked]").forEach(function(el){el.removeAttribute("data-google-analytics-opt-out");el.removeAttribute("bis_skin_checked")})}}function clean(){cleanNode(document.documentElement)}clean();var observer=new MutationObserver(function(mutations){mutations.forEach(function(mutation){cleanNode(mutation.target);mutation.addedNodes&&mutation.addedNodes.forEach(cleanNode)})});observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:["data-google-analytics-opt-out","bis_skin_checked"]});window.setTimeout(function(){observer.disconnect();clean()},8000)})();`
           }}
         />
-        {shouldLoadAds ? <DeferredAdSense client={adClient} /> : null}
-        <GoogleTagManager />
-        <VisitorAnalytics />
+        {shouldLoadAds ? (
+          <ConditionalAnalyticsShell>
+            <DeferredAdSense client={adClient} />
+          </ConditionalAnalyticsShell>
+        ) : null}
+        <ConditionalAnalyticsShell>
+          <GoogleTagManager />
+          <VisitorAnalytics />
+        </ConditionalAnalyticsShell>
         <OAuthRedirectRecovery />
         <script
           type="application/ld+json"
@@ -120,10 +127,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             __html: JSON.stringify(organizationWebsiteJsonLd())
           }}
         />
-        <SiteScrollProgress />
         {children}
-        {shouldShowReferralNudge ? <ReferralNudge /> : null}
-        <SiteFooter />
+        <ConditionalSiteChrome showReferralNudge={shouldShowReferralNudge} />
       </body>
     </html>
   );

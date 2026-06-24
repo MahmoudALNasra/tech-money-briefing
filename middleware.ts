@@ -21,6 +21,12 @@ export function middleware(request: NextRequest) {
     });
   }
 
+  if (request.nextUrl.pathname === "/aseel") {
+    const response = NextResponse.next();
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    return response;
+  }
+
   return NextResponse.next();
 }
 
@@ -29,6 +35,7 @@ export const config = {
     "/business-lead-generator",
     "/business-data-generator",
     "/contact",
-    "/euphoria-character-arcs"
+    "/euphoria-character-arcs",
+    "/aseel"
   ]
 };
