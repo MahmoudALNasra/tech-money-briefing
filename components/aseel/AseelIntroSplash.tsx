@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 
 type AseelIntroSplashProps = {
+  caption: string;
   onDone: () => void;
 };
 
 const FLOATERS = ["✨", "💜", "👋", "🎀", "⭐", "😌", "💫", "🫶"];
 
-export function AseelIntroSplash({ onDone }: AseelIntroSplashProps) {
+export function AseelIntroSplash({ caption, onDone }: AseelIntroSplashProps) {
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
@@ -52,11 +53,11 @@ export function AseelIntroSplash({ onDone }: AseelIntroSplashProps) {
         <p className="aseel-intro-pop text-sm font-semibold uppercase tracking-[0.4em] text-fuchsia-300/90">
           yalla
         </p>
-        <h2 className="aseel-intro-pop aseel-intro-pop-delay mt-4 font-serif text-5xl font-bold tracking-tight text-white sm:text-6xl">
-          Aseel&apos;s corner
+        <h2 className="aseel-intro-pop aseel-intro-pop-delay mt-4 font-serif text-4xl font-bold tracking-tight text-white sm:text-5xl">
+          ركن أسيل
         </h2>
-        <p className="aseel-intro-pop aseel-intro-pop-delay-2 mt-4 text-lg text-white/70">
-          هلا 👋
+        <p className="aseel-intro-pop aseel-intro-pop-delay-2 mt-5 max-w-sm text-lg leading-8 text-white/75">
+          {caption}
         </p>
         <p className="aseel-intro-pop aseel-intro-pop-delay-3 mt-8 text-xs text-white/35">
           tap anywhere to skip

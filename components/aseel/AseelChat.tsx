@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
+import { pickRandomAseelCaption } from "@/components/aseel/aseel-captions";
 import {
   isVisualSurprise,
   pickSurpriseEffect,
@@ -24,7 +25,7 @@ type ChatMessage = {
 const WELCOME: ChatMessage = {
   id: "welcome",
   role: "assistant",
-  content: "هلا يا Aseel 👋\n\nيلا احكي — بضحك، بعربي، وبز English. مش محاضرة."
+  content: "هلا يا أسيل 👋\n\nيلا احكي — بضحك، بعربي، وبز English. مش محاضرة."
 };
 
 const SURPRISE_AFTER_USER_MSG = 5;
@@ -59,6 +60,8 @@ function surpriseClass(effect: AseelSurpriseEffect | null) {
 }
 
 export function AseelChat() {
+  const [headerCaption] = useState(() => pickRandomAseelCaption());
+  const [introCaption] = useState(() => pickRandomAseelCaption());
   const [showIntro, setShowIntro] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [input, setInput] = useState("");
@@ -196,7 +199,10 @@ export function AseelChat() {
   return (
     <>
       {showIntro ? (
-        <AseelIntroSplash onDone={() => setShowIntro(false)} />
+        <AseelIntroSplash
+          caption={introCaption}
+          onDone={() => setShowIntro(false)}
+        />
       ) : null}
 
       <div
@@ -233,10 +239,13 @@ export function AseelChat() {
 
         <header className="aseel-header relative z-10 border-b border-white/10 px-4 py-4 pb-[max(1rem,env(safe-area-inset-top))] sm:px-8 sm:py-5">
           <h1 className="font-serif text-3xl font-bold tracking-tight sm:text-4xl">
-            Aseel&apos;s corner
+            ركن أسيل
           </h1>
-          <p className="mt-1.5 text-sm text-white/55">
-            bot with attitude · عربي + English
+          <p
+            key={headerCaption}
+            className="aseel-msg-in mt-1.5 text-sm leading-6 text-white/60"
+          >
+            {headerCaption}
           </p>
         </header>
 
