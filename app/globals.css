@@ -1304,3 +1304,208 @@ header[role="navigation"] {
     transform: translateX(-50%);
   }
 }
+
+/* Aseel private chat */
+@keyframes aseel-intro-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.72) translateY(18px);
+  }
+
+  70% {
+    transform: scale(1.04) translateY(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes aseel-intro-float {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0) rotate(0deg) scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-16px) rotate(12deg) scale(1.1);
+  }
+}
+
+@keyframes aseel-shake {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  15% {
+    transform: translate3d(-8px, 2px, 0) rotate(-1deg);
+  }
+
+  30% {
+    transform: translate3d(8px, -2px, 0) rotate(1deg);
+  }
+
+  45% {
+    transform: translate3d(-6px, 1px, 0);
+  }
+
+  60% {
+    transform: translate3d(6px, -1px, 0);
+  }
+
+  75% {
+    transform: translate3d(-3px, 0, 0);
+  }
+}
+
+@keyframes aseel-wobble {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-2.5deg);
+  }
+
+  75% {
+    transform: rotate(2.5deg);
+  }
+}
+
+@keyframes aseel-bounce-page {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  35% {
+    transform: translateY(-10px);
+  }
+
+  70% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes aseel-spin-brief {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: rotate(6deg) scale(1.02);
+  }
+
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes aseel-flash {
+  0% {
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.45;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes aseel-emoji-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -12px, 0) rotate(0deg) scale(0.7);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--drift, 0px), 110vh, 0) rotate(280deg) scale(1);
+  }
+}
+
+@keyframes aseel-msg-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.aseel-intro-pop {
+  animation: aseel-intro-pop 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.aseel-intro-pop-delay {
+  animation-delay: 0.12s;
+}
+
+.aseel-intro-pop-delay-2 {
+  animation-delay: 0.24s;
+}
+
+.aseel-intro-pop-delay-3 {
+  animation-delay: 0.9s;
+}
+
+.aseel-intro-float {
+  animation: aseel-intro-float 2.2s ease-in-out infinite;
+}
+
+.aseel-surprise-shake {
+  animation: aseel-shake 0.55s ease-in-out;
+}
+
+.aseel-surprise-wobble {
+  animation: aseel-wobble 0.65s ease-in-out;
+}
+
+.aseel-surprise-bounce {
+  animation: aseel-bounce-page 0.55s ease;
+}
+
+.aseel-surprise-spin .aseel-header {
+  animation: aseel-spin-brief 0.7s ease-in-out;
+}
+
+.aseel-flash-overlay {
+  animation: aseel-flash 0.55s ease-out forwards;
+}
+
+.aseel-msg-in {
+  animation: aseel-msg-in 0.35s ease-out both;
+}
+
+.aseel-emoji-fall {
+  animation: aseel-emoji-fall 1.8s ease-in forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aseel-intro-pop,
+  .aseel-intro-float,
+  .aseel-surprise-shake,
+  .aseel-surprise-wobble,
+  .aseel-surprise-bounce,
+  .aseel-surprise-spin .aseel-header,
+  .aseel-flash-overlay,
+  .aseel-msg-in,
+  .aseel-emoji-fall {
+    animation: none !important;
+  }
+}
