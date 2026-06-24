@@ -5,6 +5,7 @@ import { ArticleCard } from "@/components/articles/ArticleCard";
 import { NewsletterCapture } from "@/components/newsletter/NewsletterCapture";
 import { SubscribeBand } from "@/components/newsletter/SubscribeBand";
 import { PromotedPartnerCard } from "@/components/promotions/PromotedPartnerCard";
+import { isAdsenseReviewMode } from "@/lib/adsense-readiness";
 import type { ArticleSummary } from "@/lib/types";
 
 type ArticleFeedProps = {
@@ -22,6 +23,8 @@ export function ArticleFeed({
   promotionInterval = 0,
   variant = "list"
 }: ArticleFeedProps) {
+  const showNativeAds = !isAdsenseReviewMode() && adInterval > 0;
+
   if (variant === "grid") {
     const firstArticles = articles.slice(0, 9);
     const remainingArticles = articles.slice(9);
@@ -65,7 +68,8 @@ export function ArticleFeed({
       {articles.map((article, index) => {
         const shouldInjectNewsletter =
           newsletterInterval > 0 && (index + 1) % newsletterInterval === 0;
-        const shouldInjectAd = adInterval > 0 && (index + 1) % adInterval === 0;
+        const shouldInjectAd =
+          showNativeAds && adInterval > 0 && (index + 1) % adInterval === 0;
         const shouldInjectPromotion =
           promotionInterval > 0 && (index + 1) % promotionInterval === 0;
 

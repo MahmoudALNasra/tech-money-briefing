@@ -3,6 +3,7 @@ import { Fragment } from "react";
 import { NativeAdCard } from "@/components/ads/NativeAdCard";
 import { ArticleCard } from "@/components/articles/ArticleCard";
 import { NewsletterCapture } from "@/components/newsletter/NewsletterCapture";
+import { isAdsenseReviewMode } from "@/lib/adsense-readiness";
 import type { ArticleSummary } from "@/lib/types";
 
 type ArticleGridProps = {
@@ -16,11 +17,13 @@ export function ArticleGrid({
   adInterval = 6,
   newsletterInterval = 4
 }: ArticleGridProps) {
+  const showNativeAds = !isAdsenseReviewMode() && adInterval > 0;
+
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {articles.map((article, index) => {
         const shouldInjectAd =
-          adInterval > 0 && (index + 1) % adInterval === 0;
+          showNativeAds && adInterval > 0 && (index + 1) % adInterval === 0;
         const adSlotIndex = Math.floor((index + 1) / adInterval);
         const shouldInjectNewsletter =
           newsletterInterval > 0 && (index + 1) % newsletterInterval === 0;

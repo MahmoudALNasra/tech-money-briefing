@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import "@/app/globals.css";
 import { DeferredAdSense } from "@/components/analytics/DeferredAdSense";
+import { GooglePrivacyMessaging } from "@/components/analytics/GooglePrivacyMessaging";
 import { GoogleTagManager } from "@/components/analytics/GoogleTagManager";
 import { VisitorAnalytics } from "@/components/analytics/VisitorAnalyticsShell";
 import { OAuthRedirectRecovery } from "@/components/auth/OAuthRedirectRecovery";
@@ -117,6 +118,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </ConditionalAnalyticsShell>
         ) : null}
         <ConditionalAnalyticsShell>
+          <GooglePrivacyMessaging />
           <GoogleTagManager />
           <VisitorAnalytics />
         </ConditionalAnalyticsShell>
