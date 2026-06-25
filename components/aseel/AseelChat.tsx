@@ -4,6 +4,14 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { pickRandomAseelCaption } from "@/components/aseel/aseel-captions";
 import {
+  ASEEL_WELCOME_MESSAGE,
+  loadAseelChatMessages,
+  loadAseelUserMessageCount,
+  saveAseelChatMessages,
+  saveAseelUserMessageCount,
+  type AseelStoredMessage
+} from "@/components/aseel/aseel-chat-storage";
+import {
   isVisualSurprise,
   pickSurpriseEffect,
   playSurpriseSound,
@@ -16,17 +24,9 @@ import {
 } from "@/components/aseel/aseel-effects";
 import { AseelIntroSplash } from "@/components/aseel/AseelIntroSplash";
 
-type ChatMessage = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-};
+type ChatMessage = AseelStoredMessage;
 
-const WELCOME: ChatMessage = {
-  id: "welcome",
-  role: "assistant",
-  content: "هلا يا أسيل 👋\n\nيلا احكي — بضحك، بعربي، وبز English. مش محاضرة."
-};
+const WELCOME = ASEEL_WELCOME_MESSAGE;
 
 const SURPRISE_AFTER_USER_MSG = 5;
 const SURPRISE_DURATION_MS = 700;
@@ -64,6 +64,7 @@ export function AseelChat() {
   const [introCaption] = useState(() => pickRandomAseelCaption());
   const [showIntro, setShowIntro] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
+  const [chatHydrated, setChatHydrated] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +83,20 @@ export function AseelChat() {
     const playIntro = shouldPlayAseelIntro(lastVisit);
     setShowIntro(playIntro);
     writeLastVisit();
+
+    const storedMessages = loadAseelChatMessages();
+    setMessages(storedMessages);
+    userMessageCountRef.current = loadAseelUserMessageCount();
+    setChatHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (!chatHydrated) {
+      return;
+    }
+
+    saveAseelChatMessages(messages);
+  }, [chatHydrated, messages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -146,6 +160,7 @@ export function AseelChat() {
     setLoading(true);
 
     userMessageCountRef.current += 1;
+    saveAseelUserMessageCount(userMessageCountRef.current);
 
     if (userMessageCountRef.current > SURPRISE_AFTER_USER_MSG) {
       triggerSurprise();
