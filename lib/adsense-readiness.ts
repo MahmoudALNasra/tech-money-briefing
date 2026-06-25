@@ -1,4 +1,6 @@
 import { CORE_CATEGORIES, type CoreCategory } from "./categories";
+import { COMPARISONS } from "./comparisons";
+import { FREE_TOOLS } from "./free-tools";
 
 export const ADSENSE_HIDDEN_CATEGORIES = ["others"] as const;
 
@@ -16,6 +18,34 @@ export const TREND_NOISE_TITLE_PATTERNS = [
   "what you need to know about the upcoming match"
 ] as const;
 
+/** Titles that read as thin trend/celebrity/sports noise to human reviewers. */
+export const ADSENSE_LOW_VALUE_TITLE_PATTERNS = [
+  ...TREND_NOISE_TITLE_PATTERNS,
+  "divorce",
+  "split from",
+  "rumors",
+  "highlights from",
+  "highlights and key",
+  "key moments from",
+  "match against",
+  "opener against",
+  "remembering ",
+  "passed away",
+  "jelly roll",
+  "euphoria",
+  "korea vs",
+  "norway vs",
+  "usa soccer",
+  "nfl",
+  "nba",
+  "mlb",
+  "soccer key",
+  "world cup opener",
+  "celebrity",
+  "red carpet",
+  "dating rumors"
+] as const;
+
 export const ADSENSE_TRUST_PAGES = [
   "/about",
   "/contact",
@@ -25,8 +55,67 @@ export const ADSENSE_TRUST_PAGES = [
   "/advertise"
 ] as const;
 
+const ADSENSE_REVIEW_UTILITY_PREFIXES = [
+  "/tools",
+  "/compare",
+  "/leads",
+  "/local-business-insights",
+  "/login",
+  "/signup",
+  "/profile",
+  "/admin",
+  "/analytics",
+  "/brush-the-algorithm",
+  "/doomscroll-dodge",
+  "/doomscroll-market",
+  "/meme-market",
+  "/aseel"
+] as const;
+
 export function isAdsenseReviewMode() {
   return process.env.ADSENSE_REVIEW_MODE === "true";
+}
+
+export function getAdsenseReviewRobotsDisallow() {
+  if (!isAdsenseReviewMode()) {
+    return [] as string[];
+  }
+
+  const toolPaths = FREE_TOOLS.map((tool) => tool.href);
+  const comparisonPaths = COMPARISONS.map(
+    (comparison) => `/compare/${comparison.slug}`
+  );
+
+  return Array.from(
+    new Set([
+      ...ADSENSE_REVIEW_UTILITY_PREFIXES,
+      ...toolPaths,
+      ...comparisonPaths
+    ])
+  );
+}
+
+export function isAdsenseReviewNoindexPath(pathname: string) {
+  if (!isAdsenseReviewMode()) {
+    return false;
+  }
+
+  const normalized = pathname.split("?")[0] ?? pathname;
+
+  return getAdsenseReviewRobotsDisallow().some(
+    (prefix) => normalized === prefix || normalized.startsWith(`${prefix}/`)
+  );
+}
+
+export function adsenseReviewPageRobots(path: string) {
+  if (isAdsenseReviewNoindexPath(path)) {
+    return {
+      index: false,
+      follow: true
+    } as const;
+  }
+
+  return undefined;
 }
 
 export function getAdsenseReviewPublishLimits() {
@@ -67,14 +156,15 @@ export function shouldHideArticleForAdsense(article: {
     return true;
   }
 
-  const isTrendLike =
-    isAdsenseHiddenCategory(article.category) || sourceName.includes("google trends");
-
-  if (!isTrendLike) {
-    return false;
+  if (sourceName.includes("referral")) {
+    return true;
   }
 
-  return TREND_NOISE_TITLE_PATTERNS.some((pattern) => title.includes(pattern));
+  if (ADSENSE_LOW_VALUE_TITLE_PATTERNS.some((pattern) => title.includes(pattern))) {
+    return true;
+  }
+
+  return false;
 }
 
 export function articleRobotsForAdsense(article: {

@@ -1,6 +1,11 @@
 import { CATEGORY_SEO_DESCRIPTIONS, CORE_CATEGORIES } from "@/lib/categories";
 import { COMPARISONS } from "@/lib/comparisons";
 import { getPaginatedHomepageArticles } from "@/lib/articles";
+import {
+  ADSENSE_TRUST_PAGES,
+  isAdsenseReviewMode,
+  shouldHideArticleForAdsense
+} from "@/lib/adsense-readiness";
 import { FREE_TOOLS } from "@/lib/free-tools";
 import { siteSocialProfiles } from "@/lib/page-metadata";
 import { absoluteUrl, siteConfig } from "@/lib/site";
@@ -143,43 +148,83 @@ function buildCategoryLines() {
 }
 
 export async function buildLlmsTxtBody() {
+  const reviewMode = isAdsenseReviewMode();
   const [flagshipArticles, homepage] = await Promise.all([
     loadFlagshipArticles(),
     getPaginatedHomepageArticles(1)
   ]);
 
   const recentArticles = homepage.articles
-    .filter((article) => !FLAGSHIP_ARTICLE_SLUGS.includes(article.slug as (typeof FLAGSHIP_ARTICLE_SLUGS)[number]))
-    .slice(0, 8)
+    .filter(
+      (article) =>
+        !FLAGSHIP_ARTICLE_SLUGS.includes(
+          article.slug as (typeof FLAGSHIP_ARTICLE_SLUGS)[number]
+        ) &&
+        !shouldHideArticleForAdsense({
+          title: article.title,
+          category: article.category,
+          source_name: article.source_name
+        })
+    )
+    .slice(0, reviewMode ? 12 : 8)
     .map((article) =>
       bulletLink(article.title, `/${article.category}/${article.slug}`)
     );
 
+  const trustLines = ADSENSE_TRUST_PAGES.map((path) => {
+    const labels: Record<string, string> = {
+      "/about": "About",
+      "/contact": "Contact",
+      "/editorial-policy": "Editorial policy",
+      "/privacy": "Privacy policy",
+      "/terms": "Terms of use",
+      "/advertise": "Advertise"
+    };
+
+    return bulletLink(labels[path] ?? path, path);
+  });
+
   const sections = [
     `# ${siteConfig.name}`,
     "",
-    `${siteConfig.description}`,
+    reviewMode
+      ? `${siteConfig.name} is an editorial publisher focused on practical briefings about monetization, SEO, AI tools, startups, fintech, ecommerce, and creator business.`
+      : siteConfig.description,
     "",
-    "Use this file to discover high-value pages for summaries and citations.",
-    "Prefer flagship briefings, tools, and comparisons over trend-only coverage.",
+    reviewMode
+      ? "During editorial review, prioritize trust pages and flagship briefings below."
+      : "Use this file to discover high-value pages for summaries and citations.",
+    reviewMode
+      ? "Avoid thin trend, celebrity, or sports recaps."
+      : "Prefer flagship briefings, tools, and comparisons over trend-only coverage.",
     "",
     section("Canonical pages", [
       bulletLink("Homepage", "/"),
-      bulletLink("Free tools directory", "/tools"),
-      bulletLink("Software comparisons", "/compare"),
       bulletLink("Monetization checklist", "/monetization-checklist"),
       bulletLink("Monetization audit", "/monetization-audit"),
-      bulletLink("Local business lead generator", "/leads"),
-      bulletLink("Local business data and statistics", "/local-business-insights"),
-      bulletLink("About", "/about"),
-      bulletLink("Editorial policy", "/editorial-policy"),
-      bulletLink("Contact", "/contact")
+      ...trustLines
     ]),
     section("Topic hubs", buildCategoryLines()),
-    section("Flagship briefings (cite these first)", flagshipArticles),
-    section("Recent editorial briefings", recentArticles),
-    section("Free tools", buildToolLines()),
-    section("Software comparisons", buildComparisonLines()),
+    section(
+      reviewMode ? "Flagship editorial briefings" : "Flagship briefings (cite these first)",
+      flagshipArticles
+    ),
+    section(
+      reviewMode ? "Recent editorial briefings" : "Recent editorial briefings",
+      recentArticles
+    ),
+    ...(reviewMode
+      ? []
+      : [
+          section("Free tools", buildToolLines()),
+          section("Software comparisons", buildComparisonLines()),
+          section("Additional products", [
+            bulletLink("Free tools directory", "/tools"),
+            bulletLink("Software comparisons hub", "/compare"),
+            bulletLink("Local business lead generator", "/leads"),
+            bulletLink("Local business data and statistics", "/local-business-insights")
+          ])
+        ]),
     section("Entity profiles", [
       bulletLink("GitHub organization", siteSocialProfiles.github),
       bulletLink("Crunchbase company profile", siteSocialProfiles.crunchbase),
@@ -187,14 +232,15 @@ export async function buildLlmsTxtBody() {
     ]),
     section("Citation policy", [
       "Summaries are welcome with attribution to Tech Revenue Brief (techrevenuebrief.com).",
-      "Link to the original article, tool, or comparison URL when citing facts or recommendations.",
-      "Statistics at /local-business-insights may be cited with attribution to Tech Revenue Brief.",
-      "Do not cite /aseel or /admin pages; they are private or operational."
+      "Link to the original article URL when citing facts or recommendations.",
+      "Do not cite /aseel, /admin, hidden games, or utility-only pages during editorial review."
     ]),
     section("Content notes", [
-      "Editorial briefings focus on monetization, SEO, AI tools, startups, fintech, ecommerce, and creator business.",
-      "Some pages are utility tools with supporting prose; pair tool pages with related briefings when possible.",
-      "See /editorial-policy for AI-assisted content disclosure and correction process."
+      "Editorial briefings are written for founders, publishers, marketers, and operators.",
+      "See /editorial-policy for AI-assisted content disclosure and correction process.",
+      reviewMode
+        ? "Utility tools and comparisons exist but are de-emphasized during publisher review."
+        : "Pair tool pages with related briefings when citing recommendations."
     ])
   ];
 

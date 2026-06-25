@@ -2,8 +2,9 @@ import type { MetadataRoute } from "next";
 
 import {
   ADSENSE_TRUST_PAGES,
+  isAdsenseHiddenCategory,
   isAdsenseReviewMode,
-  isAdsenseHiddenCategory
+  shouldHideArticleForAdsense
 } from "@/lib/adsense-readiness";
 import {
   ARTICLES_PER_PAGE,
@@ -26,6 +27,18 @@ function staticSitemapEntries(): MetadataRoute.Sitemap {
       changeFrequency: "hourly",
       priority: 1
     },
+    {
+      url: absoluteUrl("/monetization-checklist"),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.65
+    },
+    {
+      url: absoluteUrl("/monetization-audit"),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.65
+    },
     ...(reviewMode
       ? []
       : ([
@@ -40,18 +53,6 @@ function staticSitemapEntries(): MetadataRoute.Sitemap {
             lastModified: new Date(),
             changeFrequency: "monthly",
             priority: 0.6
-          },
-          {
-            url: absoluteUrl("/monetization-checklist"),
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.65
-          },
-          {
-            url: absoluteUrl("/monetization-audit"),
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.65
           },
           {
             url: absoluteUrl("/local-business-insights"),
@@ -98,9 +99,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return staticSitemapEntries();
   }
 
-  const homepageArticleCount = articles.filter(
-    (article) => !isAdsenseHiddenCategory(String(article.category))
-  ).length;
+  const indexableArticles = articles.filter(
+    (article) =>
+      !shouldHideArticleForAdsense({
+        title: String(article.title ?? ""),
+        category: String(article.category),
+        source_name: String(article.source_name ?? "")
+      })
+  );
+
+  const homepageArticleCount = indexableArticles.length;
   const homepagePageCount = Math.max(
     1,
     Math.ceil(homepageArticleCount / ARTICLES_PER_PAGE)
@@ -127,7 +135,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8
       })),
     ...articles
-      .filter((article) => !isAdsenseHiddenCategory(String(article.category)))
+      .filter((article) =>
+        !shouldHideArticleForAdsense({
+          title: String(article.title ?? ""),
+          category: String(article.category),
+          source_name: String(article.source_name ?? "")
+        })
+      )
       .map((article) => ({
         url: absoluteUrl(`/${article.category}/${article.slug}`),
         lastModified: article.updated_at ?? article.published_at ?? new Date(),

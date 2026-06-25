@@ -324,7 +324,7 @@ export async function searchPublishedArticles(query: string, limit = 24) {
 export const getPublishedSitemapEntries = cache(async () => {
   const { data, error } = await supabase
     .from("articles")
-    .select("slug,category,updated_at,published_at")
+    .select("slug,category,title,source_name,updated_at,published_at")
     .eq("status", "published")
     .order("published_at", { ascending: false })
     .limit(50000);

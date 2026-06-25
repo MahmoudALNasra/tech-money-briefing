@@ -1,18 +1,22 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { isAdsenseReviewNoindexPath } from "@/lib/adsense-readiness";
+
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
   if (
-    request.nextUrl.pathname === "/business-lead-generator" ||
-    request.nextUrl.pathname === "/business-data-generator"
+    pathname === "/business-lead-generator" ||
+    pathname === "/business-data-generator"
   ) {
     return NextResponse.redirect(new URL("/leads", request.url), 301);
   }
 
-  if (request.nextUrl.pathname === "/contact" && request.nextUrl.search) {
+  if (pathname === "/contact" && request.nextUrl.search) {
     return NextResponse.redirect(new URL("/contact", request.url), 308);
   }
 
-  if (request.nextUrl.pathname === "/euphoria-character-arcs") {
+  if (pathname === "/euphoria-character-arcs") {
     return new NextResponse("Gone", {
       status: 410,
       headers: {
@@ -21,9 +25,15 @@ export function middleware(request: NextRequest) {
     });
   }
 
-  if (request.nextUrl.pathname === "/aseel") {
+  if (pathname === "/aseel") {
     const response = NextResponse.next();
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+    return response;
+  }
+
+  if (isAdsenseReviewNoindexPath(pathname)) {
+    const response = NextResponse.next();
+    response.headers.set("X-Robots-Tag", "noindex, follow");
     return response;
   }
 
@@ -32,10 +42,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/business-lead-generator",
-    "/business-data-generator",
-    "/contact",
-    "/euphoria-character-arcs",
-    "/aseel"
+    "/((?!_next/static|_next/image|favicon.ico|icon.svg|og-default-v3.png|logo.svg|ads.txt|llms.txt|sitemap.xml|robots.txt).*)"
   ]
 };

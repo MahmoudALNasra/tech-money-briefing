@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { adsenseReviewPageRobots } from "@/lib/adsense-readiness";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export const siteSocialProfiles = {
@@ -39,12 +40,13 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
   const url = absoluteUrl(input.path);
   const image = input.image ?? defaultOgImage;
   const imageAlt = image.alt ?? input.title;
+  const robots = input.robots ?? adsenseReviewPageRobots(input.path);
 
   return {
     title: input.title,
     description: input.description,
     keywords: input.keywords,
-    robots: input.robots,
+    robots,
     alternates: {
       canonical: url
     },
