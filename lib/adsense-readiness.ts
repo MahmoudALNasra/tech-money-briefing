@@ -1,3 +1,4 @@
+import { OWNER_VOICE_SKIP_SLUGS } from "./article-attribution";
 import { CORE_CATEGORIES, type CoreCategory } from "./categories";
 import { COMPARISONS } from "./comparisons";
 import { FREE_TOOLS } from "./free-tools";
@@ -76,8 +77,17 @@ export function isAdsenseReviewMode() {
   return process.env.ADSENSE_REVIEW_MODE === "true";
 }
 
+/** When true with review mode, compares/tools stay indexable while nav and publish throttles remain. */
+export function isAdsenseReviewAllowIndexing() {
+  return process.env.ADSENSE_REVIEW_ALLOW_INDEXING === "true";
+}
+
+export function isAdsenseReviewSeoBlocked() {
+  return isAdsenseReviewMode() && !isAdsenseReviewAllowIndexing();
+}
+
 export function getAdsenseReviewRobotsDisallow() {
-  if (!isAdsenseReviewMode()) {
+  if (!isAdsenseReviewSeoBlocked()) {
     return [] as string[];
   }
 
@@ -96,7 +106,7 @@ export function getAdsenseReviewRobotsDisallow() {
 }
 
 export function isAdsenseReviewNoindexPath(pathname: string) {
-  if (!isAdsenseReviewMode()) {
+  if (!isAdsenseReviewSeoBlocked()) {
     return false;
   }
 
@@ -183,4 +193,166 @@ export function articleRobotsForAdsense(article: {
     index: true,
     follow: true
   } as const;
+}
+
+export const ADSENSE_KEEP_TITLE_PATTERNS = [
+  "how to ",
+  "how-to",
+  "best ",
+  "checklist",
+  "template",
+  " vs ",
+  " versus ",
+  " explained",
+  "best practices",
+  "guide for",
+  "workflow",
+  "formula"
+] as const;
+
+export const ADSENSE_MONETIZATION_TITLE_PATTERNS = [
+  "adsense",
+  "rpm",
+  "cpm",
+  "monetiz",
+  "revenue",
+  "publisher",
+  "newsletter",
+  "affiliate",
+  "utm"
+] as const;
+
+export const ADSENSE_DERIVATIVE_TITLE_PATTERNS = [
+  "navigating the ",
+  "implications of ",
+  "understanding the implications",
+  "harnessing ",
+  "leveraging ",
+  "unlocking ",
+  "exploring the ",
+  "analyzing ",
+  "strategic insights",
+  " secures ",
+  "funding round",
+  "valuation surge",
+  "referral link"
+] as const;
+
+export function getAdsenseTargetPublishedCount() {
+  return Number(process.env.ADSENSE_TARGET_PUBLISHED_COUNT ?? 100);
+}
+
+export type AdsenseArticleCorpusInput = {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  source_name: string;
+  source_url?: string | null;
+  image_url?: string | null;
+  content?: string | null;
+  published_at?: string | null;
+};
+
+export function scoreArticleForAdsenseRetention(
+  article: Omit<AdsenseArticleCorpusInput, "id">
+) {
+  if (shouldHideArticleForAdsense(article)) {
+    return -10_000;
+  }
+
+  let score = 0;
+  const title = article.title.toLowerCase();
+  const sourceUrl = (article.source_url ?? "").toLowerCase();
+
+  if (sourceUrl.startsWith("editorial://")) {
+    score += 80;
+  }
+
+  if (OWNER_VOICE_SKIP_SLUGS.includes(article.slug)) {
+    score += 50;
+  }
+
+  if (ADSENSE_KEEP_TITLE_PATTERNS.some((pattern) => title.includes(pattern))) {
+    score += 25;
+  }
+
+  if (
+    ADSENSE_MONETIZATION_TITLE_PATTERNS.some((pattern) => title.includes(pattern))
+  ) {
+    score += 20;
+  }
+
+  if (
+    ADSENSE_DERIVATIVE_TITLE_PATTERNS.some((pattern) => title.includes(pattern))
+  ) {
+    score -= 15;
+  }
+
+  if (title.startsWith("i would not")) {
+    score -= 40;
+  }
+
+  if (article.image_url?.trim()) {
+    score += 5;
+  }
+
+  const contentLength = (article.content ?? "").length;
+  if (contentLength > 4000) {
+    score += 10;
+  } else if (contentLength > 0 && contentLength < 1500) {
+    score -= 10;
+  }
+
+  if (
+    article.category === "creator-business" ||
+    article.category === "seo" ||
+    article.category === "digital-marketing"
+  ) {
+    score += 5;
+  }
+
+  return score;
+}
+
+export function pickArticlesToDraftForAdsenseCorpus(
+  articles: AdsenseArticleCorpusInput[],
+  targetCount = getAdsenseTargetPublishedCount()
+) {
+  const mustDraft = articles.filter((article) =>
+    shouldHideArticleForAdsense(article)
+  );
+  const mustDraftIds = new Set(mustDraft.map((article) => article.id));
+  const survivors = articles.filter((article) => !mustDraftIds.has(article.id));
+  const capDraftCount = Math.max(0, survivors.length - targetCount);
+
+  const rankedForRemoval = survivors
+    .map((article) => ({
+      article,
+      score: scoreArticleForAdsenseRetention(article)
+    }))
+    .sort((left, right) => {
+      if (left.score !== right.score) {
+        return left.score - right.score;
+      }
+
+      return (left.article.published_at ?? "").localeCompare(
+        right.article.published_at ?? ""
+      );
+    });
+
+  const capDraft = rankedForRemoval
+    .slice(0, capDraftCount)
+    .map((entry) => entry.article);
+  const capDraftIds = new Set(capDraft.map((article) => article.id));
+  const keep = survivors.filter((article) => !capDraftIds.has(article.id));
+
+  return {
+    mustDraft,
+    capDraft,
+    keep,
+    allToDraft: [...mustDraft, ...capDraft],
+    targetCount,
+    publishedAfter: keep.length
+  };
 }

@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 import {
   ADSENSE_TRUST_PAGES,
   isAdsenseHiddenCategory,
-  isAdsenseReviewMode,
+  isAdsenseReviewSeoBlocked,
   shouldHideArticleForAdsense
 } from "@/lib/adsense-readiness";
 import {
@@ -18,7 +18,7 @@ import { absoluteUrl } from "@/lib/site";
 export const revalidate = 3600;
 
 function staticSitemapEntries(): MetadataRoute.Sitemap {
-  const reviewMode = isAdsenseReviewMode();
+  const blockReviewSeo = isAdsenseReviewSeoBlocked();
 
   return [
     {
@@ -39,7 +39,7 @@ function staticSitemapEntries(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.65
     },
-    ...(reviewMode
+    ...(blockReviewSeo
       ? []
       : ([
           {
