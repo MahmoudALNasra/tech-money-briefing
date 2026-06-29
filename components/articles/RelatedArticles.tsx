@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { shouldBypassArticleImageOptimization } from "@/lib/article-image-optimization";
+import {
+  shouldBypassArticleImageOptimization,
+  shouldContainArticleImagePreview
+} from "@/lib/article-image-optimization";
 import { getRelatedArticles } from "@/lib/articles";
 import { formatCategory } from "@/lib/format";
 import { articleImageAlt } from "@/lib/seo";
@@ -73,7 +76,14 @@ export async function RelatedArticles({
                       unoptimized={shouldBypassArticleImageOptimization(
                         article.image_url
                       )}
-                      className="object-cover transition duration-300 group-hover:scale-[1.02]"
+                      className={`${
+                        shouldContainArticleImagePreview({
+                          slug: article.slug,
+                          imageUrl: article.image_url
+                        })
+                          ? "object-contain bg-stone-950"
+                          : "object-cover transition duration-300 group-hover:scale-[1.02]"
+                      }`}
                     />
                   ) : (
                     <div className="h-full w-full bg-[var(--bg-elevated)]" />

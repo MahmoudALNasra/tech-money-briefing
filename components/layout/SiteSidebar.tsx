@@ -2,7 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { NewsletterCapture } from "@/components/newsletter/NewsletterCapture";
-import { shouldBypassArticleImageOptimization } from "@/lib/article-image-optimization";
+import {
+  shouldBypassArticleImageOptimization,
+  shouldContainArticleImagePreview
+} from "@/lib/article-image-optimization";
 import { getPaginatedHomepageArticles } from "@/lib/articles";
 import { getPublicNavCategories } from "@/lib/adsense-readiness";
 import { formatCategory } from "@/lib/format";
@@ -100,7 +103,14 @@ export async function SiteSidebar({ activeCategory }: SiteSidebarProps) {
                           unoptimized={shouldBypassArticleImageOptimization(
                             article.image_url
                           )}
-                          className="object-cover"
+                          className={
+                            shouldContainArticleImagePreview({
+                              slug: article.slug,
+                              imageUrl: article.image_url
+                            })
+                              ? "object-contain bg-stone-900"
+                              : "object-cover"
+                          }
                         />
                       ) : (
                         <div className="h-full w-full bg-gradient-to-br from-stone-100 via-stone-200 to-stone-300" />

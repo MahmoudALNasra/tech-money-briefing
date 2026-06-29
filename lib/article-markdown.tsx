@@ -336,6 +336,55 @@ export function getContentHeadings(blocks: string[]) {
     .slice(0, 8);
 }
 
+function splitMarkdownTableRow(line: string) {
+  const trimmed = line.trim().replace(/^\|/, "").replace(/\|$/, "");
+  return trimmed.split("|").map((cell) => cell.trim());
+}
+
+function isMarkdownTableDividerCell(cell: string) {
+  return /^:?-{3,}:?$/.test(cell.replace(/\s+/g, ""));
+}
+
+function parseMarkdownTable(block: string) {
+  const lines = block
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length < 3 || !lines[0].includes("|")) {
+    return null;
+  }
+
+  const headers = splitMarkdownTableRow(lines[0]);
+  const divider = splitMarkdownTableRow(lines[1]);
+
+  if (
+    headers.length === 0 ||
+    divider.length < headers.length ||
+    !divider.slice(0, headers.length).every((cell) => isMarkdownTableDividerCell(cell))
+  ) {
+    return null;
+  }
+
+  const rows = lines
+    .slice(2)
+    .filter((line) => line.includes("|"))
+    .map((line) => splitMarkdownTableRow(line))
+    .map((cells) => {
+      if (cells.length < headers.length) {
+        return [...cells, ...Array(headers.length - cells.length).fill("")];
+      }
+
+      return cells.slice(0, headers.length);
+    });
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  return { headers, rows };
+}
+
 function CalloutBlock({ children }: { children: ReactNode }) {
   return (
     <aside className="not-prose my-6 rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 shadow-sm">
@@ -384,6 +433,47 @@ export function renderArticleBlock(block: string, options?: ArticleRenderOptions
       <div key={block} className="contents">
         {renderArticleBlock(headingBlock, options)}
         {bodyBlocks.map((bodyBlock) => renderArticleBlock(bodyBlock, options))}
+      </div>
+    );
+  }
+
+  const markdownTable = parseMarkdownTable(block);
+
+  if (markdownTable) {
+    return (
+      <div
+        key={block}
+        className="not-prose my-8 overflow-x-auto rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)]"
+      >
+        <table className="min-w-full border-collapse text-sm text-[var(--text-primary)]">
+          <thead className="bg-white/[0.06]">
+            <tr>
+              {markdownTable.headers.map((header) => (
+                <th
+                  key={header}
+                  scope="col"
+                  className="border-b border-white/[0.08] px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-dim)]"
+                >
+                  {renderInlineContent(header, options)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {markdownTable.rows.map((row, rowIndex) => (
+              <tr key={`${block}-row-${rowIndex}`} className="odd:bg-white/[0.01]">
+                {row.map((cell, cellIndex) => (
+                  <td
+                    key={`${block}-row-${rowIndex}-cell-${cellIndex}`}
+                    className="border-b border-white/[0.04] px-4 py-3 align-top text-sm leading-6 text-[var(--text-muted)]"
+                  >
+                    {renderInlineContent(cell, options)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   }

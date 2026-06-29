@@ -4,7 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-import { shouldBypassArticleImageOptimization } from "@/lib/article-image-optimization";
+import {
+  shouldBypassArticleImageOptimization,
+  shouldContainArticleImagePreview
+} from "@/lib/article-image-optimization";
 import { ARTICLE_EDITORIAL_SOURCE_NAME } from "@/lib/article-attribution";
 import { formatCategory } from "@/lib/format";
 import { articleImageAlt } from "@/lib/seo";
@@ -73,6 +76,10 @@ export function ArticleCard({
 }: ArticleCardProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const shouldShowImage = Boolean(article.image_url && !imageFailed);
+  const shouldContainImage = shouldContainArticleImagePreview({
+    slug: article.slug,
+    imageUrl: article.image_url
+  });
   const publishedLabel = article.published_at
     ? new Intl.DateTimeFormat("en", {
         month: "short",
@@ -108,7 +115,11 @@ export function ArticleCard({
               priority={priority}
               unoptimized={shouldBypassArticleImageOptimization(article.image_url)}
               onError={() => setImageFailed(true)}
-              className="object-cover transition duration-300 group-hover:scale-[1.02]"
+              className={`${
+                shouldContainImage
+                  ? "object-contain bg-stone-950"
+                  : "object-cover transition duration-300 group-hover:scale-[1.02]"
+              }`}
             />
           ) : (
             <div className="article-card-placeholder" aria-hidden="true">
@@ -171,7 +182,11 @@ export function ArticleCard({
               priority={priority}
               unoptimized={shouldBypassArticleImageOptimization(article.image_url)}
               onError={() => setImageFailed(true)}
-              className="object-cover transition duration-300 group-hover:scale-[1.02]"
+              className={`${
+                shouldContainImage
+                  ? "object-contain bg-stone-950"
+                  : "object-cover transition duration-300 group-hover:scale-[1.02]"
+              }`}
             />
           ) : (
             <GeneratedArticleThumbnail
