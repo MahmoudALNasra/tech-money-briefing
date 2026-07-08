@@ -510,7 +510,8 @@ export const OWNER_VOICE_REWRITE_GUIDE = [
   "For event-based topics (legal cases, funding, layoffs, launches): include concrete facts from the topic brief — names, dates, amounts, charges, status. Generic vertical advice alone is not enough.",
   "For advisory topics: each section needs a named tool, number, timeframe, or concrete example — not advice that could apply unchanged to any business.",
   "Do not use tutorial skeletons: no ## FAQ, no numbered step-by-step lists, no checkbox checklists, no 'Common Pitfalls to Avoid', no 'Here's how to' sections.",
-  "Match detector-passed authenticity: open with a specific scenario or mistake (not a reusable 'I would not treat X like…' template), use topic-specific headings, include at least one number or concrete detail, and end on one sharp sentence — no recap."
+  "Match detector-passed authenticity: open with a specific scenario or mistake (not a reusable 'I would not treat X like…' template), use topic-specific headings, include at least one number or concrete detail, and end on one sharp sentence — no recap.",
+  "AEO briefs: ## Quick Answer, 3+ scannable sections, 300–400 words, hyperlinks spread across sections — match OWNER_VOICE_AEO_GOLD_EXCERPT rhythm when comparing tools."
 ];
 
 /** Short excerpt from the manually approved gold-standard article. Match this voice and structure. */
@@ -849,6 +850,8 @@ function sentenceWordCounts(content: string) {
 export function detectLowBurstiness(content: string) {
   const counts = sentenceWordCounts(content);
   const issues: string[] = [];
+  const words = content.trim().split(/\s+/).filter(Boolean).length;
+  const relaxed = words > 0 && words < 420;
 
   if (counts.length < 5) {
     return issues;
@@ -862,15 +865,15 @@ export function detectLowBurstiness(content: string) {
     counts.reduce((sum, count) => sum + (count - average) ** 2, 0) /
     counts.length;
 
-  if (shortCount < 2) {
+  if (!relaxed && shortCount < 2) {
     issues.push("low burstiness: add more short sentences");
   }
 
-  if (longCount < 1) {
+  if (!relaxed && longCount < 1) {
     issues.push("low burstiness: add at least one longer sentence");
   }
 
-  if (variance < 20) {
+  if (variance < (relaxed ? 10 : 20)) {
     issues.push("low burstiness: sentence lengths too uniform");
   }
 

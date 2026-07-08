@@ -52,6 +52,9 @@ export function HomeHero({ categories }: HomeHeroProps) {
             <Link className="hero-button hero-button-primary" href="#articles">
               Read latest briefs
             </Link>
+            <Link className="hero-button hero-button-ghost" href="/compare">
+              Browse comparisons
+            </Link>
             <Link className="hero-button hero-button-ghost" href="/leads">
               Try lead generator
             </Link>

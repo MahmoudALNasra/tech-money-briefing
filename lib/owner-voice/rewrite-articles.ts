@@ -33,7 +33,17 @@ import {
   OWNER_VOICE_AUTHENTICITY_CRITERIA,
   OWNER_VOICE_AUTHENTICITY_PASSED_EXCERPT
 } from "./authenticity";
+import {
+  detectOwnerVoiceLinkFiller,
+  OWNER_VOICE_AEO_GOLD_EXCERPT,
+  OWNER_VOICE_AEO_STRUCTURE_RULES,
+  OWNER_VOICE_WORD_TARGETS,
+  polishOwnerVoiceLinks,
+  validateAeoOwnerVoiceContent
+} from "./aeo-content";
 import { normalizeArticleContent } from "../article-markdown";
+import { syncArticleInlineImages } from "../article-inline-images";
+import { enrichArticleMedia } from "../article-media";
 import { getStaticInternalLinksForText } from "../internal-links";
 import { getOpenAIClient } from "../openai";
 import {
@@ -222,12 +232,15 @@ Good examples (note varied structure):
 
 const FORMATTING_RULES = `FORMATTING RULES (required for every article):
 1. Bold key terms, product names, and critical warnings using **bold**
-2. Include 2–4 inline hyperlinks to relevant external sources (official docs, tool homepages, credible reviews) — use natural anchor text, never "click here"
-3. Use ## headings that are specific to the topic — not generic like "## Introduction" or "## Conclusion"
-4. Dash bullet lists are allowed; numbered lists are banned
-5. Do not end with a summary, FAQ, or conclusion section — end on one sharp practical sentence
-6. Minimum 550 words, target 700–800 words
-7. Where the article covers sales prospecting, lead generation, finding business contacts, or B2B data — include one natural internal link to [Tech Revenue Brief's Business Data Generator](https://techrevenuebrief.com/business-data-generator) as a relevant tool`;
+2. Weave 1–2 external links inline on tool/org names in real sentences — never append 'see X for the official product page' or 'covers the next step' filler
+3. Add at most 1–2 internal links only when a TRB tool genuinely fits the same sentence
+4. Spread links across ## sections — never dump links only in ## Quick Answer
+5. Use ## headings that are specific to the topic — not generic like "## Introduction" or "## Conclusion"
+6. Dash bullet lists are allowed; numbered lists are banned
+7. Do not end with a summary, FAQ, or conclusion section — end on one sharp practical sentence
+8. Target ${OWNER_VOICE_WORD_TARGETS.idealMin}–${OWNER_VOICE_WORD_TARGETS.idealMax} words (${OWNER_VOICE_WORD_TARGETS.min}–${OWNER_VOICE_WORD_TARGETS.max} acceptable). Dense AEO briefs, not padded tutorials.
+9. Required structure: opinion hook → ## Quick Answer → 3+ scannable ## body sections with links and bullets between sections
+10. Where the article covers sales prospecting, lead generation, finding business contacts, or B2B data — you may include one internal link to [Business Data Generator](https://techrevenuebrief.com/business-data-generator) in addition to external tool links`;
 
 const OWNER_VOICE_RULES = `OWNER VOICE RULES — this is the most important section:
 - You are a skeptical operator who has actually used these tools and wasted time on bad ones
@@ -264,7 +277,17 @@ const AI_DETECTION_RULES = `AI DETECTION RULES — these patterns will cause the
 
 - Replace any bullet list that follows a colon with a paragraph that uses dashes mid-sentence or just flows as prose.
   BAD: "Improve these things:\n- Internal links\n- Page speed"
-  GOOD: "Internal links matter more than most people think. Page speed is the other one I would check first."`;
+  GOOD: "Internal links matter more than most people think. Page speed is the other one I would check first."
+
+- Never open with "sounds like a dream", "I would not trust it blindly", or textbook definitions of the topic.
+  BAD: "AI-generated content sounds like a dream for fintech companies..."
+  GOOD: "A fintech client published a blog post last quarter that mentioned FDIC coverage we never verified. Legal killed it in one afternoon."
+
+- Never repeat the same compliance advice in the opener and ## Quick Answer — say it once, then move on.
+
+- Never use generic checklist bullets like "Use AI for initial drafts" / "Always involve a human for compliance checks" / "Maintain transparency about AI's role".
+
+- For fintech/compliance topics: name a real regulation, review step, or document (KYC copy, fee disclosure, SOC 2, state money-transmitter wording) — not vague "legal pitfalls".`;
 
 const CONSTRUCTION_RULES = `TWO NEW HARD RULES based on AI detector analysis:
 
@@ -677,6 +700,8 @@ async function loadArticles(options: {
   fetchAll: boolean;
   bulkTouchedOnly: boolean;
   includeDrafts: boolean;
+  includeSkipped?: boolean;
+  skipSlugs?: string[];
 }) {
   const supabase = getSupabaseClient();
   const pageSize = 100;
@@ -741,7 +766,14 @@ async function loadArticles(options: {
   }
 
   return rows
-    .filter((article) => !OWNER_VOICE_SKIP_SLUGS.includes(article.slug))
+    .filter((article) =>
+      options.skipSlugs?.includes(article.slug) ? false : true
+    )
+    .filter((article) =>
+      options.includeSkipped
+        ? true
+        : !OWNER_VOICE_SKIP_SLUGS.includes(article.slug)
+    )
     .filter((article) => {
       if (!options.bulkTouchedOnly) {
         return true;
@@ -858,9 +890,11 @@ async function writeOwnerVoiceArticle(
         content: JSON.stringify({
           task: "Write a brand-new Tech Revenue Brief article from scratch in the owner voice.",
           goldStandardExcerpt: OWNER_VOICE_GOLD_ARTICLE_EXCERPT,
+          aeoGoldExcerpt: OWNER_VOICE_AEO_GOLD_EXCERPT,
           detectorPassedExcerpts: [
             ...OWNER_VOICE_PASSED_ARTICLE_EXCERPTS,
-            OWNER_VOICE_AUTHENTICITY_PASSED_EXCERPT
+            OWNER_VOICE_AUTHENTICITY_PASSED_EXCERPT,
+            OWNER_VOICE_AEO_GOLD_EXCERPT
           ],
           aiVocabularyToAvoid: OWNER_VOICE_AI_VOCABULARY_AVOID,
           badExampleToAvoid: OWNER_VOICE_BAD_EXAMPLE,
@@ -874,6 +908,7 @@ async function writeOwnerVoiceArticle(
             ...OWNER_VOICE_REWRITE_GUIDE,
             ...OWNER_VOICE_ANTI_AI_INSTRUCTIONS,
             ...OWNER_VOICE_AUTHENTICITY_CRITERIA,
+            ...OWNER_VOICE_AEO_STRUCTURE_RULES,
             ...ARTICLE_KEY_TAKEAWAY_INSTRUCTIONS,
             ...ARTICLE_EVENT_FACT_INSTRUCTIONS,
             ...ARTICLE_ADVISORY_SPECIFICITY_INSTRUCTIONS,
@@ -887,7 +922,8 @@ async function writeOwnerVoiceArticle(
             CONSTRUCTION_RULES,
             "Never use words or phrases listed in aiVocabularyToAvoid unless quoting someone.",
             "Match the goldStandardExcerpt: skeptical first-person opener, plain reasoning, specific ## headings, short paragraphs, opinionated lists — not a tutorial.",
-            "Match detectorPassedExcerpts — especially the email-marketing excerpt with a scenario opener, specific tool names, and a sharp final line.",
+            "Match aeoGoldExcerpt: skeptical opener, ## Quick Answer, short scannable ## sections, dash lists, links in different sections, 300–400 words, sharp closer.",
+            "Match detectorPassedExcerpts — especially the email-marketing and Claude vs ChatGPT excerpts.",
             "Read badExampleToAvoid and do not produce anything structurally or tonally similar.",
             "Do not try to sound human by using 'sure,' 'the truth is,' 'some kind of oracle,' analogies like darts/bullseyes, or polished transition phrases.",
             "Use the topicBrief.facts array in the article body — especially for news, legal, funding, and layoff topics.",
@@ -897,11 +933,11 @@ async function writeOwnerVoiceArticle(
             "Use dash bullet lists or short paragraphs only. Never use numbered lists like '1.' or '2.' anywhere in the article.",
             "Do not end with 'Final Thoughts', 'In conclusion', '## Conclusion', '## Takeaway', or any recap section. End on one sharp practical sentence.",
             "Use the topicBrief only for meaning. Do not reuse the old article's structure, headings, or phrasing.",
-            "Write 550-900 words in markdown. No H1.",
-            "You may include one short ## Quick Answer if it fits naturally. Do not add ## FAQ.",
+            "Write ${OWNER_VOICE_WORD_TARGETS.idealMin}-${OWNER_VOICE_WORD_TARGETS.idealMax} words in markdown. No H1.",
+            "Always include ## Quick Answer plus at least three more ## sections. Do not add ## FAQ.",
             "Do not use numbered step lists (1. 2. 3.) or checkbox checklists.",
-            "Use 0-3 internal links only when they fit naturally in a sentence. Prefer the Business Data Generator internal link only for sales prospecting, lead generation, business contacts, or B2B data topics.",
-            "Include 2-4 inline external links to official docs, product homepages, or credible source pages when they fit naturally.",
+            "Use external links inline on product names in real sentences — never append boilerplate like 'covers the next step' or 'official product page'.",
+            "Add internal links only when they fit naturally in the same sentence as your advice.",
             "key_takeaways must summarize specific points from this article, not a fixed three-clause formula.",
             "Title should sound like something a real person would click, not a keyword-stuffed SEO title.",
             ...OWNER_VOICE_TITLE_INSTRUCTIONS
@@ -1041,7 +1077,8 @@ function validateOwnerVoiceDraft(
     ),
     ...detectAutomatedPatchInjection(draft.content).map(
       (pattern) => `automated patch injection: ${pattern}`
-    )
+    ),
+    ...detectOwnerVoiceLinkFiller(draft.content)
   ];
   const aiSignals = scanAiSignalPatterns(draft.content);
   const aiSignalIssues =
@@ -1056,13 +1093,15 @@ function validateOwnerVoiceDraft(
   const firstPersonCount = (
     draft.content.match(/\bI\b|\bmy\b|\bI would\b|\bI would not\b|\bI wouldn't\b/gi) ?? []
   ).length;
-  if (firstPersonCount < 2) {
+  if (firstPersonCount < 1) {
     firstPersonIssues.push("not enough first-person voice (I/my)");
   }
 
   if (draft.content.length < 400) {
-    structureIssues.push("article too short");
+    structureIssues.push("article body too thin (characters)");
   }
+
+  structureIssues.push(...validateAeoOwnerVoiceContent(draft.content));
 
   if (/\bwe would\b/i.test(draft.content)) {
     structureIssues.push("corporate 'we would' voice instead of owner 'I'");
@@ -1186,10 +1225,22 @@ async function rewriteArticle(article: ArticleRow): Promise<RewrittenArticle> {
       attempt > 1 ? lastIssues : undefined
     );
     draft = cleanupRewrittenDraft(draft, article, attempt, "generation");
+    draft = {
+      ...draft,
+      content: polishOwnerVoiceLinks(draft.content, {
+        category: article.category
+      })
+    };
     let validation = validateOwnerVoiceDraft(draft, article.title);
 
     if (validation.issues.length > 0) {
       draft = await repairDraft(article, brief, draft, validation, attempt);
+      draft = {
+        ...draft,
+        content: polishOwnerVoiceLinks(draft.content, {
+          category: article.category
+        })
+      };
       validation = validateOwnerVoiceDraft(draft, article.title);
     }
 
@@ -1235,6 +1286,8 @@ export type OwnerVoiceRewriteOptions = {
   onlyOthers?: boolean;
   bulkTouchedOnly?: boolean;
   includeDrafts?: boolean;
+  includeSkipped?: boolean;
+  skipSlugs?: string[];
   delayMs?: number;
 };
 
@@ -1277,7 +1330,9 @@ export async function runOwnerVoiceRewrite(
   const onlyOthers = input.onlyOthers ?? false;
   const bulkTouchedOnly = input.bulkTouchedOnly ?? false;
   const includeDrafts = input.includeDrafts ?? Boolean(since);
+  const includeSkipped = input.includeSkipped ?? false;
   const delayMs = input.delayMs ?? 0;
+  const skipSlugs = input.skipSlugs;
   const articles = await loadArticles({
     limit,
     category: input.category,
@@ -1286,7 +1341,9 @@ export async function runOwnerVoiceRewrite(
     onlyOthers,
     fetchAll,
     bulkTouchedOnly,
-    includeDrafts
+    includeDrafts,
+    includeSkipped,
+    skipSlugs
   });
   const result: OwnerVoiceRewriteResult = {
     checked: articles.length,
@@ -1299,7 +1356,7 @@ export async function runOwnerVoiceRewrite(
   };
 
   console.log(
-    `[owner-voice] loaded ${articles.length} article(s)${onlyOthers ? " (others only)" : " (excluding others)"}${bulkTouchedOnly ? " [bulk-touched only]" : ""}${since ? ` [since ${since}]` : ""}${dryRun ? " [dry-run]" : ""}`
+    `[owner-voice] loaded ${articles.length} article(s)${onlyOthers ? " (others only)" : " (excluding others)"}${bulkTouchedOnly ? " [bulk-touched only]" : ""}${since ? ` [since ${since}]` : ""}${skipSlugs?.length ? ` [skipping ${skipSlugs.length} completed]` : ""}${dryRun ? " [dry-run]" : ""}`
   );
 
   for (const [index, article] of articles.entries()) {
@@ -1327,6 +1384,29 @@ export async function runOwnerVoiceRewrite(
 
         if (error) {
           throw error;
+        }
+
+        await enrichArticleMedia({
+          articleId: article.id,
+          title: rewritten.title,
+          category: article.category,
+          metaDescription: rewritten.meta_description
+        });
+
+        try {
+          await syncArticleInlineImages({
+            articleId: article.id,
+            slug: article.slug,
+            title: rewritten.title,
+            category: article.category,
+            metaDescription: rewritten.meta_description,
+            limit: 3
+          });
+        } catch (mediaError) {
+          console.warn(
+            `[owner-voice] inline images skipped for ${article.slug}`,
+            mediaError
+          );
         }
       }
 

@@ -7,6 +7,7 @@ import {
   isExcludedAnalyticsIp,
   parseArticlePath
 } from "@/lib/visitor-analytics";
+import { sanitizeHeatmapBatchMetadata } from "@/lib/heatmap-analytics";
 import { supabase } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -45,7 +46,8 @@ const ALLOWED_EVENTS = new Set([
   "share_caption_copy",
   "social_image_download",
   "session_ping",
-  "session_end"
+  "session_end",
+  "heatmap_batch"
 ]);
 
 function sanitizeText(value: unknown, max = 500) {
@@ -161,7 +163,10 @@ export async function POST(request: Request) {
       article_slug:
         sanitizeText(bodyRecord.article_slug, 120) ?? parsedArticle.articleSlug,
       category: sanitizeText(bodyRecord.category, 80) ?? parsedArticle.category,
-      metadata: sanitizeMetadata(bodyRecord.metadata),
+      metadata:
+        eventName === "heatmap_batch"
+          ? sanitizeHeatmapBatchMetadata(bodyRecord.metadata)
+          : sanitizeMetadata(bodyRecord.metadata),
       country: sanitizeText(request.headers.get("x-vercel-ip-country"), 8),
       region: sanitizeText(
         request.headers.get("x-vercel-ip-country-region"),

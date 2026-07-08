@@ -304,8 +304,15 @@ export function renderInlineContent(text: string, options?: ArticleRenderOptions
   return renderTextSegment(text, "inline", options);
 }
 
+export function stripMarkdownFromHeadingLabel(label: string) {
+  return label
+    .replace(/\*\*/g, "")
+    .replace(/\[([^\]]+)]\([^)]+\)/g, "$1")
+    .trim();
+}
+
 export function headingId(text: string) {
-  return text
+  return stripMarkdownFromHeadingLabel(text)
     .replace(/[\p{Extended_Pictographic}]/gu, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -322,7 +329,7 @@ export function getContentHeadings(blocks: string[]) {
         return null;
       }
 
-      const label = match[2].replace(/\*\*/g, "").trim();
+      const label = stripMarkdownFromHeadingLabel(match[2]);
 
       return {
         id: headingId(label),

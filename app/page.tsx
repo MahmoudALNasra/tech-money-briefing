@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { HomeArticleLoadMore } from "@/components/articles/HomeArticleLoadMore";
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomeScrollController } from "@/components/home/HomeScrollController";
+import { PopularComparisons } from "@/components/home/PopularComparisons";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { ToolAssistant } from "@/components/tools/ToolAssistant";
 import { getPaginatedHomepageArticles, getPublishedCategories } from "@/lib/articles";
@@ -103,6 +104,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           }}
         />
         <HomeHero categories={heroCategories} />
+
+        <PopularComparisons />
 
         <div className="section-divider" role="separator">
           <div className="divider-line" />

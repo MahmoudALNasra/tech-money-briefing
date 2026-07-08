@@ -584,3 +584,16 @@ export function getComparisonBySlug(slug: string) {
 export function getAllComparisonSlugs() {
   return COMPARISONS.map((comparison) => comparison.slug);
 }
+
+export function getComparisonsInPriorityOrder(prioritySlugs: readonly string[]) {
+  const bySlug = new Map(COMPARISONS.map((comparison) => [comparison.slug, comparison]));
+  const prioritized = prioritySlugs
+    .map((slug) => bySlug.get(slug))
+    .filter((comparison): comparison is ComparisonPage => Boolean(comparison));
+  const prioritizedSet = new Set(prioritized.map((comparison) => comparison.slug));
+  const remainder = COMPARISONS.filter(
+    (comparison) => !prioritizedSet.has(comparison.slug)
+  );
+
+  return [...prioritized, ...remainder];
+}

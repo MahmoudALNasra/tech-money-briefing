@@ -43,19 +43,35 @@ export function countBy<T extends string | null>(
 export function countPageViewsByPath(
   rows: AnalyticsCountRow[],
   limit = 8
-): Array<{ label: string; count: number }> {
-  return countBy(
-    rows
-      .filter((row) => row.event_name === "page_view")
-      .map((row) => formatAnalyticsPagePath(row.page_path)),
-    limit
-  );
+): Array<{ label: string; path: string; count: number }> {
+  const counts = new Map<string, { label: string; path: string; count: number }>();
+
+  for (const row of rows) {
+    if (row.event_name !== "page_view") {
+      continue;
+    }
+
+    const path = row.page_path?.trim() || "/";
+    const label = formatAnalyticsPagePath(path);
+    const existing = counts.get(path);
+
+    if (existing) {
+      existing.count += 1;
+      continue;
+    }
+
+    counts.set(path, { label, path, count: 1 });
+  }
+
+  return [...counts.values()]
+    .sort((left, right) => right.count - left.count)
+    .slice(0, limit);
 }
 
 export function countLandingPagesByPath(
   rows: AnalyticsCountRow[],
   limit = 8
-): Array<{ label: string; count: number }> {
+): Array<{ label: string; path: string; count: number }> {
   const firstPageViewBySession = new Map<string, AnalyticsCountRow>();
 
   for (const row of rows) {
@@ -70,10 +86,22 @@ export function countLandingPagesByPath(
     }
   }
 
-  return countBy(
-    [...firstPageViewBySession.values()].map((row) =>
-      formatAnalyticsPagePath(row.page_path)
-    ),
-    limit
-  );
+  const counts = new Map<string, { label: string; path: string; count: number }>();
+
+  for (const row of firstPageViewBySession.values()) {
+    const path = row.page_path?.trim() || "/";
+    const label = formatAnalyticsPagePath(path);
+    const existing = counts.get(path);
+
+    if (existing) {
+      existing.count += 1;
+      continue;
+    }
+
+    counts.set(path, { label, path, count: 1 });
+  }
+
+  return [...counts.values()]
+    .sort((left, right) => right.count - left.count)
+    .slice(0, limit);
 }

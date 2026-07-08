@@ -141,10 +141,16 @@ const EXTERNAL_PHRASES: Array<{ href: string; phrases: string[] }> = [
   { href: "https://www.midjourney.com/", phrases: ["Midjourney"] },
   { href: "https://cursor.com/", phrases: ["Cursor"] },
   { href: "https://github.com/features/copilot", phrases: ["GitHub Copilot"] },
+  { href: "https://openai.com/", phrases: ["OpenAI"] },
+  { href: "https://www.anthropic.com/", phrases: ["Anthropic"] },
   { href: "https://analytics.google.com/", phrases: ["Google Analytics", "GA4"] },
   {
     href: "https://search.google.com/search-console",
     phrases: ["Google Search Console", "Search Console"]
+  },
+  {
+    href: "https://www.google.com/adsense/",
+    phrases: ["Google AdSense", "AdSense"]
   },
   {
     href: "https://www.google.com/business/",
@@ -154,7 +160,7 @@ const EXTERNAL_PHRASES: Array<{ href: string; phrases: string[] }> = [
     href: "https://pagespeed.web.dev/",
     phrases: ["PageSpeed Insights", "Lighthouse"]
   },
-  { href: "https://www.notion.com/product/ai", phrases: ["Notion AI"] },
+  { href: "https://www.notion.com/product/ai", phrases: ["Notion AI", "Notion"] },
   { href: "https://supabase.com/", phrases: ["Supabase"] },
   { href: "https://www.shopify.com/", phrases: ["Shopify"] },
   { href: "https://woocommerce.com/", phrases: ["WooCommerce"] },
@@ -166,8 +172,15 @@ const EXTERNAL_PHRASES: Array<{ href: string; phrases: string[] }> = [
   { href: "https://stripe.com/", phrases: ["Stripe"] },
   { href: "https://www.paddle.com/", phrases: ["Paddle"] },
   { href: "https://mailchimp.com/", phrases: ["Mailchimp"] },
-  { href: "https://www.hubspot.com/", phrases: ["HubSpot"] }
+  { href: "https://www.klaviyo.com/", phrases: ["Klaviyo"] },
+  { href: "https://www.hubspot.com/", phrases: ["HubSpot"] },
+  { href: "https://vercel.com/", phrases: ["Vercel"] },
+  { href: "https://www.digitalocean.com/", phrases: ["DigitalOcean"] },
+  { href: "https://wordpress.org/", phrases: ["WordPress"] }
 ];
+
+/** Official tool and organization URLs for owner-voice / AEO link injection. */
+export const ARTICLE_EXTERNAL_LINK_PHRASES = EXTERNAL_PHRASES;
 
 function buildToolRules(seen: Set<string>) {
   const rules: AutoLinkRule[] = [];

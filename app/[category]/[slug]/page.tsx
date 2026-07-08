@@ -19,6 +19,7 @@ import { ToolAssistant } from "@/components/tools/ToolAssistant";
 import { articleRobotsForAdsense } from "@/lib/adsense-readiness";
 import { ARTICLE_EDITORIAL_SOURCE_NAME } from "@/lib/article-attribution";
 import { shouldBypassArticleImageOptimization } from "@/lib/article-image-optimization";
+import { mapInlineImagesToBlockIndices } from "@/lib/article-inline-layout";
 import { getArticleMedia } from "@/lib/article-media";
 import { resolveArticleHeroImage } from "@/lib/article-images";
 import {
@@ -179,13 +180,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const readingTime = calculateReadingTime(article.content);
   const tableOfContents = getContentHeadings(contentBlocks);
   const url = articleUrl(article);
-  const inlineImageSlots = contentBlocks.flatMap((_, index) => {
-    if (index <= 0 || index % 3 !== 0) {
-      return [];
-    }
-
-    const imageIndex = Math.floor(index / 3);
-    const inlineImage = inlineImages[imageIndex - 1];
+  const inlineImageSlots = mapInlineImagesToBlockIndices(
+    contentBlocks,
+    inlineImages.length
+  ).flatMap((blockIndex, imageIndex) => {
+    const inlineImage = inlineImages[imageIndex];
 
     if (!inlineImage) {
       return [];
@@ -193,11 +192,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
     return [
       {
-        index,
+        index: blockIndex,
         node: (
           <ArticleInlineImage
             image={inlineImage}
-            priority={imageIndex === 1}
+            priority={imageIndex === 0}
           />
         )
       }

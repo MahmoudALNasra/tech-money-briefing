@@ -5,9 +5,9 @@ import type { ComparisonPage } from "@/lib/comparisons";
 import { FREE_TOOLS } from "@/lib/free-tools";
 import { getRelatedComparisonLinks } from "@/lib/seo-pinned-internal-links";
 import {
-  getReferralLinkForProduct,
+  getProductOutboundLink,
   isExternalReferralUrl,
-  type ReferralLink
+  type ProductOutboundLink
 } from "@/lib/referral-links";
 
 type ComparisonViewProps = {
@@ -25,10 +25,10 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
     comparison.faqQuestions?.length
       ? comparison.faqQuestions
       : null;
-  const referralLinks = [
-    getReferralLinkForProduct(comparison.productA),
-    getReferralLinkForProduct(comparison.productB)
-  ].filter((referral): referral is ReferralLink => Boolean(referral));
+  const outboundLinks = [
+    getProductOutboundLink(comparison.productA),
+    getProductOutboundLink(comparison.productB)
+  ].filter((link): link is ProductOutboundLink => Boolean(link));
 
   return (
     <div className="space-y-10">
@@ -186,43 +186,46 @@ export function ComparisonView({ comparison }: ComparisonViewProps) {
         </p>
       </section>
 
-      {referralLinks.length > 0 ? (
+      {outboundLinks.length > 0 ? (
         <section className="rounded-[2rem] border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-stone-50 p-6 shadow-sm">
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700">
-            Referral options
+            Next step
           </p>
           <h2 className="mt-2 text-2xl font-black text-ink">
             Try the tools from this comparison
           </h2>
           <p className="mt-3 text-sm leading-7 text-stone-700">
-            Some links may be referral links. They can support Tech Revenue
-            Brief, but you should still compare the current pricing, terms, and
-            product fit before signing up.
+            Some links may be referral links. Compare current pricing, terms, and
+            product fit on the official sites before signing up.
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {referralLinks.map((referral) => (
+            {outboundLinks.map((link) => (
               <a
-                key={referral.product}
-                href={referral.href}
+                key={link.product}
+                href={link.href}
                 target={
-                  isExternalReferralUrl(referral.href) ? "_blank" : undefined
+                  isExternalReferralUrl(link.href) || link.href.startsWith("http")
+                    ? "_blank"
+                    : undefined
                 }
                 rel={
-                  isExternalReferralUrl(referral.href)
-                    ? "sponsored nofollow noopener noreferrer"
+                  isExternalReferralUrl(link.href) || link.href.startsWith("http")
+                    ? link.isReferral
+                      ? "sponsored nofollow noopener noreferrer"
+                      : "noopener noreferrer"
                     : undefined
                 }
                 className="group rounded-3xl border border-stone-900 bg-stone-950 p-5 text-white shadow-xl shadow-stone-950/15 transition hover:-translate-y-1 hover:bg-emerald-700 hover:shadow-2xl"
               >
                 <span className="text-[0.65rem] font-black uppercase tracking-[0.22em] text-emerald-200">
-                  Referral link
+                  {link.isReferral ? "Referral link" : "Official site"}
                 </span>
                 <span className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 text-sm font-black text-ink transition group-hover:bg-emerald-50">
-                  Open {referral.product}
+                  Visit {link.product}
                   <span aria-hidden="true">{"->"}</span>
                 </span>
                 <span className="mt-3 block text-xs leading-5 text-stone-300">
-                  {referral.disclosure}
+                  {link.disclosure}
                 </span>
               </a>
             ))}

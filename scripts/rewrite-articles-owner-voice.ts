@@ -1,3 +1,6 @@
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
+
 import { loadLocalEnv } from "../lib/load-env";
 import {
   runOwnerVoiceRewrite,
@@ -25,8 +28,43 @@ function hasFlag(name: string) {
   return process.argv.includes(`--${name}`);
 }
 
+function readRewriteLog(logPath: string) {
+  const buffer = readFileSync(logPath);
+  if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) {
+    return buffer.toString("utf16le");
+  }
+
+  return buffer.toString("utf8");
+}
+
+function slugsFromRewriteLog(logPath: string) {
+  if (!existsSync(logPath)) {
+    return [] as string[];
+  }
+
+  const text = readRewriteLog(logPath);
+  const matches = [
+    ...text.matchAll(
+      /\[owner-voice\] updated https?:\/\/[^/\s]+\/[^/\s]+\/([^\s]+)/g
+    )
+  ];
+
+  return [...new Set(matches.map((match) => match[1].trim()))];
+}
+
+function completedSlugsForResume() {
+  const logs = [
+    join(process.cwd(), "owner-voice-aeo-rewrite.log"),
+    join(process.cwd(), "owner-voice-aeo-rewrite.resume.log"),
+    join(process.cwd(), "owner-voice-aeo-batch.log")
+  ];
+
+  return [...new Set(logs.flatMap((logPath) => slugsFromRewriteLog(logPath)))];
+}
+
 function parseArgvOptions(): OwnerVoiceRewriteOptions {
   const fetchAll = hasFlag("all");
+  const resume = hasFlag("resume");
 
   return {
     all: fetchAll,
@@ -39,6 +77,8 @@ function parseArgvOptions(): OwnerVoiceRewriteOptions {
     onlyOthers: hasFlag("others-only"),
     bulkTouchedOnly: hasFlag("bulk-touched-only"),
     includeDrafts: hasFlag("include-drafts") || Boolean(getStringArg("since")),
+    includeSkipped: hasFlag("include-skipped"),
+    skipSlugs: resume ? completedSlugsForResume() : undefined,
     delayMs: getNumberArg("delay-ms", 0)
   };
 }

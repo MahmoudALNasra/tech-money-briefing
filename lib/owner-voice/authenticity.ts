@@ -13,7 +13,8 @@ export const OWNER_VOICE_AUTHENTICITY_CRITERIA = [
   "Include at least one specific number, list size, timeframe, or metric when the topic allows (e.g. 400-person list, three subject lines, week one).",
   "Only add internal site links when they fit the topic naturally. Do not force unrelated tool plugs (e.g. Business Data Generator on an email marketing piece).",
   "End on one sharp practical sentence. No recap paragraph, no 'use them wisely and they will serve you well' closer.",
-  "Avoid detector magnets: transform, supercharge, enhance effectiveness, provide insights, crucial, personalization (as buzzword), set-and-forget, regular analysis, over-optimizing.",
+  "For AEO: always include ## Quick Answer and 3+ scannable body sections; target 250–350 words with links woven inline.",
+  "Avoid detector magnets: transform, supercharge, enhance effectiveness, provide insights, crucial, personalization (as buzzword), set-and-forget, regular analysis, over-optimizing, sounds like a dream, human oversight, legal pitfalls, not all tools are created equal, asking for trouble, take the wheel, not optional, necessity for any.",
   "Vary first person: use I/my for judgment, not stacked 'I would check' / 'I would still verify' filler injected to fake burstiness.",
   "key_takeaways should sound like notes you'd leave yourself — specific facts and actions, not corporate KPI language."
 ];
@@ -48,7 +49,6 @@ export const OWNER_VOICE_TUTORIAL_SKELETON_PATTERNS: RegExp[] = [
   /^##\s+what\s+.+\s+can\s+actually\s+do\b/im,
   /^##\s+regular\s+analysis\s+is\s+crucial\b/im,
   /^##\s+choosing\s+the\s+right\s+tool\s+matters\b/im,
-  /^##\s+the\s+mistake\s+most\s+people\s+make\s+here\b/im,
   /\blike a box to check\b/i,
   /\bset-and-forget\b/i,
   /\benhance\s+.+\s+effectiveness\b/i,
@@ -61,7 +61,21 @@ export const OWNER_VOICE_TUTORIAL_SKELETON_PATTERNS: RegExp[] = [
   /\*\*Personalization\*\*:/i,
   /\btransform\s+.+\s+through\s+automation\b/i,
   /\bAI tools can offer remarkable improvements\b/i,
-  /\buse them wisely, and they will serve\b/i
+  /\buse them wisely, and they will serve\b/i,
+  /\bsounds like a dream\b/i,
+  /\bI would not trust it blindly\b/i,
+  /\bhuman oversight\b/i,
+  /\blegal pitfalls\b/i,
+  /\bnot all .+ are created equal\b/i,
+  /\basking for trouble\b/i,
+  /\btake the wheel\b/i,
+  /\bthis is not optional\b/i,
+  /\bnecessity for any\b/i,
+  /^##\s+choose tools that allow\b/im,
+  /^##\s+AI's role is to assist\b/im,
+  /^-\s+Use AI for initial drafts\b/im,
+  /^-\s+Always involve a human\b/im,
+  /^-\s+Maintain transparency about AI\b/im
 ];
 
 /** Text injected by automated repair patches — never acceptable in final copy. */

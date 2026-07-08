@@ -1,42 +1,89 @@
-import { shouldHideArticleForAdsense } from "../lib/adsense-readiness";
+import {
+  getAdsenseTargetPublishedCount,
+  pickArticlesToDraftForAdsenseCorpus,
+  scoreArticleForAdsenseRetention
+} from "../lib/adsense-readiness";
 import { loadLocalEnv } from "../lib/load-env";
 import { revalidateSiteCache } from "../lib/revalidate-site";
 import { supabase } from "../lib/supabase";
 
 loadLocalEnv();
 
-async function draftWeakArticles() {
-  const dryRun = process.argv.includes("--dry-run");
-  const { data, error } = await supabase
-    .from("articles")
-    .select("id,title,slug,category,source_name,status")
-    .eq("status", "published")
-    .limit(1000);
-
-  if (error) {
-    throw new Error(`Failed to load articles: ${error.message}`);
+function getNumberArg(name: string) {
+  const prefix = `--${name}=`;
+  const match = process.argv.find((arg) => arg.startsWith(prefix));
+  if (!match) {
+    return undefined;
   }
 
-  const candidates = (data ?? []).filter((article) =>
-    shouldHideArticleForAdsense({
-      title: String(article.title),
-      category: String(article.category),
-      source_name: String(article.source_name)
-    })
-  );
+  const value = Number(match.slice(prefix.length));
+  return Number.isFinite(value) ? value : undefined;
+}
 
-  if (!dryRun && candidates.length > 0) {
-    const ids = candidates.map((article) => article.id);
-    const { error: updateError } = await supabase
+async function loadPublishedArticles() {
+  const pageSize = 500;
+  const rows: Array<{
+    id: string;
+    title: string;
+    slug: string;
+    category: string;
+    source_name: string;
+    source_url: string | null;
+    image_url: string | null;
+    content: string;
+    published_at: string | null;
+  }> = [];
+
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase
       .from("articles")
-      .update({
-        status: "draft",
-        updated_at: new Date().toISOString()
-      })
-      .in("id", ids);
+      .select(
+        "id,title,slug,category,source_name,source_url,image_url,content,published_at"
+      )
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .range(offset, offset + pageSize - 1);
 
-    if (updateError) {
-      throw new Error(`Failed to draft weak articles: ${updateError.message}`);
+    if (error) {
+      throw new Error(`Failed to load articles: ${error.message}`);
+    }
+
+    if (!data?.length) {
+      break;
+    }
+
+    rows.push(...data);
+
+    if (data.length < pageSize) {
+      break;
+    }
+  }
+
+  return rows;
+}
+
+async function draftWeakArticles() {
+  const dryRun = process.argv.includes("--dry-run");
+  const targetCount = getNumberArg("target") ?? getAdsenseTargetPublishedCount();
+  const articles = await loadPublishedArticles();
+  const plan = pickArticlesToDraftForAdsenseCorpus(articles, targetCount);
+
+  if (!dryRun && plan.allToDraft.length > 0) {
+    const ids = plan.allToDraft.map((article) => article.id);
+
+    for (let offset = 0; offset < ids.length; offset += 100) {
+      const batch = ids.slice(offset, offset + 100);
+      const { error: updateError } = await supabase
+        .from("articles")
+        .update({
+          status: "draft",
+          updated_at: new Date().toISOString()
+        })
+        .in("id", batch);
+
+      if (updateError) {
+        throw new Error(`Failed to draft articles: ${updateError.message}`);
+      }
     }
 
     try {
@@ -49,18 +96,39 @@ async function draftWeakArticles() {
     }
   }
 
+  const categoryBreakdown = (items: typeof plan.keep) =>
+    Object.entries(
+      items.reduce<Record<string, number>>((counts, article) => {
+        counts[article.category] = (counts[article.category] ?? 0) + 1;
+        return counts;
+      }, {})
+    ).sort((left, right) => right[1] - left[1]);
+
   console.log(
     JSON.stringify(
       {
         ok: true,
         dryRun,
-        checked: data?.length ?? 0,
-        drafted: dryRun ? 0 : candidates.length,
-        candidates: candidates.map((article) => ({
+        targetCount,
+        checked: articles.length,
+        drafted: dryRun ? 0 : plan.allToDraft.length,
+        publishedAfter: plan.publishedAfter,
+        breakdown: {
+          mustDraft: plan.mustDraft.length,
+          capDraft: plan.capDraft.length,
+          keptByCategory: categoryBreakdown(plan.keep)
+        },
+        keptSample: plan.keep.slice(0, 12).map((article) => ({
           title: article.title,
           slug: article.slug,
           category: article.category,
-          source_name: article.source_name
+          score: scoreArticleForAdsenseRetention(article)
+        })),
+        draftedSample: plan.allToDraft.slice(0, 12).map((article) => ({
+          title: article.title,
+          slug: article.slug,
+          category: article.category,
+          score: scoreArticleForAdsenseRetention(article)
         }))
       },
       null,

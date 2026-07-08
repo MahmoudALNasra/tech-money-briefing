@@ -101,7 +101,8 @@ export async function GET(request: Request) {
         (row) =>
           row.event_name !== "page_view" &&
           row.event_name !== "session_ping" &&
-          row.event_name !== "session_end"
+          row.event_name !== "session_end" &&
+          row.event_name !== "heatmap_batch"
       )
       .map((row) => row.event_name),
     10
@@ -111,7 +112,10 @@ export async function GET(request: Request) {
   const sessionDuration30m = computeSessionDurationStats(last30Rows);
   const sessionDuration24h = computeSessionDurationStats(rows);
   const recentEvents = rows
-    .filter((row) => row.event_name !== "session_ping")
+    .filter(
+      (row) =>
+        row.event_name !== "session_ping" && row.event_name !== "heatmap_batch"
+    )
     .slice(0, 40);
 
   return NextResponse.json({

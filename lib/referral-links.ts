@@ -1,9 +1,17 @@
 import { siteConfig } from "@/lib/site";
+import { getOfficialProductUrl } from "@/lib/product-official-urls";
 
 export type ReferralLink = {
   product: string;
   href: string;
   aliases: string[];
+  disclosure: string;
+};
+
+export type ProductOutboundLink = {
+  product: string;
+  href: string;
+  isReferral: boolean;
   disclosure: string;
 };
 
@@ -70,6 +78,32 @@ export function getReferralLinkForProduct(product: string) {
       normalize(referral.product) === normalize(product) ||
       referral.aliases.some((alias) => normalize(alias) === normalize(product))
   );
+}
+
+export function getProductOutboundLink(product: string): ProductOutboundLink | null {
+  const referral = getReferralLinkForProduct(product);
+
+  if (referral) {
+    return {
+      product: referral.product,
+      href: referral.href,
+      isReferral: true,
+      disclosure: referral.disclosure
+    };
+  }
+
+  const officialUrl = getOfficialProductUrl(product);
+
+  if (!officialUrl) {
+    return null;
+  }
+
+  return {
+    product,
+    href: officialUrl,
+    isReferral: false,
+    disclosure: "Opens the official product website in a new tab."
+  };
 }
 
 export function getReferralLinksForText(text: string, limit = 4) {

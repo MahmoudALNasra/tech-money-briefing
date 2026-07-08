@@ -25,7 +25,7 @@ type TrendArticle = {
   key_takeaways: string[];
 };
 
-type TrendSeed = {
+export type TrendSeed = {
   title: string;
   sourceUrl: string;
   sourceName: string;
@@ -259,6 +259,30 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
 
   return result;
 }
+
+export async function collectTrendSeedsForIngestion(
+  options: Pick<TrendsIngestionOptions, "maxTrends" | "geo"> = {}
+) {
+  const maxTrends = options.maxTrends ?? 40;
+  const geo = options.geo ?? process.env.GOOGLE_TRENDS_GEO ?? "US";
+  const feedUrl =
+    process.env.GOOGLE_TRENDS_RSS_URL ??
+    `https://trends.google.com/trending/rss?geo=${encodeURIComponent(geo)}`;
+
+  const sourceSeeds = await loadRankedTrendSeeds({
+    feedUrl,
+    geo,
+    maxTrends
+  });
+
+  return selectTrendSeeds(sourceSeeds);
+}
+
+async function hydrateTrendSeedPublic(seed: TrendSeed) {
+  return hydrateTrendSeed(seed);
+}
+
+export { hydrateTrendSeedPublic as hydrateTrendSeedForIngestion };
 
 async function loadRankedTrendSeeds({
   feedUrl,

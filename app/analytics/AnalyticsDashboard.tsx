@@ -9,6 +9,7 @@ import {
   getAnalyticsRequestInit,
   withClientTimeout
 } from "@/lib/analytics-dashboard-client";
+import { PageHeatmapPanel } from "@/components/analytics/PageHeatmapPanel";
 import { formatDuration } from "@/lib/session-duration";
 
 type SessionDurationStats = {
@@ -25,8 +26,8 @@ type SummaryResponse = {
   unique_visitors_24h: number;
   session_duration_30m: SessionDurationStats;
   session_duration_24h: SessionDurationStats;
-  top_pages: Array<{ label: string; count: number }>;
-  top_landing_pages: Array<{ label: string; count: number }>;
+  top_pages: Array<{ label: string; path: string; count: number }>;
+  top_landing_pages: Array<{ label: string; path: string; count: number }>;
   top_referrers: Array<{ label: string; count: number }>;
   top_events: Array<{ label: string; count: number }>;
   top_countries: Array<{ label: string; count: number }>;
@@ -729,6 +730,14 @@ export function AnalyticsDashboard() {
           <RankList title="Top events" items={summary?.top_events ?? []} />
           <RankList title="Countries" items={summary?.top_countries ?? []} />
         </div>
+
+        <section className="mt-6">
+          <PageHeatmapPanel
+            topPages={summary?.top_pages ?? []}
+            dashboardToken={token || undefined}
+            adminAccess={adminAccess}
+          />
+        </section>
 
         <section className="mt-6 overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-sm">
           <div className="border-b border-stone-200 px-5 py-4">

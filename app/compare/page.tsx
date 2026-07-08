@@ -4,9 +4,10 @@ import Link from "next/link";
 
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
 import FadeContent from "@/components/ui/FadeContent";
-import { COMPARISONS } from "@/lib/comparisons";
+import { COMPARISONS, getComparisonsInPriorityOrder } from "@/lib/comparisons";
 import { buildPageMetadata } from "@/lib/page-metadata";
 import { siteConfig } from "@/lib/site";
+import { TOP_COMPARE_SLUGS_BY_GSC } from "@/lib/traffic-priorities";
 
 export const metadata = buildPageMetadata({
   title: "Software Comparisons for Publishers and Operators",
@@ -21,8 +22,9 @@ export const metadata = buildPageMetadata({
 });
 
 export default function CompareHubPage() {
-  const featuredComparisons = COMPARISONS.slice(0, 3);
-  const remainingComparisons = COMPARISONS.slice(3);
+  const orderedComparisons = getComparisonsInPriorityOrder(TOP_COMPARE_SLUGS_BY_GSC);
+  const featuredComparisons = orderedComparisons.slice(0, 3);
+  const remainingComparisons = orderedComparisons.slice(3);
 
   return (
     <ToolPageShell

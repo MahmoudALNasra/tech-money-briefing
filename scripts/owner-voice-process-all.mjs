@@ -18,10 +18,12 @@ import {
   detectOwnerVoiceTemplateSignals,
   stripGeneratedSourceFooter
 } from "../lib/article-attribution.ts";
+import {
+  countArticleWords,
+  validateAeoOwnerVoiceContent
+} from "../lib/owner-voice/aeo-content.ts";
 import { normalizeArticleContent } from "../lib/article-markdown.tsx";
 import { loadLocalEnv } from "../lib/load-env.ts";
-
-loadLocalEnv();
 
 const STYLE_EXAMPLE_SLUGS = [
   "best-chatgpt-prompts-for-small-business-owners",
@@ -101,9 +103,11 @@ function validateDraft(draft) {
     issues.push("not enough first-person voice");
   }
 
-  if (draft.content.length < 400) {
-    issues.push("article too short");
+  if (countArticleWords(draft.content) < 280) {
+    issues.push("article too short (words)");
   }
+
+  issues.push(...validateAeoOwnerVoiceContent(draft.content));
 
   if (/^\s*\d+\.\s/m.test(draft.content)) {
     issues.push("numbered list detected");
@@ -214,8 +218,8 @@ async function writeArticle(article, styleExamples, retryFeedback) {
             ...OWNER_VOICE_REWRITE_GUIDE,
             ...OWNER_VOICE_ANTI_AI_INSTRUCTIONS,
             "Open with 'I would not...' or similar skeptical first-person reasoning.",
-            "Use specific ## headings, one optional ## Quick Answer, no FAQ, no summary closer.",
-            "550-800 words. Mix short and long sentences.",
+            "Use specific ## headings, ## Quick Answer, 3+ body sections, links spread across sections, no FAQ, no summary closer.",
+            "300-400 words. Mix short and long sentences.",
             "Each key_takeaway must include I, you, your, don't, or not.",
             "Do not reuse the old article wording or structure."
           ],
