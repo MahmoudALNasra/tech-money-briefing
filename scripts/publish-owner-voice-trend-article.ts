@@ -94,7 +94,19 @@ async function main() {
   };
 
   if (dryRun) {
-    console.log(JSON.stringify({ ok: true, dryRun: true, slug: TREND_ARTICLE.slug, issues }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          ok: true,
+          dryRun: true,
+          slug: TREND_ARTICLE.slug,
+          category: TREND_ARTICLE.category,
+          wordCount: content.split(/\s+/).filter(Boolean).length
+        },
+        null,
+        2
+      )
+    );
     return;
   }
 
