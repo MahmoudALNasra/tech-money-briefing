@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 
+import { shouldExcludeOthersFromPublicFeeds } from "@/lib/adsense-readiness";
 import { normalizeTakeaways } from "@/lib/format";
 import { supabase } from "@/lib/supabase";
 import type { Article, ArticleSummary } from "@/lib/types";
@@ -140,14 +141,19 @@ export const getPaginatedHomepageArticles = cache(
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
-      const { data, error, count } = await supabase
+      let query = supabase
         .from("articles")
         .select(articleSummaryColumns, { count: "exact" })
         .eq("status", "published")
-        .neq("category", "others")
         .not("source_name", "ilike", "%Referral%")
         .order("published_at", { ascending: false })
         .range(from, to);
+
+      if (shouldExcludeOthersFromPublicFeeds()) {
+        query = query.neq("category", "others");
+      }
+
+      const { data, error, count } = await query;
 
       if (error) {
         throw new Error(
@@ -301,16 +307,21 @@ export async function searchPublishedArticles(query: string, limit = 24) {
   }
 
   const pattern = `%${term}%`;
-  const { data, error } = await supabase
+  let articleQuery = supabase
     .from("articles")
     .select(articleSummaryColumns)
     .eq("status", "published")
-    .neq("category", "others")
     .or(
       `title.ilike.${pattern},meta_description.ilike.${pattern},content.ilike.${pattern},source_name.ilike.${pattern}`
     )
     .order("published_at", { ascending: false })
     .limit(limit);
+
+  if (shouldExcludeOthersFromPublicFeeds()) {
+    articleQuery = articleQuery.neq("category", "others");
+  }
+
+  const { data, error } = await articleQuery;
 
   if (error) {
     throw new Error(formatSupabaseError("Failed to search articles", error));

@@ -97,11 +97,7 @@ export function SiteHeader({
   const [isTopicsOpen, setIsTopicsOpen] = useState(false);
   const [clickedHref, setClickedHref] = useState("");
   const closeTopicsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const sourceCategories = categories.length > 0 ? categories : getPublicNavCategories();
-  const navCategories =
-    pathname === "/"
-      ? sourceCategories
-      : sourceCategories.filter((category) => category !== "others");
+  const navCategories = categories.length > 0 ? categories : getPublicNavCategories();
 
   useEffect(() => {
     return () => {

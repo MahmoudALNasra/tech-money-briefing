@@ -9,6 +9,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { ToolAssistant } from "@/components/tools/ToolAssistant";
 import { getPaginatedHomepageArticles, getPublishedCategories } from "@/lib/articles";
 import { getPublicNavCategories } from "@/lib/adsense-readiness";
+import { isCoreCategory } from "@/lib/categories";
 import { formatCategory } from "@/lib/format";
 import { paginatedCanonicalPath, parsePageParam } from "@/lib/pagination";
 import { absoluteUrl, siteConfig } from "@/lib/site";
@@ -74,15 +75,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   const { articles } = paginatedArticles;
   const heroCategories = await getPublishedCategories()
     .then((categories) =>
-      categories
-        .filter((category) => category !== "leads" && category !== "others")
-        .map(formatCategory)
+      categories.filter(isCoreCategory).map(formatCategory)
     )
-    .catch(() =>
-      getPublicNavCategories()
-        .filter((category) => category !== "others")
-        .map(formatCategory)
-    );
+    .catch(() => getPublicNavCategories().map(formatCategory));
   const articleFeedJson = JSON.stringify(
     articles.map(({ title, meta_description, category }) => ({
       title,

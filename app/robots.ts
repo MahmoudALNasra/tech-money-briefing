@@ -1,10 +1,17 @@
 import type { MetadataRoute } from "next";
 
-import { getAdsenseReviewRobotsDisallow } from "@/lib/adsense-readiness";
+import {
+  getAdsenseReviewRobotsDisallow,
+  isAdsenseHiddenCategory
+} from "@/lib/adsense-readiness";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
-  const disallow: string[] = ["/api/", "/others/", "/aseel"];
+  const disallow: string[] = ["/api/", "/aseel"];
+
+  if (isAdsenseHiddenCategory("others")) {
+    disallow.push("/others/");
+  }
 
   disallow.push(...getAdsenseReviewRobotsDisallow());
 

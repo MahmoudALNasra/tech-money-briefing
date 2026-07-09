@@ -141,9 +141,17 @@ export function getAdsenseReviewPublishLimits() {
 }
 
 export function isAdsenseHiddenCategory(category: string) {
+  if (!isAdsenseReviewMode()) {
+    return false;
+  }
+
   return ADSENSE_HIDDEN_CATEGORIES.includes(
     category as (typeof ADSENSE_HIDDEN_CATEGORIES)[number]
   );
+}
+
+export function shouldExcludeOthersFromPublicFeeds() {
+  return isAdsenseReviewMode();
 }
 
 export function getPublicNavCategories(): readonly CoreCategory[] {

@@ -1,8 +1,9 @@
-import { CATEGORY_SEO_DESCRIPTIONS, CORE_CATEGORIES } from "@/lib/categories";
+import { CATEGORY_SEO_DESCRIPTIONS } from "@/lib/categories";
 import { COMPARISONS } from "@/lib/comparisons";
 import { getPaginatedHomepageArticles } from "@/lib/articles";
 import {
   ADSENSE_TRUST_PAGES,
+  getPublicNavCategories,
   isAdsenseReviewMode,
   shouldHideArticleForAdsense
 } from "@/lib/adsense-readiness";
@@ -11,7 +12,7 @@ import { siteSocialProfiles } from "@/lib/page-metadata";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { supabase } from "@/lib/supabase";
 
-const PUBLIC_CATEGORIES = CORE_CATEGORIES.filter((category) => category !== "others");
+const PUBLIC_CATEGORIES = getPublicNavCategories();
 
 const FLAGSHIP_ARTICLE_SLUGS = [
   "how-to-use-ai-tools-for-effective-email-marketing-campaigns",

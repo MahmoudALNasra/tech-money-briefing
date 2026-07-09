@@ -597,6 +597,12 @@ export function AnalyticsDashboard() {
           <div className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-semibold text-stone-600">
             {isLoading ? "Refreshing..." : "Auto-refresh every 12s"}
           </div>
+          <a
+            href="#page-heatmaps"
+            className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-stone-600 transition hover:border-stone-300"
+          >
+            Page heatmaps
+          </a>
         </div>
 
         {error ? (
@@ -637,6 +643,14 @@ export function AnalyticsDashboard() {
             hint="Distinct visitor IDs with any tracked activity in the last 24 hours"
           />
         </div>
+
+        <section className="mt-8" id="page-heatmaps">
+          <PageHeatmapPanel
+            topPages={summary?.top_pages ?? []}
+            dashboardToken={token || undefined}
+            adminAccess={adminAccess}
+          />
+        </section>
 
         <section className="mt-8">
           <div className="mb-4">
@@ -730,14 +744,6 @@ export function AnalyticsDashboard() {
           <RankList title="Top events" items={summary?.top_events ?? []} />
           <RankList title="Countries" items={summary?.top_countries ?? []} />
         </div>
-
-        <section className="mt-6">
-          <PageHeatmapPanel
-            topPages={summary?.top_pages ?? []}
-            dashboardToken={token || undefined}
-            adminAccess={adminAccess}
-          />
-        </section>
 
         <section className="mt-6 overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-sm">
           <div className="border-b border-stone-200 px-5 py-4">
