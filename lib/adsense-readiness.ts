@@ -150,6 +150,7 @@ export function isAdsenseHiddenCategory(category: string) {
   );
 }
 
+/** Exclude /others from sitewide search during AdSense review. Homepage always excludes others. */
 export function shouldExcludeOthersFromPublicFeeds() {
   return isAdsenseReviewMode();
 }

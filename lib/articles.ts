@@ -141,19 +141,16 @@ export const getPaginatedHomepageArticles = cache(
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
-      let query = supabase
+      // Keep /others Trends off the homepage so the main feed stays tech/operator-focused.
+      // Trendy non-tech posts still publish on /others for search demand.
+      const { data, error, count } = await supabase
         .from("articles")
         .select(articleSummaryColumns, { count: "exact" })
         .eq("status", "published")
+        .neq("category", "others")
         .not("source_name", "ilike", "%Referral%")
         .order("published_at", { ascending: false })
         .range(from, to);
-
-      if (shouldExcludeOthersFromPublicFeeds()) {
-        query = query.neq("category", "others");
-      }
-
-      const { data, error, count } = await query;
 
       if (error) {
         throw new Error(
