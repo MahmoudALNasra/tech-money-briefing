@@ -1,4 +1,4 @@
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
@@ -7,6 +7,17 @@ import { runTrendsIngestion } from "@/lib/trends-ingestion";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function getDailyTrendsCap() {
+  const configured = Number(process.env.TRENDS_MAX_NEW_ARTICLES ?? 2);
+
+  if (!Number.isFinite(configured) || configured <= 0) {
+    return 2;
+  }
+
+  // Hard cap so cron never floods /others.
+  return Math.min(Math.floor(configured), 2);
+}
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -32,9 +43,10 @@ export async function GET(request: Request) {
   }
 
   try {
+    const maxNewArticles = getDailyTrendsCap();
     const result = await runTrendsIngestion({
-      maxNewArticles: 10,
-      maxTrends: 40,
+      maxNewArticles,
+      maxTrends: Number(process.env.TRENDS_SCAN ?? 40),
       geo: process.env.GOOGLE_TRENDS_GEO ?? "US"
     });
 
@@ -44,11 +56,19 @@ export async function GET(request: Request) {
       revalidatePath("/");
     }
 
-    return NextResponse.json(result, {
-      headers: {
-        "Cache-Control": "no-store"
+    return NextResponse.json(
+      {
+        ...result,
+        schedule: "daily",
+        targetCategory: "others",
+        dailyCap: maxNewArticles
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store"
+        }
       }
-    });
+    );
   } catch (error) {
     return NextResponse.json(
       {

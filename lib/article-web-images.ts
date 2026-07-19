@@ -90,9 +90,27 @@ export async function enrichArticleWebImages(input: {
   publishedAt?: string | null;
   limit?: number;
 }) {
+  if (process.env.SKIP_SERPER_IMAGES === "true") {
+    return { inserted: 0, skipped: 0 };
+  }
+
   const limit = input.limit ?? 3;
   const query = `${input.title} ${input.category.replace(/-/g, " ")} image`;
-  const results = await fetchSerperImages(query, limit);
+  let results: SerperImageResult[];
+
+  try {
+    results = await fetchSerperImages(query, limit);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+
+    // Soft-fail when credits are gone so daily trends publishing still works.
+    if (/quota|credit|limit|402|429|unauthorized|forbidden/i.test(message)) {
+      console.warn("[article-web-images] Serper skipped:", message);
+      return { inserted: 0, skipped: 0 };
+    }
+
+    throw error;
+  }
   const candidates: ArticleImageCandidate[] = [];
   const seen = new Set<string>();
 

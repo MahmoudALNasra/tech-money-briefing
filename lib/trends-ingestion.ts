@@ -112,7 +112,7 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
 
   const maxNewArticles =
     options.maxNewArticles ??
-    Number(process.env.TRENDS_MAX_NEW_ARTICLES ?? 10);
+    Number(process.env.TRENDS_MAX_NEW_ARTICLES ?? 2);
   const maxTrends = options.maxTrends ?? 40;
   const geo = options.geo ?? process.env.GOOGLE_TRENDS_GEO ?? "US";
   const feedUrl =
@@ -218,15 +218,17 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
       result.inserted += 1;
 
       if (insertedArticle?.id) {
+        const articleId = String(insertedArticle.id);
+
         await enrichArticleMedia({
-          articleId: String(insertedArticle.id),
+          articleId,
           title: article.title,
           category: TREND_CATEGORY,
           metaDescription: article.meta_description
         });
 
-        await syncLocalizedArticleHeroImage({
-          articleId: String(insertedArticle.id),
+        let heroResult = await syncLocalizedArticleHeroImage({
+          articleId,
           currentImageUrl: imageUrl,
           preferMedia: true,
           slug,
@@ -234,20 +236,39 @@ export async function runTrendsIngestion(options: TrendsIngestionOptions = {}) {
           publishedAt
         });
 
-        try {
-          await syncArticleInlineImages({
-            articleId: String(insertedArticle.id),
+        // Serper may be exhausted; still try OG/news images without web-image search.
+        if (process.env.SKIP_SERPER_IMAGES !== "true") {
+          try {
+            await syncArticleInlineImages({
+              articleId,
+              slug,
+              title: article.title,
+              category: TREND_CATEGORY,
+              metaDescription: article.meta_description,
+              publishedAt
+            });
+          } catch (inlineImageError) {
+            console.warn(
+              `[trends] Inline image sync skipped for ${slug}`,
+              inlineImageError instanceof Error
+                ? inlineImageError.message
+                : inlineImageError
+            );
+          }
+
+          // Re-sync hero after inline media lands so cards get a raster thumbnail.
+          heroResult = await syncLocalizedArticleHeroImage({
+            articleId,
+            currentImageUrl: heroResult.image_url ?? imageUrl,
+            preferMedia: true,
             slug,
             title: article.title,
-            category: TREND_CATEGORY,
-            metaDescription: article.meta_description,
             publishedAt
           });
-        } catch (inlineImageError) {
-          console.warn(
-            `[trends] Inline image sync skipped for ${slug}`,
-            inlineImageError instanceof Error ? inlineImageError.message : inlineImageError
-          );
+        }
+
+        if (!heroResult.image_url) {
+          console.warn(`[trends] Published without thumbnail: ${slug}`);
         }
       }
     } catch (error) {
@@ -443,7 +464,14 @@ function getUsableTrendImage(url: string | null | undefined) {
     return null;
   }
 
-  return url;
+  const normalized = url.trim();
+
+  // Prefer raster heroes for cards/thumbnails; skip SVG placeholders.
+  if (/\.svg($|\?)/i.test(normalized) || normalized.includes("image/svg")) {
+    return null;
+  }
+
+  return normalized;
 }
 
 function toTrendSeed(item: Parser.Item): TrendSeed {
