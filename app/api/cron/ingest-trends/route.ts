@@ -59,9 +59,9 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         ...result,
-        schedule: "daily",
+        schedule: "every_2_hours",
         targetCategory: "others",
-        dailyCap: maxNewArticles
+        perRunCap: maxNewArticles
       },
       {
         headers: {
