@@ -283,3 +283,107 @@ export async function fetchAllGscQueryPageRows(options?: { days?: number }) {
 
   return rows;
 }
+
+export async function listGscSitemaps() {
+  const config = getGscConfig();
+  const accessToken = await getAccessToken(config);
+  const encodedSite = encodeURIComponent(config.siteUrl);
+  const response = await fetch(
+    `https://www.googleapis.com/webmasters/v3/sites/${encodedSite}/sitemaps`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(20000)
+    }
+  );
+  const json = (await response.json()) as {
+    sitemap?: Array<{
+      path?: string;
+      lastSubmitted?: string;
+      isPending?: boolean;
+      isSitemapsIndex?: boolean;
+      lastDownloaded?: string;
+      warnings?: string;
+      errors?: string;
+      contents?: Array<{ type?: string; submitted?: string; indexed?: string }>;
+    }>;
+    error?: unknown;
+  };
+
+  if (!response.ok) {
+    throw new Error(`GSC sitemaps.list failed (${response.status}): ${JSON.stringify(json)}`);
+  }
+
+  return json.sitemap ?? [];
+}
+
+export async function submitGscSitemap(sitemapUrl?: string) {
+  const config = getGscConfig();
+  const accessToken = await getAccessToken(config);
+  const siteBase =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "https://techrevenuebrief.com";
+  const feed = sitemapUrl?.trim() || `${siteBase}/sitemap.xml`;
+  const encodedSite = encodeURIComponent(config.siteUrl);
+  const encodedFeed = encodeURIComponent(feed);
+  const response = await fetch(
+    `https://www.googleapis.com/webmasters/v3/sites/${encodedSite}/sitemaps/${encodedFeed}`,
+    {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(20000)
+    }
+  );
+
+  if (!response.ok) {
+    const json = await response.json().catch(() => ({}));
+    throw new Error(
+      `GSC sitemaps.submit failed (${response.status}): ${JSON.stringify(json)}`
+    );
+  }
+
+  return { ok: true as const, sitemapUrl: feed };
+}
+
+export async function inspectGscUrl(inspectionUrl: string) {
+  const config = getGscConfig();
+  const accessToken = await getAccessToken(config);
+  const response = await fetch(
+    "https://searchconsole.googleapis.com/v1/urlInspection/index:inspect",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        inspectionUrl,
+        siteUrl: config.siteUrl,
+        languageCode: "en-US"
+      }),
+      signal: AbortSignal.timeout(30000)
+    }
+  );
+  const json = (await response.json()) as {
+    inspectionResult?: {
+      indexStatusResult?: {
+        verdict?: string;
+        coverageState?: string;
+        robotsTxtState?: string;
+        indexingState?: string;
+        lastCrawlTime?: string;
+        pageFetchState?: string;
+        crawledAs?: string;
+      };
+      inspectionResultLink?: string;
+    };
+    error?: unknown;
+  };
+
+  if (!response.ok) {
+    throw new Error(
+      `GSC urlInspection failed (${response.status}): ${JSON.stringify(json)}`
+    );
+  }
+
+  return json.inspectionResult ?? null;
+}

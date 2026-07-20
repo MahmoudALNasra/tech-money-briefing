@@ -3,6 +3,7 @@
  * Usage: npm run articles:republish-gsc [--dry-run] [--limit=150]
  */
 
+import { ADSENSE_LOW_VALUE_TITLE_PATTERNS } from "../lib/adsense-readiness";
 import { parseArticlePathFromGscPage } from "../lib/gsc-seo";
 import { fetchAllGscQueryPageRows } from "../lib/google-search-console";
 import { loadLocalEnv } from "../lib/load-env";
@@ -22,10 +23,19 @@ function getNumberArg(name: string, fallback: number) {
   return Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
+function isLowValueTitle(title: string) {
+  const normalized = title.toLowerCase();
+  return ADSENSE_LOW_VALUE_TITLE_PATTERNS.some((pattern) =>
+    normalized.includes(pattern)
+  );
+}
+
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
+  const includeNoise = process.argv.includes("--include-noise");
   const limit = getNumberArg("limit", 150);
   const days = getNumberArg("days", 90);
+  const minImpressions = getNumberArg("min-impressions", 8);
 
   const rows = await fetchAllGscQueryPageRows({ days });
   const impressionsByPage = new Map<string, number>();
@@ -64,9 +74,13 @@ async function main() {
 
     const { category, slug } = entry.parsed!;
 
+    if (entry.impressions < minImpressions) {
+      continue;
+    }
+
     const { data, error } = await supabase
       .from("articles")
-      .select("id,slug,category,status")
+      .select("id,slug,category,status,title")
       .eq("category", category)
       .eq("slug", slug)
       .maybeSingle();
@@ -76,6 +90,10 @@ async function main() {
     }
 
     if (!data || data.status === "published") {
+      continue;
+    }
+
+    if (!includeNoise && isLowValueTitle(String(data.title ?? ""))) {
       continue;
     }
 
@@ -102,7 +120,11 @@ async function main() {
     }
 
     await revalidateSiteCache({
-      paths: ["/"],
+      paths: [
+        "/",
+        ...Array.from(new Set(toRepublish.map((article) => `/${article.category}`))),
+        ...toRepublish.map((article) => `/${article.category}/${article.slug}`)
+      ],
       tags: ["articles"]
     });
   }
@@ -113,9 +135,11 @@ async function main() {
         ok: true,
         dryRun,
         days,
+        minImpressions,
+        includeNoise,
         gscPagesWithImpressions: impressionsByPage.size,
         republished: dryRun ? 0 : toRepublish.length,
-        candidates: toRepublish.slice(0, 25)
+        candidates: toRepublish
       },
       null,
       2

@@ -2,8 +2,15 @@ import { loadLocalEnv } from "../lib/load-env";
 
 loadLocalEnv();
 
-const SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
 const REDIRECT_URI = "http://localhost";
+
+function getScope() {
+  if (process.argv.includes("--write")) {
+    return "https://www.googleapis.com/auth/webmasters";
+  }
+
+  return "https://www.googleapis.com/auth/webmasters.readonly";
+}
 
 function getArg(name: string) {
   const prefix = `--${name}=`;
@@ -76,7 +83,7 @@ async function run() {
   url.searchParams.set("client_id", clientId);
   url.searchParams.set("redirect_uri", REDIRECT_URI);
   url.searchParams.set("response_type", "code");
-  url.searchParams.set("scope", SCOPE);
+  url.searchParams.set("scope", getScope());
   url.searchParams.set("access_type", "offline");
   url.searchParams.set("prompt", "consent");
 
@@ -84,7 +91,9 @@ async function run() {
   console.log(url.toString());
   console.log("");
   console.log(
-    "Then run: npm run gsc:oauth-token -- --code=PASTE_CODE_HERE"
+    process.argv.includes("--write")
+      ? "Then run: npm run gsc:oauth-token -- --write --code=PASTE_CODE_HERE"
+      : "Then run: npm run gsc:oauth-token -- --code=PASTE_CODE_HERE"
   );
 }
 
