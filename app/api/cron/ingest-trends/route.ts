@@ -59,7 +59,8 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         ...result,
-        schedule: "every_2_hours",
+        schedule: "daily_vercel_hobby",
+        note: "Hobby plan allows one Vercel cron/day. For every-2-hours, ping this endpoint from an external cron.",
         targetCategory: "others",
         perRunCap: maxNewArticles
       },
