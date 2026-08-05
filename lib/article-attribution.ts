@@ -436,7 +436,14 @@ export const OWNER_VOICE_AI_VOCABULARY_AVOID = {
     "Moreover",
     "Additionally",
     "That being said",
-    "Not only does it [X], but it also [Y]"
+    "Not only does it [X], but it also [Y]",
+    "Here's the thing",
+    "At the end of the day",
+    "The reality is",
+    "Let's be honest",
+    "In other words",
+    "To put it simply",
+    "That said"
   ],
   verbs: [
     "leverage",
@@ -445,7 +452,12 @@ export const OWNER_VOICE_AI_VOCABULARY_AVOID = {
     "foster",
     "streamline",
     "underscore",
-    "unlock"
+    "unlock",
+    "empower",
+    "elevate",
+    "revolutionize",
+    "optimize",
+    "synergize"
   ],
   adjectives: [
     "robust",
@@ -454,7 +466,11 @@ export const OWNER_VOICE_AI_VOCABULARY_AVOID = {
     "dynamic",
     "multifaceted",
     "bespoke",
-    "transformative"
+    "transformative",
+    "cutting-edge",
+    "holistic",
+    "scalable",
+    "innovative"
   ],
   nouns: [
     "tapestry",
@@ -462,7 +478,11 @@ export const OWNER_VOICE_AI_VOCABULARY_AVOID = {
     "testament",
     "beacon",
     "realm",
-    "paradigm"
+    "paradigm",
+    "landscape",
+    "ecosystem",
+    "journey",
+    "space"
   ],
   closers: [
     "In conclusion",
@@ -474,15 +494,20 @@ export const OWNER_VOICE_AI_VOCABULARY_AVOID = {
 
 /** Writing rules derived from detector behavior: perplexity, burstiness, information gain. */
 export const OWNER_VOICE_ANTI_AI_INSTRUCTIONS = [
+  "Write like a tired operator texting a friend after work — not like a blog that wants to rank. Plain words. Occasional irritation. Zero polish for polish's sake.",
   "Avoid statistically predictable word choices. Prefer plain, slightly unexpected phrasing over safe corporate transitions.",
   "Vary sentence length on purpose (burstiness): mix short blunt sentences with longer ones. Example rhythm: one longer sentence with commas, then a short one. Like this.",
-  "Do not write every sentence in the same subject-verb-object shape. Break the rhythm with questions, fragments, or direct statements.",
-  "Add information gain: include at least one specific named example, tool, platform, number, or first-hand scenario that generic summaries would skip.",
+  "Do not write every sentence in the same subject-verb-object shape. Break the rhythm with questions, fragments, asides in parentheses, or direct statements.",
+  "Start at least one paragraph mid-thought or with a concrete object ('The invoice sat unpaid for…', 'I closed the tab after…') instead of a thesis sentence.",
+  "Add information gain: include at least one specific named example, tool, platform, number, dollar amount, or first-hand scenario that generic summaries would skip.",
   "Add entity depth: mention concrete specifics for the topic (product names, metrics, workflows, customer types) instead of generic advice anyone could paste.",
   "Do not cover the same generic subtopics in the same order as every other article on the topic. Pick one angle and go deep on it.",
+  "Admit one limitation or wasted-time moment. Perfect confident advice reads as synthetic.",
   "No summary closer. End on one sharp practical sentence, not a recap.",
   "Never open with 'I would not treat [topic] like a box to check' or stack 'I would check that first' filler — those are automated-patch patterns that fail external AI detectors.",
-  "Never use tutorial headings like 'What X can actually do' or 'Regular analysis is crucial' — use opinionated, topic-specific headings instead."
+  "Never use tutorial headings like 'What X can actually do' or 'Regular analysis is crucial' — use opinionated, topic-specific headings instead.",
+  "Ban smooth AI cadence: no 'Here's the thing:', no 'At the end of the day', no 'The reality is', no 'Let's be honest', no 'In other words' stacks.",
+  "Prefer contractions (don't, won't, it's) and occasional incomplete sentences that still read cleanly."
 ];
 
 export const OWNER_VOICE_REWRITE_GUIDE = [
@@ -578,6 +603,21 @@ export const OWNER_VOICE_BANNED_PATTERNS: RegExp[] = [
   /\bon the other hand\b/i,
   /\bthat cater to\b/i,
   /\bunique value proposition\b/i,
+  /\bhere'?s the thing\b/i,
+  /\bat the end of the day\b/i,
+  /\bthe reality is\b/i,
+  /\blet'?s be honest\b/i,
+  /\bin other words\b/i,
+  /\bto put it simply\b/i,
+  /\brevolutioniz/i,
+  /\bempower(ing|s)?\b/i,
+  /\bcutting[- ]edge\b/i,
+  /\bholistic\b/i,
+  /\bin today'?s\b/i,
+  /\bdigital landscape\b/i,
+  /\bstand out from the (crowd|competition)\b/i,
+  /\bwhether you'?re a\b/i,
+  /\bthat being said\b/i,
   /\bone[- ]size[- ]fits[- ]all\b/i,
   /\bpricing is more art than science\b/i,
   /\btest and iterate\b/i,

@@ -16,6 +16,7 @@
     "articles:publish-owner-voice-trend": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/publish-owner-voice-trend-article.ts",
     "articles:publish-owner-voice-recovery": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/publish-owner-voice-recovery-batch.ts",
     "articles:publish-owner-voice-core": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/publish-owner-voice-core-batch.ts",
+    "articles:publish-owner-voice-all-categories": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/publish-owner-voice-all-categories.ts",
     "ingest:trends:clear": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/clear-trends.ts",
     "ingest:trends:backfill-images": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/backfill-trends-images.ts",
     "ingest:trends:improve": "node --env-file=.env.local ./node_modules/tsx/dist/cli.mjs scripts/improve-trend-articles.ts",

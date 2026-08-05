@@ -7,6 +7,7 @@
 export const OWNER_VOICE_AUTHENTICITY_CRITERIA = [
   "Open with a specific lived scenario, mistake, or observation — not a reusable skepticism template like 'I would not treat X like a box to check' or 'I would not treat X like magic.'",
   "Prefer story hooks: something you signed up for, bought, tested, wasted time on, or saw a client do wrong. Name a real situation before giving advice.",
+  "Sound less AI: use contractions, uneven paragraph lengths, one slightly awkward but honest sentence, and zero motivational-blog cadence.",
   "Use opinionated section headings tied to the topic — e.g. 'The mistake is turning on AI before you have one real email' — never generic tutorial labels like 'What AI can actually do', 'Regular analysis is crucial', or 'Choosing the right tool matters'.",
   "When comparing tools, give plain when-to-use lines (Mailchimp is fine when…, HubSpot makes more sense when…) — not feature-dump bullets labeled Automation and Personalization.",
   "Do not use colon-then-bullet feature lists (**Automation**: …, **Personalization**: …). Write short standalone paragraphs or dash lines without category labels.",
@@ -14,7 +15,7 @@ export const OWNER_VOICE_AUTHENTICITY_CRITERIA = [
   "Only add internal site links when they fit the topic naturally. Do not force unrelated tool plugs (e.g. Business Data Generator on an email marketing piece).",
   "End on one sharp practical sentence. No recap paragraph, no 'use them wisely and they will serve you well' closer.",
   "For AEO: always include ## Quick Answer and 3+ scannable body sections; target 250–350 words with links woven inline.",
-  "Avoid detector magnets: transform, supercharge, enhance effectiveness, provide insights, crucial, personalization (as buzzword), set-and-forget, regular analysis, over-optimizing, sounds like a dream, human oversight, legal pitfalls, not all tools are created equal, asking for trouble, take the wheel, not optional, necessity for any.",
+  "Avoid detector magnets: transform, supercharge, enhance effectiveness, provide insights, crucial, personalization (as buzzword), set-and-forget, regular analysis, over-optimizing, sounds like a dream, human oversight, legal pitfalls, not all tools are created equal, asking for trouble, take the wheel, not optional, necessity for any, here's the thing, at the end of the day, the reality is, landscape, ecosystem, journey, empower, elevate, revolutionize.",
   "Vary first person: use I/my for judgment, not stacked 'I would check' / 'I would still verify' filler injected to fake burstiness.",
   "key_takeaways should sound like notes you'd leave yourself — specific facts and actions, not corporate KPI language."
 ];
@@ -71,6 +72,15 @@ export const OWNER_VOICE_TUTORIAL_SKELETON_PATTERNS: RegExp[] = [
   /\btake the wheel\b/i,
   /\bthis is not optional\b/i,
   /\bnecessity for any\b/i,
+  /\bhere'?s the thing\b/i,
+  /\bat the end of the day\b/i,
+  /\bthe reality is\b/i,
+  /\blet'?s be honest\b/i,
+  /\bin other words,\b/i,
+  /\brevolutioniz/i,
+  /\bempower(ing|s|ed)?\b/i,
+  /\bdigital landscape\b/i,
+  /\bwhether you'?re a\b/i,
   /^##\s+choose tools that allow\b/im,
   /^##\s+AI's role is to assist\b/im,
   /^-\s+Use AI for initial drafts\b/im,
