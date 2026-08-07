@@ -4,6 +4,24 @@ import { isAdsenseReviewNoindexPath } from "@/lib/adsense-readiness";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const origin = request.nextUrl.origin;
+
+  // Aryam jewelry microsite — static files in public/aryam/.
+  if (pathname === "/aryam") {
+    return NextResponse.redirect(new URL("/aryam/", origin), 308);
+  }
+
+  if (pathname === "/aryam/" || pathname === "/aryam/index.html") {
+    return NextResponse.rewrite(new URL("/aryam/index.html", origin));
+  }
+
+  // Restore historical no-trailing-slash URLs for the rest of the site.
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    const lastSegment = pathname.slice(0, -1).split("/").pop() ?? "";
+    if (!lastSegment.includes(".")) {
+      return NextResponse.redirect(new URL(pathname.slice(0, -1), origin), 308);
+    }
+  }
 
   if (
     pathname === "/business-lead-generator" ||
