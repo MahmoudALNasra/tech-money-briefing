@@ -120,20 +120,36 @@
   ];
   var usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
   var CACHE_KEY = "aryamGoldSpot";
+  var lastSpot = null;
+
+  function flash(el) {
+    if (REDUCED_MOTION) return;
+    el.classList.remove("flash");
+    void el.offsetWidth; /* restart the animation */
+    el.classList.add("flash");
+  }
 
   function renderGold(spot, updatedAt, fromCache) {
     var spotEl = $("#spotPrice");
-    if (spotEl) spotEl.textContent = usd.format(spot);
+    if (spotEl) {
+      spotEl.textContent = usd.format(spot);
+      if (!fromCache) flash(spotEl);
+    }
+
+    var deltaEl = $("#spotDelta");
+    if (deltaEl && !fromCache && lastSpot !== null && Math.abs(spot - lastSpot) >= 0.005) {
+      var diff = spot - lastSpot;
+      deltaEl.textContent = (diff > 0 ? "\u25B2 " : "\u25BC ") + usd.format(Math.abs(diff));
+      deltaEl.classList.toggle("up", diff > 0);
+      deltaEl.classList.toggle("down", diff < 0);
+    }
+    if (!fromCache) lastSpot = spot;
 
     KARATS.forEach(function (k) {
       var el = document.getElementById(k.id);
       if (!el) return;
       el.textContent = usd.format((spot / TROY_OZ_GRAMS) * k.purity);
-      if (!fromCache && !REDUCED_MOTION) {
-        el.classList.remove("flash");
-        void el.offsetWidth; /* restart the flash animation */
-        el.classList.add("flash");
-      }
+      if (!fromCache) flash(el);
     });
 
     var updated = $("#priceUpdated");
@@ -142,7 +158,7 @@
       var stamp = when.toLocaleString("en-US", {
         timeZone: "America/Chicago",
         month: "short", day: "numeric",
-        hour: "numeric", minute: "2-digit"
+        hour: "numeric", minute: "2-digit", second: "2-digit"
       });
       updated.textContent = (fromCache ? "Last known price · " : "Live spot price · updated ") + stamp + " (Houston time)";
     }
