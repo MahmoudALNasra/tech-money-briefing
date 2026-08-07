@@ -492,7 +492,14 @@ td.price.flash { animation: price-flash 0.9s ease; }
 .gold-disclaimer a { border-bottom: 1px solid rgba(212, 175, 55, 0.35); }
 
 .gold-chart-card { display: flex; flex-direction: column; }
-.tradingview-widget-container { flex: 1; min-height: 340px; }
+.tradingview-widget-container { flex: 1; min-height: 400px; display: flex; flex-direction: column; }
+.tradingview-widget-container__widget { flex: 1; min-height: 360px; }
+.chart-hint {
+  margin: 0.8rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-style: italic;
+}
 .tradingview-widget-copyright {
   margin-top: 0.6rem;
   font-size: 0.75rem; color: var(--muted); text-align: right;
@@ -821,6 +828,8 @@ td.price.flash { animation: price-flash 0.9s ease; }
   .hero-cta { width: 100%; }
   .hero-cta .btn { flex: 1 1 100%; }
   .footer-hours p, .footer-contact p, .footer-contact address, .footer-links a { font-size: 0.88rem; }
+  .tradingview-widget-container { min-height: 340px; }
+  .tradingview-widget-container__widget { min-height: 300px; }
 }
 
 /* ---------- Motion preferences ---------- */

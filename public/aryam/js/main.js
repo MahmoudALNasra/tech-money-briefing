@@ -307,12 +307,14 @@
     return function () { tween.scrollTrigger && tween.scrollTrigger.kill(); tween.kill(); };
   });
 
-  /* Stat counters */
+  /* Stat counters — markup already holds the real values, so the count-up
+     is a pure enhancement (zero out only once GSAP is actually running) */
   $$(".stat-value[data-count]").forEach(function (el) {
     var target = parseFloat(el.getAttribute("data-count"));
     var decimals = parseInt(el.getAttribute("data-decimals") || "0", 10);
     var suffix = el.getAttribute("data-suffix") || "";
     var state = { v: 0 };
+    el.textContent = "0";
     ScrollTrigger.create({
       trigger: el,
       start: "top 90%",

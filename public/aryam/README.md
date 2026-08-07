@@ -56,7 +56,8 @@ sitemap.xml     Single-URL sitemap for the subfolder
   24K/22K/21K/18K are computed client-side (spot ÷ 31.1035 g/ozt × purity).
   If the API is unreachable the page falls back to the last cached price
   (localStorage) or a graceful "call us" message.
-- **Gold chart:** TradingView free embed widget (XAU/USD, 12-month view). No key.
+- **Gold chart:** TradingView free "symbol overview" embed widget (XAU/USD) — interactive
+  in-page: tap/hover price readouts and switchable ranges (1D to All). No key.
 - **Map:** standard Google Maps embed iframe. No key.
 - Ticker, price table and timestamps all render in Houston time (America/Chicago).
 

@@ -372,26 +372,54 @@
           </div>
 
           <div class="gold-chart-card" data-reveal>
-            <!-- TradingView widget -->
+            <!-- TradingView interactive chart: range tabs + tap/hover readouts, all in-page -->
             <div class="tradingview-widget-container">
               <div class="tradingview-widget-container__widget"></div>
               <div class="tradingview-widget-copyright">
                 <a href="https://www.tradingview.com/symbols/XAUUSD/" rel="noopener nofollow" target="_blank"><span>Gold price chart</span></a> by TradingView
               </div>
-              <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+              <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
               {
-                "symbol": "OANDA:XAUUSD",
+                "symbols": [
+                  ["Gold Spot / U.S. Dollar", "OANDA:XAUUSD|12M"]
+                ],
+                "chartOnly": false,
                 "width": "100%",
-                "height": 340,
+                "height": "100%",
                 "locale": "en",
-                "dateRange": "12M",
                 "colorTheme": "dark",
+                "autosize": true,
+                "showVolume": false,
+                "showMA": false,
+                "hideDateRanges": false,
+                "hideMarketStatus": true,
+                "hideSymbolLogo": true,
+                "scalePosition": "right",
+                "scaleMode": "Normal",
+                "fontFamily": "Trebuchet MS, Roboto, Ubuntu, sans-serif",
+                "fontSize": "11",
+                "noTimeScale": false,
+                "valuesTracking": "1",
+                "changeMode": "price-and-percent",
+                "chartType": "area",
+                "lineWidth": 2,
+                "lineColor": "rgba(212, 175, 55, 1)",
+                "topColor": "rgba(212, 175, 55, 0.22)",
+                "bottomColor": "rgba(212, 175, 55, 0)",
                 "isTransparent": true,
-                "autosize": false,
-                "chartOnly": false
+                "dateRanges": [
+                  "1d|15",
+                  "1w|60",
+                  "1m|240",
+                  "3m|1D",
+                  "12m|1D",
+                  "60m|1W",
+                  "all|1M"
+                ]
               }
               </script>
             </div>
+            <p class="chart-hint">Tap or hover the chart for exact prices — switch ranges (1D to All) right here on the page.</p>
           </div>
         </div>
 
@@ -436,9 +464,9 @@
             <li>Service in Arabic and English — <span lang="ar" dir="rtl">نتحدث العربية</span></li>
           </ul>
           <div class="stats" data-reveal>
-            <div class="stat"><span class="stat-value" data-count="4.9" data-decimals="1">0</span><span class="stat-label">Google rating</span></div>
-            <div class="stat"><span class="stat-value" data-count="172" data-suffix="+">0</span><span class="stat-label">Google reviews</span></div>
-            <div class="stat"><span class="stat-value" data-count="7">0</span><span class="stat-label">Days open / week</span></div>
+            <div class="stat"><span class="stat-value" data-count="4.9" data-decimals="1">4.9</span><span class="stat-label">Google rating</span></div>
+            <div class="stat"><span class="stat-value" data-count="172" data-suffix="+">172+</span><span class="stat-label">Google reviews</span></div>
+            <div class="stat"><span class="stat-value" data-count="7">7</span><span class="stat-label">Days open / week</span></div>
             <div class="stat"><span class="stat-value">21·22K</span><span class="stat-label">Signature karats</span></div>
           </div>
         </div>
