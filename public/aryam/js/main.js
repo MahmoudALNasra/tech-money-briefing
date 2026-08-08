@@ -122,6 +122,29 @@
   var CACHE_KEY = "aryamGoldSpot";
   var lastSpot = null;
 
+  /* Spot gold trades ~23h on weekdays; it is frozen Fri 4 PM – Sun 5 PM CT
+     and during the daily 4–5 PM CT settlement break. Say so, or a static
+     price looks like a broken feed. */
+  function goldMarketStatus() {
+    var now = houstonNow();
+    var CLOSE = 16 * 60, OPEN = 17 * 60;
+    if (now.day === 6 || (now.day === 5 && now.minutes >= CLOSE) || (now.day === 0 && now.minutes < OPEN)) {
+      return {
+        open: false,
+        note: "Market closed for the weekend — live prices resume Sunday 5 PM (Houston time).",
+        tick: "Market closed · resumes Sun 5 PM"
+      };
+    }
+    if (now.minutes >= CLOSE && now.minutes < OPEN) {
+      return {
+        open: false,
+        note: "Market on its daily break — live prices resume at 5 PM (Houston time).",
+        tick: "Market break · back at 5 PM"
+      };
+    }
+    return { open: true };
+  }
+
   function flash(el) {
     if (REDUCED_MOTION) return;
     el.classList.remove("flash");
@@ -130,10 +153,12 @@
   }
 
   function renderGold(spot, updatedAt, fromCache) {
+    var market = goldMarketStatus();
+
     var spotEl = $("#spotPrice");
     if (spotEl) {
       spotEl.textContent = usd.format(spot);
-      if (!fromCache) flash(spotEl);
+      if (!fromCache && market.open) flash(spotEl);
     }
 
     var deltaEl = $("#spotDelta");
@@ -149,7 +174,7 @@
       var el = document.getElementById(k.id);
       if (!el) return;
       el.textContent = usd.format((spot / TROY_OZ_GRAMS) * k.purity);
-      if (!fromCache) flash(el);
+      if (!fromCache && market.open) flash(el);
     });
 
     var updated = $("#priceUpdated");
@@ -160,12 +185,19 @@
         month: "short", day: "numeric",
         hour: "numeric", minute: "2-digit", second: "2-digit"
       });
-      updated.textContent = (fromCache ? "Last known price · " : "Live spot price · updated ") + stamp + " (Houston time)";
+      if (fromCache) {
+        updated.textContent = "Last known price · " + stamp + " (Houston time)";
+      } else if (market.open) {
+        updated.textContent = "Live spot price · updated " + stamp + " (Houston time)";
+      } else {
+        updated.textContent = market.note;
+      }
     }
 
     var perGram21 = usd.format((spot / TROY_OZ_GRAMS) * 0.875);
     var perGram22 = usd.format((spot / TROY_OZ_GRAMS) * 0.9167);
     var tickerHTML =
+      (market.open ? "" : '<span class="tick"><b>' + market.tick + "</b></span>") +
       '<span class="tick"><b>Gold ' + usd.format(spot) + "/oz</b></span>" +
       '<span class="tick">21K <b>' + perGram21 + '/g</b> <span lang="ar">عيار ٢١</span></span>' +
       '<span class="tick">22K <b>' + perGram22 + '/g</b> <span lang="ar">عيار ٢٢</span></span>' +
