@@ -7,12 +7,23 @@ export function middleware(request: NextRequest) {
   const origin = request.nextUrl.origin;
 
   // Aryam jewelry microsite — static files in public/aryam/.
-  if (pathname === "/aryam") {
-    return NextResponse.redirect(new URL("/aryam/", origin), 308);
-  }
+  if (pathname === "/aryam" || pathname.startsWith("/aryam/")) {
+    if (pathname === "/aryam") {
+      return NextResponse.redirect(new URL("/aryam/", origin), 308);
+    }
 
-  if (pathname === "/aryam/" || pathname === "/aryam/index.html") {
-    return NextResponse.rewrite(new URL("/aryam/index.html", origin));
+    const lastSegment = pathname.split("/").pop() ?? "";
+    const looksLikeFile = lastSegment.includes(".");
+
+    if (!looksLikeFile && !pathname.endsWith("/")) {
+      return NextResponse.redirect(new URL(`${pathname}/`, origin), 308);
+    }
+
+    if (pathname.endsWith("/")) {
+      return NextResponse.rewrite(new URL(`${pathname}index.html`, origin));
+    }
+
+    return NextResponse.next();
   }
 
   // Restore historical no-trailing-slash URLs for the rest of the site.
