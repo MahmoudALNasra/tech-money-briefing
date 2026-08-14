@@ -8,6 +8,20 @@ const nextConfig = {
   turbopack: {
     root: projectRoot
   },
+  async redirects() {
+    return [
+      {
+        source: "/aryam",
+        destination: "https://aryam.us/",
+        permanent: true
+      },
+      {
+        source: "/aryam/:path*",
+        destination: "https://aryam.us/:path*",
+        permanent: true
+      }
+    ];
+  },
   async headers() {
     return [
       {

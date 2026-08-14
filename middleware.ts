@@ -5,6 +5,13 @@ import { isAdsenseReviewNoindexPath } from "@/lib/adsense-readiness";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Aryam moved to its own domain.
+  if (pathname === "/aryam" || pathname.startsWith("/aryam/")) {
+    const target = new URL(pathname.replace(/^\/aryam/, "") || "/", "https://aryam.us");
+    target.search = request.nextUrl.search;
+    return NextResponse.redirect(target, 308);
+  }
+
   if (
     pathname === "/business-lead-generator" ||
     pathname === "/business-data-generator"
