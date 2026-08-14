@@ -8,9 +8,6 @@ const nextConfig = {
   turbopack: {
     root: projectRoot
   },
-  // Allow /aryam/ to keep its trailing-slash canonical; middleware strips
-  // trailing slashes everywhere else to preserve existing SEO URLs.
-  skipTrailingSlashRedirect: true,
   async headers() {
     return [
       {

@@ -8,12 +8,7 @@ import { SiteScrollProgress } from "@/components/layout/SiteScrollProgress";
 import { ReferralNudge } from "@/components/referrals/ReferralNudge";
 
 function isStandalonePath(pathname: string | null) {
-  return (
-    pathname === "/aseel" ||
-    pathname?.startsWith("/aseel/") ||
-    pathname === "/aryam" ||
-    pathname?.startsWith("/aryam/")
-  );
+  return pathname === "/aseel" || pathname?.startsWith("/aseel/");
 }
 
 export function ConditionalSiteChrome({

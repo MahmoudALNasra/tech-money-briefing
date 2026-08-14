@@ -4,35 +4,6 @@ import { isAdsenseReviewNoindexPath } from "@/lib/adsense-readiness";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const origin = request.nextUrl.origin;
-
-  // Aryam jewelry microsite — static files in public/aryam/.
-  if (pathname === "/aryam" || pathname.startsWith("/aryam/")) {
-    if (pathname === "/aryam") {
-      return NextResponse.redirect(new URL("/aryam/", origin), 308);
-    }
-
-    const lastSegment = pathname.split("/").pop() ?? "";
-    const looksLikeFile = lastSegment.includes(".");
-
-    if (!looksLikeFile && !pathname.endsWith("/")) {
-      return NextResponse.redirect(new URL(`${pathname}/`, origin), 308);
-    }
-
-    if (pathname.endsWith("/")) {
-      return NextResponse.rewrite(new URL(`${pathname}index.html`, origin));
-    }
-
-    return NextResponse.next();
-  }
-
-  // Restore historical no-trailing-slash URLs for the rest of the site.
-  if (pathname.length > 1 && pathname.endsWith("/")) {
-    const lastSegment = pathname.slice(0, -1).split("/").pop() ?? "";
-    if (!lastSegment.includes(".")) {
-      return NextResponse.redirect(new URL(pathname.slice(0, -1), origin), 308);
-    }
-  }
 
   if (
     pathname === "/business-lead-generator" ||

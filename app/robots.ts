@@ -21,10 +21,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow
     },
-    sitemap: [
-      absoluteUrl("/sitemap.xml"),
-      absoluteUrl("/aryam/sitemap.xml")
-    ],
+    sitemap: absoluteUrl("/sitemap.xml"),
     host: siteConfig.url
   };
 }

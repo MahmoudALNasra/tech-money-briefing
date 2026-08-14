@@ -31,285 +31,276 @@ type OwnerVoiceArticle = {
 
 const ARTICLES: OwnerVoiceArticle[] = [
   {
-    slug: "i-stopped-chasing-new-ai-tools-every-monday-heres-the-boring-stack-i-kept",
+    slug: "chatgpt-projects-vs-claude-projects-what-i-use-when-briefs-pile-up",
     category: "ai-tools",
-    title: "I Stopped Chasing New AI Tools Every Monday. Here's the Boring Stack I Kept",
+    title: "ChatGPT Projects vs Claude Projects: What I Use When Briefs Pile Up",
     meta_description:
-      "A practical AI tools stack for operators tired of launch FOMO: what I kept, what I deleted, and the weekly checks that actually matter.",
+      "A practical split between ChatGPT Projects and Claude Projects for operators: drafts, long docs, and when a fresh chat is still better.",
     key_takeaways: [
-      "Keep one writing model, one coding assistant, and one research tab. Kill the rest for 30 days.",
-      "If a tool doesn't cut edit time on real work in week one, it's entertainment.",
-      "Track cost per finished task, not cost per token."
+      "Use one Project per client or product — not one mega Project for everything.",
+      "Claude wins on long messy docs; ChatGPT wins on quick drafts and sheet talk.",
+      "If the Project is full of stale PDFs, archive it and start clean."
     ],
-    source_url: "editorial://owner-voice/ai-tools-boring-stack-2026-08",
+    source_url: "editorial://owner-voice/chatgpt-vs-claude-projects-2026-08",
     imageSourceUrl: "https://www.anthropic.com/",
-    content: `I had seventeen AI bookmarks by March. Half of them needed a new login every time OpenAI, Anthropic, or Google shipped a badge. None of them made Friday quieter.
+    content: `I used to dump every PDF into one chat thread. By week three the model was arguing with a brief I'd already killed. Projects fixed some of that. Not all of it.
 
 ## Quick Answer
 
-Pick one default chat model, one coding helper, and one search/research tool. Run the same five work tasks for two weeks. Keep what lowers edit time. Delete the rest without a funeral.
+Open a Project per live engagement. Put only the current brief, brand voice, and last approved draft inside. Use [Claude](https://claude.ai/) when the packet is long. Use [ChatGPT](https://chatgpt.com/) when you need a fast first pass. Delete the Project when the job ships.
 
-## The Monday FOMO tax
+## What I put in a Project
 
-I'd open [ChatGPT](https://chatgpt.com/), then [Claude](https://claude.ai/), then whatever launched on Product Hunt. Same prompt. Slightly different tone. Same rewrite afterward.
+- One brief
+- One style note (short)
+- The last client-approved version
 
-The cost wasn't the subscription. It was context switching. I'd lose twenty minutes deciding which window "felt smarter."
+I don't upload the entire Drive folder. The model gets confused. So do I.
 
-## What survived
+## When I still open a blank chat
 
-- [ChatGPT](https://chatgpt.com/) for messy first drafts and spreadsheet talk
-- [Claude](https://claude.ai/) when the doc is long and I need careful wording
-- Cursor (or Copilot) only inside the repo — not as a second chat habit
+Pricing objections. Angry support replies. Anything where old context makes the tone softer than it should be.
 
-That's it. No "AI meeting notes" tool until someone else owns the notes.
+Compare deeper stacks on [ChatGPT vs Claude vs Gemini](/ai-tools/chatgpt-vs-claude-vs-gemini-for-writing-a-practical-comparison) if you're still shopping. For daily work, two Projects beat twelve tabs.
 
-## The test I use now
+## The cleanup rule
 
-Five tasks. Same every week: contract summary, support reply, SOP rewrite, sheet explanation, code note.
+Friday: archive finished Projects. If I can't name the live job in five seconds, the Project is junk.
 
-I time how long until the output is shippable. If a new model doesn't beat the incumbent by a clear margin twice, it doesn't get a seat.
+Keep the folder thin. The model isn't your filing cabinet.`
+  },
+  {
+    slug: "i-killed-three-ad-audiences-after-one-honest-ga4-look",
+    category: "digital-marketing",
+    title: "I Killed Three Ad Audiences After One Honest GA4 Look",
+    meta_description:
+      "How I prune paid audiences using GA4 engaged sessions and conversion paths — not vanity CTR — after wasting budget on lookalikes.",
+    key_takeaways: [
+      "Judge audiences on engaged sessions and purchases, not CTR alone.",
+      "Kill lookalikes that never show up in conversion paths.",
+      "Rebuild from buyers and high-intent site events first."
+    ],
+    source_url: "editorial://owner-voice/kill-ad-audiences-ga4-2026-08",
+    imageSourceUrl: "https://blog.google/products/ads-commerce/",
+    content: `CTR looked fine. Spend looked fine. Pipeline looked like a polite shrug. So I opened [GA4](https://analytics.google.com/) without the ad-platform glasses on.
+
+## Quick Answer
+
+Export your last 28 days of converting users. See which audiences actually appear in paths. Pause anything that burns budget and never shows up. Rebuild from purchasers and form-submit events before you invent another lookalike.
+
+## What the report said
+
+Three audiences drove clicks. Zero showed in purchase paths. They were expensive tourists.
+
+I kept the audience built from trial starts. I killed the "interest" stack that felt smart in the ad UI.
+
+## The boring rebuild
+
+1. Purchasers (180 days)
+2. People who hit pricing twice
+3. Newsletter subscribers who clicked a product link
+
+That's it. UTMs stay clean — see the [UTM builder](/utm-builder) if your tags are still freestyle.
+
+## What I tell clients
+
+If Meta or Google loves an audience and GA4 never mentions it, believe GA4 until proven wrong.
+
+Cut the tourists. Feed the buyers.`
+  },
+  {
+    slug: "search-console-queries-i-rewrote-titles-for-before-touching-content",
+    category: "seo",
+    title: "Search Console Queries I Rewrote Titles For Before Touching Content",
+    meta_description:
+      "A Search Console title-rewrite workflow: match money queries, fix mismatched titles, and only then edit the body.",
+    key_takeaways: [
+      "Titles that ignore the query you already rank for waste impressions.",
+      "Rewrite the title first; edit the body only if the promise still mismatches.",
+      "One primary query per URL — stop stuffing three intents into one H1."
+    ],
+    source_url: "editorial://owner-voice/gsc-title-rewrites-2026-08",
+    imageSourceUrl: "https://developers.google.com/search/docs/fundamentals/seo-starter-guide",
+    content: `I used to rewrite whole posts when rankings stalled. Half the time the body was fine. The title was lying.
+
+## Quick Answer
+
+In [Search Console](https://search.google.com/search-console), sort a page by queries. Pick the query with impressions that matches what you can honestly deliver. Rewrite the title and H1 to that query. Wait. Only then touch the body if CTR stays dead.
+
+## The mismatch I kept seeing
+
+Query: "utm parameters examples"  
+Title: "Ultimate Guide to Marketing Attribution"
+
+People bounced. Of course they did.
+
+## My rewrite checklist
+
+- Put the query language near the front
+- Drop "ultimate," "complete," and year spam unless the year matters
+- Keep it under ~60 characters when I can without sounding clipped
+
+Internal links help after the title tells the truth — not before.
+
+## When content actually needs work
+
+If the new title is honest and the page still answers a different question, then edit. Tools like [Ahrefs](https://ahrefs.com/) can wait until the on-page promise matches the click.
+
+Honest titles are free. Misleading titles tax every impression.`
+  },
+  {
+    slug: "shopify-collections-i-split-after-filters-stopped-helping",
+    category: "ecommerce",
+    title: "Shopify Collections I Split After Filters Stopped Helping",
+    meta_description:
+      "When to split Shopify collections instead of adding more filters — based on search queries, support tickets, and bounce on category pages.",
+    key_takeaways: [
+      "If shoppers search the same phrase, give it a collection — not another filter.",
+      "Split by use-case before you split by color.",
+      "Orphan products in 'All' are a tax on mobile."
+    ],
+    source_url: "editorial://owner-voice/shopify-collections-split-2026-08",
+    imageSourceUrl: "https://www.shopify.com/",
+    content: `I kept adding filters on a [Shopify](https://www.shopify.com/) collection until mobile looked like a cockpit. Support still asked "where's the travel size?"
+
+## Quick Answer
+
+When the same phrase shows up in site search and tickets, make a collection for it. Keep filters for true variants (size, color). Don't hide a demand spike behind three taps.
+
+## What I split
+
+- "Gifts under $50" — people typed it weekly
+- "Refills" — repeat buyers hunted it
+- "Starter kits" — new buyers bounced on the mega-collection
+
+I left color and size as filters. Those aren't destinations.
+
+## The test
+
+Open the collection on your phone on LTE. If you need a tutorial to find the obvious thing, split it.
+
+Platform debates like [Shopify vs WooCommerce](/compare/shopify-vs-woocommerce) can wait. Information architecture pays rent first.
 
 ## What I refuse
 
-I refuse tools that want my whole Google Drive on day one. I refuse "agents" that email customers without a human gate. I refuse another dashboard that shows green scores and no unpaid invoices.
+I refuse a single "All products" as the main nav item for catalogs over ~40 SKUs. That's a warehouse, not a storefront.
 
-Close the extra tabs. Your stack can be boring and still pay rent.`
+Give the search query a door.`
   },
   {
-    slug: "utm-tags-i-actually-use-after-ruining-a-month-of-ad-reporting",
-    category: "digital-marketing",
-    title: "UTM Tags I Actually Use After Ruining a Month of Ad Reporting",
+    slug: "onboarding-emails-i-cut-after-activation-barely-moved",
+    category: "startups",
+    title: "Onboarding Emails I Cut After Activation Barely Moved",
     meta_description:
-      "A short UTM naming system after a messy GA4 month: campaign, source, medium rules that keep paid and organic reports readable.",
+      "Trim a SaaS onboarding email sequence when activation is flat: keep the one email that drives the first value action.",
     key_takeaways: [
-      "One naming sheet. No freestyle UTMs from freelancers.",
-      "source = platform, medium = paid/organic/email, campaign = offer + month.",
-      "If two people invent different campaign strings, your report is fiction."
+      "Five polite emails aren't a product tour.",
+      "Keep the message that drives the first aha action; cut the rest for two weeks.",
+      "If activation is flat, fix the empty state before writing email #6."
     ],
-    source_url: "editorial://owner-voice/utm-tags-2026-08",
-    imageSourceUrl: "https://blog.google/products/ads-commerce/",
-    content: `Last year I let a contractor invent UTM names. [Google Analytics](https://analytics.google.com/) showed twelve versions of the same Facebook ad. I spent a weekend merging ghosts.
+    source_url: "editorial://owner-voice/cut-onboarding-emails-2026-08",
+    imageSourceUrl: "https://stripe.com/",
+    content: `We had a seven-email onboarding drip. Activation moved like a parked car. The sequence was a novel about features nobody had tried.
 
 ## Quick Answer
 
-Standardize three fields: source, medium, campaign. Write them lowercase with underscores. Put the rules in a shared sheet. Reject any link that doesn't match before it goes live.
+Pause every onboarding email except the one that pushes the first value action (import data, connect account, create first project). Measure two weeks. If activation still flat, fix the in-app empty state — don't write email eight.
 
-## What broke
+## What I kept
 
-Someone used \`fb\`, \`facebook\`, and \`Facebook Ads\` in the same month. Medium flipped between \`cpc\`, \`paid\`, and \`paidsocial\`. Campaign names included the client's first name once. Once.
-
-[Search Console](https://search.google.com/search-console) wasn't the problem. My hygiene was.
-
-## Rules that stuck
-
-- source: facebook, google, linkedin, newsletter
-- medium: paid, organic, email, referral
-- campaign: offer_month — like \`audit_aug26\`
-
-No spaces. No Title Case. No "final_v2_REAL".
-
-Use a [UTM builder](/utm-builder) if people keep improvising. Then audit weekly for junk strings.
-
-## The boring habit
-
-Every Friday I export the last seven days of campaigns and look for duplicates that mean the same click. If I find one, I fix the sheet, not the narrative.
-
-Clean tags won't make bad ads good. Dirty tags will make good ads look random.`
-  },
-  {
-    slug: "i-fixed-three-pages-before-buying-another-seo-suite",
-    category: "seo",
-    title: "I Fixed Three Pages Before Buying Another SEO Suite",
-    meta_description:
-      "Before another Semrush or Ahrefs seat, fix cannibalization, thin pages, and internal links. A cheaper SEO order of operations.",
-    key_takeaways: [
-      "Merge competing URLs before you buy more keyword credits.",
-      "Fix titles and internal links on money pages first.",
-      "Suites help after the site stops fighting itself."
-    ],
-    source_url: "editorial://owner-voice/seo-three-pages-2026-08",
-    imageSourceUrl: "https://developers.google.com/search/docs/fundamentals/seo-starter-guide",
-    content: `I almost renewed a big SEO suite seat because rankings felt stuck. Then I opened [Search Console](https://search.google.com/search-console) and found three URLs swapping for the same query. The suite wasn't going to fix that.
-
-## Quick Answer
-
-Before you pay for another crawler seat, pick your top three money pages. Kill cannibalization, rewrite weak titles, and add internal links from pages that already get impressions. Tools come after the site stops arguing with itself.
-
-## Page one: the twin
-
-Two posts both targeted "keyword cluster." Both mediocre. I merged them into one URL and redirected the loser. Impressions didn't explode overnight. The bounce between twins stopped.
-
-## Page two: the vague title
-
-A title like "SEO Tips for Growth" ranks for nothing useful. I rewrote it around the query people already used in GSC. Same article. Clearer promise.
-
-## Page three: the orphan
-
-Good page. Zero internal links. I added three links from related posts and the category hub. Not fancy. Just findable.
-
-## When suites earn their keep
-
-After that cleanup, [Semrush](https://www.semrush.com/) or [Ahrefs](https://ahrefs.com/) help with gaps and competitors. See [Semrush vs Ahrefs](/compare/semrush-vs-ahrefs) if you're choosing. Buying them to ignore cannibalization is expensive denial.
-
-Fix the three pages. Then shop.`
-  },
-  {
-    slug: "shopify-product-pages-i-wont-launch-until-these-five-lines-exist",
-    category: "ecommerce",
-    title: "Shopify Product Pages I Won't Launch Until These Five Lines Exist",
-    meta_description:
-      "A Shopify product page checklist from launch mistakes: who it's for, proof, shipping truth, returns, and one clear CTA.",
-    key_takeaways: [
-      "Say who the product is for in the first screen.",
-      "Put shipping and returns where anxious buyers look.",
-      "One primary CTA. Secondary links don't compete with Buy."
-    ],
-    source_url: "editorial://owner-voice/shopify-product-pages-2026-08",
-    imageSourceUrl: "https://www.shopify.com/",
-    content: `I launched a [Shopify](https://www.shopify.com/) product once with pretty photos and a poetic description. Support inbox filled with "does this fit a queen mattress?" I had buried the size chart.
-
-## Quick Answer
-
-Don't publish a product page until it states who it's for, what problem it solves, proof someone bought it, shipping/return truth, and one obvious buy button. Pretty copy is optional. Those five aren't.
-
-## The five lines
-
-1. Who it's for — in plain words near the price
-2. What changes after they buy — not vibes, outcome
-3. Proof — review, photo, or "used by X shops" if true
-4. Shipping and returns — above the fold on mobile if you sell physical goods
-5. CTA — Buy / Add to cart. Not "Learn more" fighting Buy
+One email: "Do this one thing in the next 10 minutes" with a deep link. No feature parade.
 
 ## What I cut
 
-I cut metaphor paragraphs. I cut "crafted with passion." I cut three competing buttons.
+- "Welcome to the community"
+- "Here's everything we can do"
+- "Case study you didn't ask for" on day two
 
-If you're comparing platforms later, [Shopify vs WooCommerce](/compare/shopify-vs-woocommerce) is fine. First make the page answer the anxious question out loud.
+Billing can stay on [Stripe](https://stripe.com/). Onboarding can't stay on wishful copy.
 
-## The 10-minute test
+## The awkward truth
 
-Read the page on your phone in a loud cafe. If you can't tell size, shipping time, and return window without zooming into a FAQ, it's not ready.
+If people need five emails to understand the product, the first screen failed.
 
-Ship the boring clarity. Romance can wait for email flows.`
+Ship the aha in the product. Email is a nudge, not a second UI.`
   },
   {
-    slug: "saas-pricing-page-mistakes-that-made-demos-feel-awkward",
-    category: "startups",
-    title: "SaaS Pricing Page Mistakes That Made Demos Feel Awkward",
-    meta_description:
-      "Pricing page fixes for early SaaS: clearer tiers, honest limits, and a path for people who aren't ready to talk to sales.",
-    key_takeaways: [
-      "Name what breaks at each tier in numbers, not adjectives.",
-      "Give a self-serve path even if enterprise is the dream.",
-      "If sales needs a call to explain the middle tier, the page failed."
-    ],
-    source_url: "editorial://owner-voice/saas-pricing-mistakes-2026-08",
-    imageSourceUrl: "https://stripe.com/",
-    content: `I sat on a demo where the prospect asked what "Growth" included. I opened our pricing page and realized I didn't know either. We'd written "advanced automation" three times.
-
-## Quick Answer
-
-Rewrite tiers with numbers: seats, contacts, projects, API calls. Add a cheap self-serve plan. Save "Contact sales" for stuff that actually needs a human. If you can't explain a tier in one breath, rename it or delete it.
-
-## Mistakes that stung
-
-- Adjective tiers: Starter / Growth / Scale with no limits
-- Hiding the annual discount until checkout
-- Forcing a call for a $29 plan
-
-People aren't dumb. They smell fog.
-
-## What I put on the page now
-
-Each tier gets three bullets max with numbers. A fourth bullet only if it's a real limiter.
-
-I link a [SaaS pricing calculator](/saas-pricing-calculator) when founders are still guessing. Billing choice ([Stripe vs Paddle](/compare/stripe-vs-paddle)) comes after the offer is clear.
-
-## The awkward demo fix
-
-If a prospect asks "what's the difference?" and you paste the page into Zoom, you've already lost. Fix the page before the next call.
-
-Clear prices feel brave. Foggy prices feel like you're hiding.`
-  },
-  {
-    slug: "i-almost-switched-billing-providers-over-one-tax-email",
+    slug: "invoice-reminders-that-got-paid-without-sounding-hostile",
     category: "fintech",
-    title: "I Almost Switched Billing Providers Over One Tax Email",
+    title: "Invoice Reminders That Got Paid Without Sounding Hostile",
     meta_description:
-      "Stripe vs merchant-of-record thinking after a tax scare: when to stay on Stripe and when Paddle-style MoR is worth the fee.",
+      "A practical invoice reminder cadence for freelancers and small SaaS: timing, tone, and what to attach so payments land.",
     key_takeaways: [
-      "One scary tax email isn't a strategy — map volume by country first.",
-      "Stripe is fine if someone owns tax config weekly.",
-      "MoR fees hurt less than unpaid founder nights on VAT rules."
+      "Remind before due, on due, then once with consequences — not daily guilt.",
+      "Attach the invoice PDF and payment link every time.",
+      "CC finance only after the second miss — not as a first move."
     ],
-    source_url: "editorial://owner-voice/billing-tax-email-2026-08",
+    source_url: "editorial://owner-voice/invoice-reminders-2026-08",
     imageSourceUrl: "https://www.paddle.com/",
-    content: `The email subject was calm. The body wasn't. Something about VAT registrations I thought we'd handled in [Stripe](https://stripe.com/) Tax. I didn't sleep great.
+    content: `I used to write essay-length reminder emails. People paid slower. Short + clear + link worked better than moral lectures.
 
 ## Quick Answer
 
-Don't rip out Stripe because one email panicked you. Pull last-quarter revenue by country. If cross-border volume is real and nobody owns tax weekly, price a merchant-of-record option like [Paddle](https://www.paddle.com/). If volume is mostly domestic and you have a finance owner, fix Stripe config and stay.
+Day −3: friendly heads-up with PDF + pay link. Day 0: due today, same attachments. Day +5: firm note with late policy you already stated on the invoice. Stop. Call if it's still open.
 
-## What I checked before migrating
+## Templates I actually send
 
-- Where buyers actually are
-- Current fee drag
-- Who answers dispute emails
-- Whether checkout customization still matters
+**Before due:** "Invoice {{number}} is due {{date}}. Link + PDF attached — yell if the PO changed."
 
-Migration week is a product outage with paperwork. Treat it like one.
+**Due day:** "Due today. Same link. Reply if you need it resent to AP."
 
-## When MoR won the spreadsheet
+**Late:** "Still open. Late fee starts {{date}} per our terms. Happy to jump on a five-minute call."
 
-For a small B2C SaaS selling into the EU without a finance hire, MoR fees beat founder nights reading tax posts. For a B2B tool with US-heavy volume and a bookkeeper, Stripe stayed.
+Tools matter less than cadence — [Stripe](https://stripe.com/) invoicing or [Paddle](https://www.paddle.com/) for MoR shops. See [Stripe vs Paddle](/compare/stripe-vs-paddle) when you're choosing rails.
 
-Details live on [Stripe vs Paddle](/compare/stripe-vs-paddle). The email was a symptom. Ownership was the disease.
+## What I stopped doing
 
-## The rule I kept
+I stopped apologizing for asking to be paid. I stopped CC'ing the CEO on email one.
 
-Someone's name goes next to "tax config" every Monday. If that name is empty, you're already in migration territory — you just haven't admitted it.`
+Clear beats clever. Attach the PDF every time.`
   },
   {
-    slug: "newsletter-monetization-i-wont-pitch-sponsors-until-these-numbers-exist",
+    slug: "creator-rate-card-i-use-after-undercharging-two-brand-deals",
     category: "creator-business",
-    title: "Newsletter Monetization: I Won't Pitch Sponsors Until These Numbers Exist",
+    title: "Creator Rate Card I Use After Undercharging Two Brand Deals",
     meta_description:
-      "Before sponsor pitches: open rate, click rate, list quality, and a media kit that doesn't apologize. Practical newsletter monetization checks.",
+      "A simple creator rate card: deliverables, usage, rush fees, and when to say no — written after two underpriced brand deals.",
     key_takeaways: [
-      "Sponsors buy attention you can prove — opens, clicks, audience fit.",
-      "A media kit with vanity subs and no engagement is a soft no.",
-      "One honest niche pitch beats five spray-and-pray emails."
+      "Price the deliverable and the usage window separately.",
+      "Rush fees are real — put them on the card before the ask.",
+      "If they want 'exposure' instead of a number, decline fast."
     ],
-    source_url: "editorial://owner-voice/newsletter-sponsors-2026-08",
+    source_url: "editorial://owner-voice/creator-rate-card-2026-08",
     imageSourceUrl: "https://www.beehiiv.com/",
-    content: `I pitched a sponsor with "12k subs." They asked for open rate. I mumbled. That was the end of the thread.
+    content: `I took two brand deals at "friends and family" rates. Both wanted revisions into next month. I built a rate card so I'd stop negotiating from guilt.
 
 ## Quick Answer
 
-Don't pitch until you can show 30-day open rate, click rate, audience description, and two past issues. Build the kit before the outreach. Platforms like [Beehiiv](https://www.beehiiv.com/) or [Substack](https://substack.com/) help ship — they don't invent proof.
+Publish a one-pager: deliverable prices, usage length, rush fee, revision limit. Send the card before you hop on a call. Platforms like [Beehiiv](https://www.beehiiv.com/) help you prove audience — the card protects your time.
 
-## Numbers I keep in the kit
+## What's on my card
 
-- Active subs (not historical signups)
-- Avg open rate last 30 days
-- Avg click rate last 30 days
-- Who reads (job titles / niche), not "everyone interested in tech"
+- Dedicated newsletter send
+- Inline mention
+- Short-form video (length + platforms)
+- Usage: 30 / 90 / perpetual
+- Rush: under 5 business days
 
-If opens are soft, fix subject lines and list hygiene before you sell inventory. A [newsletter revenue calculator](/newsletter-revenue-calculator) is fine for planning. It's not a pitch.
+Two revisions included. Extra rounds are billed.
 
-## Pitch shape that didn't get ignored
+## The line that saved me
 
-One paragraph on the audience. One on results. One on format (logo, copy length, exclusivity). Price. Deadline.
+"Happy to scope a custom package — here's the starting menu."
 
-No novel. No "synergy."
+No apology. No 900-word pitch.
 
-Compare [Beehiiv vs Substack](/compare/beehiiv-vs-substack) when you're choosing tools. Proof comes from the list, not the CMS.
+Compare distribution tools later ([Beehiiv vs Substack](/compare/beehiiv-vs-substack)). Undercharging isn't a growth strategy.
 
-## The line I won't cross
+## After the card
 
-I won't sell a dedicated send against a list I wouldn't advertise to my own customers. Short-term cash. Long-term unsubscribe bomb.
+I still discount strategically. I just discount from a number, not from zero.
 
-Earn the numbers. Then ask.`
+Write the card once. Stop improvising your worth on Zoom.`
   }
 ];
 
