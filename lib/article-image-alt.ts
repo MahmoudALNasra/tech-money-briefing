@@ -1,4 +1,4 @@
-import { getOpenAIClient } from "@/lib/openai";
+import { getOpenAIClient, isOpenAIEnabled } from "@/lib/openai";
 
 export type ImageAltReference = {
   referenceTitle: string;
@@ -148,7 +148,7 @@ export async function buildArticleImageAlts(input: {
     return [];
   }
 
-  if (!process.env.OPENAI_API_KEY?.trim()) {
+  if (!isOpenAIEnabled() || !process.env.OPENAI_API_KEY?.trim()) {
     return buildHeuristicArticleImageAlts(input);
   }
 

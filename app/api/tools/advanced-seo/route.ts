@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { logUsageEvent } from "@/lib/business-data-tokens";
-import { getOpenAIClient } from "@/lib/openai";
+import { getOpenAIClient, isOpenAIEnabled } from "@/lib/openai";
 
 type AdvancedSeoTool = "keyword-cluster" | "serp-intent" | "content-gap";
 
@@ -359,6 +359,10 @@ async function runContentGap(input: {
 }
 
 export async function POST(request: Request) {
+  if (!isOpenAIEnabled()) {
+    return NextResponse.json({ error: "This tool is turned off." }, { status: 503 });
+  }
+
   try {
     const body = (await request.json()) as Record<string, unknown>;
     const tool = String(body.tool ?? "") as AdvancedSeoTool;

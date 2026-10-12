@@ -4,6 +4,11 @@ import { loadLocalEnv } from "../lib/load-env";
 
 loadLocalEnv();
 
+if (process.env.OPENAI_ENABLED !== "true") {
+  console.log("[ingest] OpenAI is disabled. Set OPENAI_ENABLED=true to run.");
+  process.exit(0);
+}
+
 function getNumberArg(name: string, fallback: number) {
   const prefix = `--${name}=`;
   const arg = process.argv.find((value) => value.startsWith(prefix));

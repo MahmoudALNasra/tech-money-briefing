@@ -6,9 +6,13 @@ import {
   buildAseelSystemPrompt,
   type AseelChatMessage
 } from "@/lib/aseel-chat";
-import { getOpenAIClient } from "@/lib/openai";
+import { getOpenAIClient, isOpenAIEnabled } from "@/lib/openai";
 
 export async function POST(request: Request) {
+  if (!isOpenAIEnabled()) {
+    return NextResponse.json({ error: "Chat is turned off." }, { status: 503 });
+  }
+
   try {
     const body = (await request.json()) as {
       message?: string;

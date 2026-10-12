@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getOpenAIClient } from "@/lib/openai";
+import { getOpenAIClient, isOpenAIEnabled } from "@/lib/openai";
 import { FREE_TOOLS } from "@/lib/free-tools";
 import { getRecommendedToolsForText } from "@/lib/tool-recommendations";
 import { getRelatedTools, getToolPageSeo } from "@/lib/tool-pages";
@@ -19,6 +19,10 @@ function buildToolCatalog() {
 }
 
 export async function POST(request: Request) {
+  if (!isOpenAIEnabled()) {
+    return NextResponse.json({ error: "Assistant is turned off." }, { status: 503 });
+  }
+
   try {
     const body = (await request.json()) as {
       message?: string;

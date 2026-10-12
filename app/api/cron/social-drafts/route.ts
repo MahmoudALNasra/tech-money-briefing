@@ -2,6 +2,7 @@ export const maxDuration = 120;
 
 import { NextResponse } from "next/server";
 
+import { isOpenAIEnabled } from "@/lib/openai";
 import { runDailySocialDrafts } from "@/lib/social-drafts/run";
 
 export const runtime = "nodejs";
@@ -20,6 +21,14 @@ export async function GET(request: Request) {
 
   if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!isOpenAIEnabled()) {
+    return NextResponse.json({
+      ok: true,
+      skipped: true,
+      reason: "openai_disabled"
+    });
   }
 
   try {

@@ -45,6 +45,11 @@ const supabase = createClient(
   { auth: { persistSession: false } }
 );
 
+if (process.env.OPENAI_ENABLED !== "true") {
+  console.log("OpenAI is disabled. Set OPENAI_ENABLED=true to run.");
+  process.exit(0);
+}
+
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const onlyOthers = process.argv.includes("--others-only");

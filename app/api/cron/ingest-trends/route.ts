@@ -3,6 +3,7 @@ export const maxDuration = 300;
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { isOpenAIEnabled } from "@/lib/openai";
 import { runTrendsIngestion } from "@/lib/trends-ingestion";
 
 export const runtime = "nodejs";
@@ -34,11 +35,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (process.env.DISABLE_AUTO_ARTICLE_PUBLISH === "true") {
+  if (!isOpenAIEnabled() || process.env.DISABLE_AUTO_ARTICLE_PUBLISH === "true") {
     return NextResponse.json({
       ok: true,
       skipped: true,
-      reason: "auto_article_publish_disabled"
+      reason: isOpenAIEnabled() ? "auto_article_publish_disabled" : "openai_disabled"
     });
   }
 
