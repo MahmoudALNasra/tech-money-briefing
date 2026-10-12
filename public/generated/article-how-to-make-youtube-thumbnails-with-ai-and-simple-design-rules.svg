@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="How to Make YouTube Thumbnails With AI and Simple Design Rules">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="YouTube thumbnails with AI — I would not let the model pick my click">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#047857" />
-      <stop offset="55%" stop-color="#10b981" />
-      <stop offset="100%" stop-color="#6ee7b7" />
+      <stop offset="0%" stop-color="#6b21a8" />
+      <stop offset="55%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#e9d5ff" />
     </linearGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#bg)" />
@@ -12,7 +12,6 @@
   <circle cx="1040" cy="120" r="120" fill="rgba(255,255,255,0.08)" />
   <circle cx="180" cy="520" r="160" fill="rgba(255,255,255,0.06)" />
   <text x="72" y="118" fill="#ecfdf5" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" letter-spacing="3">CREATOR BUSINESS</text>
-  <text x="72" y="250" fill="#ffffff" font-family="Arial, Helvetica, sans-serif"><tspan x="72" dy="0" font-size="44" font-weight="800">How to Make YouTube</tspan><tspan x="72" dy="54" font-size="44" font-weight="800">Thumbnails With AI and</tspan><tspan x="72" dy="54" font-size="44" font-weight="800">Simple Design Rules</tspan></text>
-  <text x="72" y="440" fill="#e2e8f0" font-family="Arial, Helvetica, sans-serif"><tspan x="72" dy="0" font-size="24" font-weight="600" fill="#e2e8f0">Practical guide for</tspan><tspan x="72" dy="34" font-size="24" font-weight="600" fill="#e2e8f0">publishers and operators</tspan></text>
+  <text x="72" y="280" fill="#ffffff" font-family="Arial, Helvetica, sans-serif"><tspan x="72" dy="0" font-size="44" font-weight="800">YouTube thumbnails</tspan><tspan x="72" dy="54" font-size="44" font-weight="800">with AI — I would not</tspan><tspan x="72" dy="54" font-size="44" font-weight="800">let the model pick ...</tspan></text>
   <text x="72" y="580" fill="#f8fafc" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">Tech Revenue Brief</text>
 </svg>

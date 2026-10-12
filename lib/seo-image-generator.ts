@@ -122,8 +122,9 @@ export function writeSeoSvgFile(filename: string, svg: string) {
 export function buildArticleSeoImage(input: {
   title: string;
   category: string;
+  slug?: string;
 }) {
-  const filename = `article-${slugifyFilename(input.title)}.svg`;
+  const filename = `article-${input.slug || slugifyFilename(input.title)}.svg`;
   const svg = buildSeoSvg({
     eyebrow: input.category.replace(/-/g, " "),
     headline: input.title,
@@ -220,7 +221,8 @@ export async function generateSeoImages(
 
       const imagePath = buildArticleSeoImage({
         title: article.title,
-        category: article.category
+        category: article.category,
+        slug: article.slug
       });
 
       const { error: updateError } = await supabase
